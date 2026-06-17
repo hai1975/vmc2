@@ -14,7 +14,8 @@ def _build_form_tool() -> types.Tool:
             types.FunctionDeclaration(
                 name="update_form_field",
                 description=(
-                    "Persist one form field extracted from the patient's spoken answer. "
+                    "Persist one form field ONLY after the patient explicitly confirmed the value. "
+                    "Never call this before confirmation. "
                     "Use exact field_id from schema. Encode value as JSON string "
                     '(e.g. "John", true, ["asian"], "medi_cal"). '
                     "For insurance use field_id=insurance with value uninsured|medi_cal|ppo|hmo. "

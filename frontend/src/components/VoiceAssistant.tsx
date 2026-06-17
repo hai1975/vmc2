@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, startTransition } from 'react'
 import { api } from '../api/client'
 import { ConnectionRingtone } from '../lib/connection-ring'
 import { GeminiLiveSession, type GeminiLiveStatus } from '../lib/gemini-live-session'
@@ -99,7 +99,9 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
           },
           onFieldUpdate: async (fieldId, value) => {
             const updated = await api.updateAnswers(sessionId, { [fieldId]: value })
-            onAnswersUpdate(updated.answers)
+            startTransition(() => {
+              onAnswersUpdate(updated.answers)
+            })
             const progress = await api.getFormProgress(sessionId)
             return { ...progress }
           },

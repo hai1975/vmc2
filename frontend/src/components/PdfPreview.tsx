@@ -10,43 +10,75 @@ interface PdfPreviewProps {
 }
 
 export function PdfPreview({ sessionId, answers, language, embedded = false }: PdfPreviewProps) {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [displayUrl, setDisplayUrl] = useState<string | null>(null)
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null)
+  const [initialLoading, setInitialLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
-  const blobUrlRef = useRef<string | null>(null)
+  const displayUrlRef = useRef<string | null>(null)
+  const pendingUrlRef = useRef<string | null>(null)
+  const requestIdRef = useRef(0)
   const answersKey = JSON.stringify(answers)
+
+  const revokeUrl = (url: string | null) => {
+    if (url) URL.revokeObjectURL(url)
+  }
+
+  const clearAllUrls = () => {
+    revokeUrl(displayUrlRef.current)
+    revokeUrl(pendingUrlRef.current)
+    displayUrlRef.current = null
+    pendingUrlRef.current = null
+    setDisplayUrl(null)
+    setPendingUrl(null)
+  }
 
   useEffect(() => {
     if (!sessionId) {
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current)
-        blobUrlRef.current = null
-      }
-      setPdfUrl(null)
+      clearAllUrls()
       setError('')
-      setLoading(false)
+      setInitialLoading(false)
+      setRefreshing(false)
       return
     }
 
     let cancelled = false
+    const reqId = ++requestIdRef.current
+    const hasPdf = Boolean(displayUrlRef.current)
+    const debounceMs = hasPdf ? 500 : 0
+
     const timer = window.setTimeout(async () => {
-      setLoading(true)
+      if (!hasPdf) setInitialLoading(true)
+      else setRefreshing(true)
       setError('')
+
       try {
         const blob = await api.fetchPdfBlob(sessionId)
-        if (cancelled) return
+        if (cancelled || reqId !== requestIdRef.current) return
+
         const url = URL.createObjectURL(blob)
-        if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
-        blobUrlRef.current = url
-        setPdfUrl(url)
+
+        if (!displayUrlRef.current) {
+          displayUrlRef.current = url
+          setDisplayUrl(url)
+          setInitialLoading(false)
+          setRefreshing(false)
+          return
+        }
+
+        if (pendingUrlRef.current) {
+          revokeUrl(pendingUrlRef.current)
+        }
+        pendingUrlRef.current = url
+        setPendingUrl(url)
       } catch (err) {
-        if (cancelled) return
+        if (cancelled || reqId !== requestIdRef.current) return
         setError(err instanceof Error ? err.message : 'Preview failed')
-        setPdfUrl(null)
-      } finally {
-        if (!cancelled) setLoading(false)
+        setInitialLoading(false)
+        setRefreshing(false)
+        if (!displayUrlRef.current) clearAllUrls()
       }
-    }, 600)
+    }, debounceMs)
 
     return () => {
       cancelled = true
@@ -56,9 +88,22 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
 
   useEffect(() => {
     return () => {
-      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+      revokeUrl(displayUrlRef.current)
+      revokeUrl(pendingUrlRef.current)
     }
   }, [])
+
+  const handlePendingLoad = () => {
+    const next = pendingUrlRef.current
+    if (!next) return
+
+    revokeUrl(displayUrlRef.current)
+    displayUrlRef.current = next
+    pendingUrlRef.current = null
+    setDisplayUrl(next)
+    setPendingUrl(null)
+    setRefreshing(false)
+  }
 
   const body = (
     <>
@@ -70,42 +115,50 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
         </div>
       )}
 
-      {sessionId && loading && !pdfUrl && (
+      {sessionId && initialLoading && !displayUrl && (
         <div className="pdf-preview-empty">
           {language === 'vi' ? 'Đang tải PDF...' : 'Loading PDF...'}
         </div>
       )}
 
-      {sessionId && pdfUrl && (
-        <iframe
-          className="pdf-preview-frame"
-          src={pdfUrl}
-          title={language === 'vi' ? 'Xem trước PDF' : 'PDF Preview'}
-        />
+      {sessionId && displayUrl && (
+        <div className="pdf-preview-viewport">
+          {refreshing && (
+            <span className="pdf-preview-live-badge">
+              {language === 'vi' ? 'Đang cập nhật...' : 'Updating...'}
+            </span>
+          )}
+          <iframe
+            className="pdf-preview-frame"
+            src={displayUrl}
+            title={language === 'vi' ? 'Xem trước PDF' : 'PDF Preview'}
+          />
+          {pendingUrl && (
+            <iframe
+              className="pdf-preview-frame pdf-preview-frame--preload"
+              src={pendingUrl}
+              title=""
+              tabIndex={-1}
+              aria-hidden
+              onLoad={handlePendingLoad}
+            />
+          )}
+        </div>
       )}
     </>
   )
 
   if (embedded) {
-    return (
-      <div className="pdf-preview-card embedded">
-        {loading && pdfUrl && (
-          <span className="pdf-preview-status">
-            {language === 'vi' ? 'Đang cập nhật...' : 'Updating...'}
-          </span>
-        )}
-        {body}
-      </div>
-    )
+    return <div className="pdf-preview-card embedded">{body}</div>
   }
 
   return (
     <section className="card pdf-preview-card">
       <div className="pdf-preview-header">
         <h2>{language === 'vi' ? 'Xem trước PDF' : 'PDF Preview'}</h2>
-        {loading && pdfUrl && (
+        {refreshing && (
           <span className="pdf-preview-status">
-            {language === 'vi' ? 'Đang cập nhật...' : 'Updating...'}
+            {language === 'vi' ? 'Live — đang cập nhật' : 'Live — updating'}
           </span>
         )}
       </div>

@@ -296,6 +296,35 @@
   min-height: 480px;
 }
 
+.pdf-preview-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 480px;
+}
+
+.pdf-preview-live-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  font-size: 0.75rem;
+  color: #0f4c81;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #dbe5f0;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  pointer-events: none;
+}
+
+.pdf-preview-frame--preload {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+}
+
 .pdf-preview-status {
   font-size: 0.8rem;
   color: #6b7280;
@@ -377,6 +406,8 @@
 
 .answer-preview {
   color: #6b7280;
+  min-height: 1.2em;
+  font-size: 0.8rem;
 }
 
 .alert {
