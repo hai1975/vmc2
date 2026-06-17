@@ -1,0 +1,15 @@
+data/
+.env
+backend/.env
+deploy/upload/
+*.db
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+.DS_Store
+pdf_analysis.txt
+pdf_full.txt

@@ -1,0 +1,80 @@
+import type { FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? ''
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
+    ...init,
+  })
+  if (!res.ok) {
+    const raw = await res.text()
+    try {
+      const parsed = JSON.parse(raw) as { detail?: string | { errors?: string[] } }
+      if (typeof parsed.detail === 'string') {
+        throw new Error(parsed.detail)
+      }
+      if (parsed.detail && typeof parsed.detail === 'object' && parsed.detail.errors) {
+        throw new Error(parsed.detail.errors.join(', '))
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message !== raw) {
+        throw error
+      }
+    }
+    throw new Error(raw || `Request failed: ${res.status}`)
+  }
+  return res.json() as Promise<T>
+}
+
+export const api = {
+  listForms: () => request<FormSummary[]>('/api/forms'),
+  getSchema: (formId: string) => request<FormSchema>(`/api/forms/${formId}/schema`),
+  createSession: (formId: string, language: string) =>
+    request<FormSession>('/api/sessions', {
+      method: 'POST',
+      body: JSON.stringify({ form_id: formId, language }),
+    }),
+  getSession: (sessionId: string) => request<FormSession>(`/api/sessions/${sessionId}`),
+  getFormProgress: (sessionId: string) =>
+    request<FormProgress>(`/api/sessions/${sessionId}/form-progress`),
+  updateAnswers: (sessionId: string, answers: Record<string, unknown>) =>
+    request<FormSession>(`/api/sessions/${sessionId}/answers`, {
+      method: 'PATCH',
+      body: JSON.stringify({ answers, merge: true }),
+    }),
+  saveSession: (sessionId: string) =>
+    request<FormSession>(`/api/sessions/${sessionId}/save`, { method: 'POST' }),
+  submitSession: (sessionId: string) =>
+    request<FormSession>(`/api/sessions/${sessionId}/submit`, { method: 'POST' }),
+  getVoiceConfig: (sessionId: string) =>
+    request<VoiceConfig>(`/api/sessions/${sessionId}/voice-config`),
+  createLiveToken: (sessionId: string) =>
+    request<LiveToken>(`/api/sessions/${sessionId}/live-token`, { method: 'POST' }),
+  pdfUrl: (sessionId: string) => `${API_BASE}/api/sessions/${sessionId}/pdf`,
+  fetchPdfBlob: async (sessionId: string) => {
+    const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/pdf`)
+    if (!res.ok) {
+      const raw = await res.text()
+      try {
+        const parsed = JSON.parse(raw) as { detail?: string }
+        throw new Error(parsed.detail || raw)
+      } catch (error) {
+        if (error instanceof Error && error.message !== raw) throw error
+        throw new Error(raw || `Preview failed: ${res.status}`)
+      }
+    }
+    return res.blob()
+  },
+  downloadPdf: async (sessionId: string, filename: string) => {
+    const blob = await api.fetchPdfBlob(sessionId)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  },
+}

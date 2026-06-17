@@ -1,0 +1,10 @@
+frontend/
+deploy/upload/
+.git/
+**/__pycache__/
+**/*.pyc
+**/.env
+backend/.env
+data/
+*.md
+.cursor/

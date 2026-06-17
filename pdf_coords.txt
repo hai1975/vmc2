@@ -1,0 +1,55 @@
+﻿page size: 612.0 792.0
+y=80-97 x=208 | ─É╞áN GHI DANH Bß╗åNH NH├éN Mß╗ÜI
+y=104-121 x=36 | Hß╗ì v├á t├¬n bß╗çnh nh├ón:
+y=125-141 x=36 | Ng├áy sinh:
+y=125-141 x=360 | Sß╗æ SSN:
+y=145-162 x=36 | Ng╞░ß╗¥i gi├ím hß╗Ö hß╗úp ph├íp cß╗ºa bß╗çnh nh├ón:
+y=145-162 x=396 | Mß╗æi quan hß╗ç:
+y=166-183 x=36 | Ng╞░ß╗¥i gi├ím hß╗Ö hß╗úp ph├íp cß╗ºa bß╗çnh nh├ón:
+y=166-183 x=396 | Mß╗æi quan hß╗ç:
+y=187-203 x=36 | ─Éß╗ïa chß╗ë nh├á:
+y=207-224 x=36 | Sß╗æ ─æiß╗çn thoß║íi:
+y=207-224 x=288 | Email:
+y=230-247 x=36 | Bß║úo hiß╗âm:
+y=225-252 x=108 | Γ¥É Medi-Cal
+y=225-252 x=216 | Γ¥É PPO
+y=225-252 x=324 | Γ¥É HMO
+y=225-252 x=432 | Γ¥É Kh├┤ng c├│
+y=254-282 x=36 | Chß╗ºng tß╗Öc:  Γ¥É Ch├óu ├ü
+y=254-282 x=216 | Γ¥É Da trß║»ng
+y=254-282 x=324 | Γ¥É Ng╞░ß╗¥i Mß╗╣ gß╗æc Phi
+y=270-298 x=108 | Γ¥É Ng╞░ß╗¥i da ─æß╗Å bß║ún ─æß╗ïa hoß║╖c ng╞░ß╗¥i Alaska bß║ún ─æß╗ïa Γ¥É Chß╗ºng tß╗Öc kh├íc, xin 
+y=286-314 x=108 | Γ¥É Ng╞░ß╗¥i Hawaii bß║ún ─æß╗ïa hoß║╖c ng╞░ß╗¥i ─æß║úo Th├íi B├¼nh D╞░╞íng kh├íc
+y=321-338 x=36 | D├ón tß╗Öc:
+y=316-344 x=108 | Γ¥É Gß╗æc T├óy Ban Nha hoß║╖c La-tinh
+y=316-344 x=288 | Γ¥É Kh├┤ng gß╗æc T├óy Ban Nha hoß║╖c La-tinh
+y=316-344 x=504 | Γ¥É Kh├┤ng r├╡
+y=351-368 x=36 | Giß╗¢i t├¡nh:
+y=346-373 x=108 | Γ¥É Nam
+y=346-373 x=180 | Γ¥É Nß╗»
+y=346-373 x=252 | Γ¥É Chß╗ìn kh├┤ng tiß║┐t lß╗Ö
+y=346-373 x=396 | Γ¥É Kh├íc:
+y=362-389 x=36 | Γ¥É Nß╗» chuyß╗ân sang Nam (FTM) / Nam chuyß╗ân giß╗¢i / Ng╞░ß╗¥i chuyß╗ân giß╗¢i nam
+y=378-405 x=36 | Γ¥É Nam chuyß╗ân sang Nß╗» (MTF) / Nß╗» chuyß╗ân giß╗¢i / Ng╞░ß╗¥i chuyß╗ân giß╗¢i nß╗»
+y=394-421 x=36 | Γ¥É Giß╗¢i t├¡nh phi nhß╗ï nguy├¬n, kh├┤ng ho├án to├án l├á nam hoß║╖c nß╗»
+y=423-451 x=36 | Xu h╞░ß╗¢ng t├¼nh dß╗Ñc:  Γ¥É ─Éß╗ông t├¡nh nß╗», ─æß╗ông t├¡nh nam, hoß║╖c ─æß╗ông t├¡nh n├│i 
+y=439-467 x=36 | Γ¥É Song t├¡nh
+y=439-467 x=144 | Γ¥É Kh├┤ng biß║┐t
+y=439-467 x=252 | Γ¥É Chß╗ìn kh├┤ng tiß║┐t lß╗Ö
+y=439-467 x=432 | Γ¥É Kh├íc:
+y=473-489 x=36 | T├¬n nh├á thuß╗æc:
+y=473-489 x=288 | Sß╗æ ─æiß╗çn thoß║íi nh├á thuß╗æc:
+y=500-517 x=36 | ─Éß╗ÆNG ├¥ ─ÉIß╗ÇU TRß╗è:
+y=514-530 x=36 | T├┤i cho ph├⌐p Ph├▓ng kh├ím VM, c├íc b├íc s─⌐, y t├í, trß╗ú l├╜ b├íc s─⌐ v├á c├íc chu
+y=530-546 x=36 | t├¼nh trß║íng bß╗çnh l├╜ cß╗ºa t├┤i. T├┤i hiß╗âu rß║▒ng ─æiß╗üu n├áy c├│ thß╗â bao gß╗ôm kh├ím
+y=546-562 x=36 | y tß║┐ v├á c├íc thß╗º tß╗Ñc cß║ºn thiß║┐t kh├íc.
+y=562-578 x=36 | T├┤i hiß╗âu rß║▒ng mß╗ìi thß╗º thuß║¡t v├á ─æiß╗üu trß╗ï sß║╜ ─æ╞░ß╗úc giß║úi th├¡ch r├╡ r├áng, ba
+y=578-594 x=36 | c├óu hß╗Åi v├á nhß║¡n ─æ╞░ß╗úc c├óu trß║ú lß╗¥i r├╡ r├áng. T├┤i c├│ quyß╗ün tß╗½ chß╗æi hoß║╖c r├║
+y=594-610 x=36 | ─æiß╗üu n├áy c├│ thß╗â ß║únh h╞░ß╗ƒng ─æß║┐n viß╗çc ch─âm s├│c sß╗⌐c khß╗Åe cß╗ºa t├┤i.
+y=609-626 x=36 | T├┤i chß╗ïu tr├ích nhiß╗çm thanh to├ín c├íc dß╗ïch vß╗Ñ, bao gß╗ôm c├íc khoß║ún kh├┤ng ─æ
+y=625-642 x=36 | to├ín c├íc khoß║ún ─æß╗ông chi trß║ú, khß║Ñu trß╗½ hoß║╖c chi ph├¡ kh├íc. T├┤i hiß╗âu rß║▒ng
+y=641-657 x=36 | ─æß╗ông chi trß║ú cß║ºn ─æ╞░ß╗úc thß╗▒c hiß╗çn tß║íi thß╗¥i ─æiß╗âm cung cß║Ñp dß╗ïch vß╗Ñ.
+y=657-673 x=36 | T├┤i cho ph├⌐p v─ân ph├▓ng n├áy thay mß║╖t t├┤i y├¬u cß║ºu quyß╗ün lß╗úi bß║úo hiß╗âm cho
+y=673-689 x=36 | T├┤i cam ─æoan th├┤ng tin bß║úo hiß╗âm t├┤i cung cß║Ñp l├á ─æ├║ng sß╗▒ thß║¡t.
+y=705-721 x=36 | Chß╗» k├╜ bß╗çnh nh├ón (hoß║╖c Ng╞░ß╗¥i ─æß║íi diß╗çn hß╗úp ph├íp):
+y=705-721 x=468 | Ng├áy:

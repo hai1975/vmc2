@@ -1,0 +1,16 @@
+# Production — copy to backend/.env on server
+GEMINI_API_KEY=
+
+GEMINI_LIVE_MODEL=gemini-3.1-flash-live-preview
+
+FORM_DIR=Form
+SCHEMA_DIR=schemas
+DATA_DIR=data
+
+DATABASE_URL=sqlite:///./data/vmc.db
+
+# Must include your public site
+CORS_ORIGINS=https://hai1975.com,https://www.hai1975.com
+
+# cPanel app URL hai1975.com/vmc-api
+API_MOUNT_PATH=/vmc-api

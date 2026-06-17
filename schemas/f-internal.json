@@ -1,0 +1,71 @@
+{
+  "id": "f-internal",
+  "filename": "f-internal.pdf",
+  "title": {
+    "vi": "Đơn ghi danh nội bộ",
+    "en": "Internal Patient Registration Form"
+  },
+  "version": "1.0.0",
+  "default": false,
+  "sections": [
+    {
+      "id": "personal",
+      "title": { "vi": "Thông tin cá nhân", "en": "Personal Information" },
+      "order": 1
+    }
+  ],
+  "fields": [
+    {
+      "id": "patient_name",
+      "type": "text",
+      "label": { "vi": "Họ và tên bệnh nhân", "en": "Patient Name" },
+      "voice_prompt": {
+        "vi": "Xin cho biết họ và tên đầy đủ của bạn?",
+        "en": "What is your full legal name?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal",
+      "validation": { "x": 180, "y": 720 }
+    },
+    {
+      "id": "birthday",
+      "type": "date",
+      "label": { "vi": "Ngày sinh", "en": "Birthday" },
+      "voice_prompt": {
+        "vi": "Ngày sinh của bạn là ngày nào?",
+        "en": "What is your date of birth?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal",
+      "validation": { "x": 120, "y": 700 }
+    },
+    {
+      "id": "home_phone",
+      "type": "phone",
+      "label": { "vi": "Số điện thoại nhà", "en": "Home Phone" },
+      "voice_prompt": {
+        "vi": "Số điện thoại nhà của bạn là gì?",
+        "en": "What is your home phone number?"
+      },
+      "required": false,
+      "page": 1,
+      "section": "personal",
+      "validation": { "x": 130, "y": 620 }
+    },
+    {
+      "id": "cell_phone",
+      "type": "phone",
+      "label": { "vi": "Số di động", "en": "Cell Phone" },
+      "voice_prompt": {
+        "vi": "Số điện thoại di động của bạn là gì?",
+        "en": "What is your cell phone number?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal",
+      "validation": { "x": 280, "y": 620 }
+    }
+  ]
+}

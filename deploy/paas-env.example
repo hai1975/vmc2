@@ -1,0 +1,15 @@
+# Render / Railway — set in dashboard Environment variables (not in Git)
+GEMINI_API_KEY=
+
+GEMINI_LIVE_MODEL=gemini-3.1-flash-live-preview
+
+FORM_DIR=Form
+SCHEMA_DIR=schemas
+DATA_DIR=data
+
+DATABASE_URL=sqlite:////app/data/vmc.db
+
+CORS_ORIGINS=https://hai1975.com,https://www.hai1975.com
+
+# Leave empty on Render/Railway (only needed for cPanel subfolder)
+API_MOUNT_PATH=
