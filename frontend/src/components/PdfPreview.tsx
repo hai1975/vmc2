@@ -1,6 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { api } from '../api/client'
+import { isMobilePdfViewer } from '../lib/mobile-detect'
 import type { Language } from '../types'
+
+const PdfCanvasView = lazy(() =>
+  import('./PdfCanvasView').then((module) => ({ default: module.PdfCanvasView })),
+)
 
 interface PdfPreviewProps {
   sessionId: string | null
@@ -12,11 +17,14 @@ interface PdfPreviewProps {
 export function PdfPreview({ sessionId, answers, language, embedded = false }: PdfPreviewProps) {
   const [displayUrl, setDisplayUrl] = useState<string | null>(null)
   const [pendingUrl, setPendingUrl] = useState<string | null>(null)
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null)
   const [initialLoading, setInitialLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
+  const [mobileView] = useState(isMobilePdfViewer)
   const displayUrlRef = useRef<string | null>(null)
   const pendingUrlRef = useRef<string | null>(null)
+  const pdfBlobRef = useRef<Blob | null>(null)
   const requestIdRef = useRef(0)
   const answersKey = JSON.stringify(answers)
 
@@ -29,22 +37,26 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
     revokeUrl(pendingUrlRef.current)
     displayUrlRef.current = null
     pendingUrlRef.current = null
+    pdfBlobRef.current = null
     setDisplayUrl(null)
     setPendingUrl(null)
+    setPdfBlob(null)
   }
 
   useEffect(() => {
-    if (!sessionId) {
-      clearAllUrls()
-      setError('')
-      setInitialLoading(false)
-      setRefreshing(false)
-      return
-    }
+    clearAllUrls()
+    setError('')
+    setInitialLoading(false)
+    setRefreshing(false)
+    requestIdRef.current += 1
+  }, [sessionId])
+
+  useEffect(() => {
+    if (!sessionId) return
 
     let cancelled = false
     const reqId = ++requestIdRef.current
-    const hasPdf = Boolean(displayUrlRef.current)
+    const hasPdf = mobileView ? Boolean(pdfBlobRef.current) : Boolean(displayUrlRef.current)
     const debounceMs = hasPdf ? 500 : 0
 
     const timer = window.setTimeout(async () => {
@@ -55,6 +67,14 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
       try {
         const blob = await api.fetchPdfBlob(sessionId)
         if (cancelled || reqId !== requestIdRef.current) return
+
+        if (mobileView) {
+          pdfBlobRef.current = blob
+          setPdfBlob(blob)
+          setInitialLoading(false)
+          setRefreshing(false)
+          return
+        }
 
         const url = URL.createObjectURL(blob)
 
@@ -76,7 +96,7 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
         setError(err instanceof Error ? err.message : 'Preview failed')
         setInitialLoading(false)
         setRefreshing(false)
-        if (!displayUrlRef.current) clearAllUrls()
+        if (!displayUrlRef.current && !pdfBlobRef.current) clearAllUrls()
       }
     }, debounceMs)
 
@@ -84,7 +104,7 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [sessionId, answersKey])
+  }, [sessionId, answersKey, mobileView])
 
   useEffect(() => {
     return () => {
@@ -105,6 +125,8 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
     setRefreshing(false)
   }
 
+  const openUrl = sessionId ? api.pdfUrl(sessionId) : null
+
   const body = (
     <>
       {error && <div className="alert error pdf-preview-error">{error}</div>}
@@ -115,13 +137,32 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
         </div>
       )}
 
-      {sessionId && initialLoading && !displayUrl && (
+      {sessionId && initialLoading && !displayUrl && !pdfBlob && (
         <div className="pdf-preview-empty">
           {language === 'vi' ? 'Đang tải PDF...' : 'Loading PDF...'}
         </div>
       )}
 
-      {sessionId && displayUrl && (
+      {sessionId && mobileView && pdfBlob && (
+        <div className="pdf-preview-viewport">
+          <Suspense
+            fallback={
+              <div className="pdf-preview-empty">
+                {language === 'vi' ? 'Đang tải PDF...' : 'Loading PDF...'}
+              </div>
+            }
+          >
+            <PdfCanvasView
+              blob={pdfBlob}
+              language={language}
+              refreshing={refreshing}
+              openUrl={openUrl}
+            />
+          </Suspense>
+        </div>
+      )}
+
+      {sessionId && !mobileView && displayUrl && (
         <div className="pdf-preview-viewport">
           {refreshing && (
             <span className="pdf-preview-live-badge">
@@ -137,7 +178,7 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
             <iframe
               className="pdf-preview-frame pdf-preview-frame--preload"
               src={pendingUrl}
-              title=""
+              title={language === 'vi' ? 'PDF đang tải' : 'PDF loading'}
               tabIndex={-1}
               aria-hidden
               onLoad={handlePendingLoad}

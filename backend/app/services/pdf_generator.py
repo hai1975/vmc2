@@ -8,7 +8,7 @@ from reportlab.pdfgen import canvas
 
 from app.config import settings
 from app.models import FormSchema
-from app.services.form_registry import normalize_field_value
+from app.services.form_registry import normalize_field_value, SKIPPED_VALUE
 
 FONT_REGULAR = "VMC-Regular"
 FONT_BOLD = "VMC-Bold"
@@ -78,7 +78,7 @@ def _resolve_overlay_marks(field, value) -> list[tuple[str, float, float, str]]:
     meta = field.validation or {}
     marks: list[tuple[str, float, float, str]] = []
     value = normalize_field_value(field, value)
-    if value is None or value == "" or value == []:
+    if value is None or value == "" or value == [] or value == SKIPPED_VALUE:
         return marks
 
     if field.type in ("select", "multiselect") and meta.get("checkbox_positions"):
@@ -126,7 +126,7 @@ def generate_filled_pdf(
     overlays: dict[int, list[tuple[str, float, float, str]]] = {}
     for field in schema.fields:
         value = answers.get(field.id)
-        if value is None or value == "" or value == []:
+        if value is None or value == "" or value == [] or value == SKIPPED_VALUE:
             continue
         for mark in _resolve_overlay_marks(field, value):
             overlays.setdefault(field.page, []).append(mark)

@@ -9,6 +9,9 @@ interface AnswersPanelProps {
 }
 
 function formatValue(field: FormField, value: unknown, language: Language): string {
+  if (value === '__skipped__') {
+    return language === 'vi' ? 'Không có' : 'None'
+  }
   if (value === undefined || value === null || value === '') return '—'
   if (typeof value === 'boolean') return value ? '✓' : '✗'
   if (Array.isArray(value)) {

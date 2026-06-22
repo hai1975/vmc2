@@ -84,6 +84,9 @@ class FormProgressResponse(BaseModel):
     next_field_id: str | None = None
     ready_to_submit: bool = False
     all_fields_collected: bool = False
+    filled_count: int = 0
+    remaining_count: int = 0
+    total_fields: int = 0
     next_field_required: bool | None = None
     next_field_ask_en: str | None = None
     next_field_ask_vi: str | None = None

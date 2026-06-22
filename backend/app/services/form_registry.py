@@ -4,6 +4,35 @@ from pathlib import Path
 from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
 
+SKIPPED_VALUE = "__skipped__"
+
+SKIP_CASCADES: dict[str, list[str]] = {
+    "guardian_1_name": ["guardian_1_relationship"],
+}
+
+DECLINED_PHRASES = frozenset({
+    "none",
+    "n/a",
+    "na",
+    "skip",
+    "skipped",
+    "no",
+    "nope",
+    "không",
+    "khong",
+    "không có",
+    "khong co",
+    "decline",
+    "declined",
+    "not applicable",
+    "don't have",
+    "dont have",
+    "do not have",
+    "bỏ qua",
+    "bo qua",
+    SKIPPED_VALUE,
+})
+
 
 def _schema_id_from_filename(filename: str) -> str:
     return Path(filename).stem
@@ -43,7 +72,28 @@ def get_schema_or_raise(form_id: str) -> FormSchema:
 
 
 def _is_empty(value: object | None) -> bool:
+    if value == SKIPPED_VALUE:
+        return False
     return value is None or value == "" or value == []
+
+
+def _is_declined_answer(value: object) -> bool:
+    if value == SKIPPED_VALUE:
+        return True
+    text = str(value).strip().lower()
+    return text in DECLINED_PHRASES
+
+
+def apply_skip_cascades(schema: FormSchema, answers: dict) -> dict:
+    field_ids = {field.id for field in schema.fields}
+    merged = dict(answers)
+    for parent_id, child_ids in SKIP_CASCADES.items():
+        if merged.get(parent_id) != SKIPPED_VALUE:
+            continue
+        for child_id in child_ids:
+            if child_id in field_ids and child_id not in merged:
+                merged[child_id] = SKIPPED_VALUE
+    return merged
 
 
 def normalize_field_value(field: FormField, value: object) -> object | None:
@@ -54,16 +104,18 @@ def normalize_field_value(field: FormField, value: object) -> object | None:
         if isinstance(value, bool):
             return value
         text = str(value).strip().lower()
-        if text in ("true", "yes", "1", "y", "có", "co", "dong y", "đồng ý", "agree", "ok"):
+        if text in ("true", "yes", "1", "y", "có", "co", "dong y", "đồng ý", "agree", "ok", "vâng", "vang", "ừ", "uh"):
             return True
         if text in ("false", "no", "0", "n", "không", "khong", "decline", "none"):
             return False
         return value
 
     if not field.options:
-        text = str(value).strip()
-        if text.lower() in ("none", "n/a", "na", "skip", "no", "không", "khong"):
+        if _is_declined_answer(value):
+            if not field.required:
+                return SKIPPED_VALUE
             return None
+        text = str(value).strip()
         return text
 
     allowed = {opt.value: opt for opt in field.options}
@@ -148,6 +200,9 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
     next_field = field_map.get(next_field_id) if next_field_id else None
     ready_to_submit = len(missing_required) == 0
     all_fields_collected = len(missing_required) == 0 and len(missing_optional) == 0
+    total_fields = len(schema.fields)
+    filled_count = len(filled)
+    remaining_count = len(missing_required) + len(missing_optional)
 
     result: dict = {
         "filled_fields": filled,
@@ -156,6 +211,9 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
         "next_field_id": next_field_id,
         "ready_to_submit": ready_to_submit,
         "all_fields_collected": all_fields_collected,
+        "filled_count": filled_count,
+        "remaining_count": remaining_count,
+        "total_fields": total_fields,
     }
     if next_field:
         result["next_field_required"] = next_field.required
@@ -174,9 +232,9 @@ def normalize_answers(schema: FormSchema, answers: dict) -> dict:
         if not field:
             continue
         cleaned = normalize_field_value(field, value)
-        if not _is_empty(cleaned):
+        if cleaned == SKIPPED_VALUE or not _is_empty(cleaned):
             normalized[field_id] = cleaned
-    return normalized
+    return apply_skip_cascades(schema, normalized)
 
 
 def build_voice_system_instruction(
@@ -218,7 +276,21 @@ def build_voice_system_instruction(
         "  • For names, email, phone, and dates: spell or repeat clearly before confirming.",
         "  • Only after explicit confirmation, call update_form_field(field_id, value).",
         "- After each confirmed answer and update_form_field call, read next_field_id and ask that question next.",
-        "- If the patient declines an optional field, skip it and move to the next field in order.",
+        "- DECLINING / NONE ANSWERS (critical for optional fields):",
+        '  • If the patient says none / không có / skip / not applicable for an OPTIONAL field,',
+        '    confirm then call update_form_field(field_id, "__skipped__").',
+        "  • Declining IS an answer — you MUST still call update_form_field. Never just move on without saving.",
+        "  • __skipped__ means answered-with-nothing; the field leaves PDF blank but counts as done.",
+        "  • For insurance 'no insurance' use value uninsured (NOT __skipped__).",
+        "  • For boolean consent: no/không = false (NOT __skipped__).",
+        "  • For select optional fields: use an allowed value like not_disclose or unknown when patient",
+        "    prefers not to answer; use __skipped__ only when they explicitly skip the whole question.",
+        "- PROGRESS RULES (critical — do not invent numbers):",
+        "  • After each update_form_field, the tool returns filled_count, remaining_count, total_fields.",
+        "  • ONLY use those exact numbers if you mention progress — never guess or make up counts.",
+        "  • Do NOT randomly announce progress every turn. At most occasionally remind remaining_count.",
+        "  • If remaining_count is 0 and all_fields_collected is true, tell patient to click Submit.",
+        "- If the patient declines an optional field, save __skipped__ and move to next_field_id.",
         "- Encode value as JSON string: strings in quotes, booleans as true/false, arrays for multiselect.",
         "- For select/multiselect/boolean fields, ALWAYS use exact allowed_values — never save label text.",
         "- Example: insurance='uninsured' goes to field_id insurance, NOT guardian_1_name.",

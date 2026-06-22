@@ -63,6 +63,9 @@ export interface FormProgress {
   next_field_id: string | null
   ready_to_submit: boolean
   all_fields_collected?: boolean
+  filled_count?: number
+  remaining_count?: number
+  total_fields?: number
   next_field_ask_en?: string
   next_field_ask_vi?: string
 }

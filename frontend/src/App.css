@@ -356,6 +356,68 @@
   background: #f8fafc;
 }
 
+.pdf-canvas-view {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pdf-canvas-scroll {
+  flex: 1;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #dbe5f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 0.35rem;
+}
+
+.pdf-canvas-page {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto 0.5rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(15, 76, 129, 0.08);
+}
+
+.pdf-canvas-loading {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pdf-open-link {
+  align-self: flex-end;
+  margin-bottom: 0.35rem;
+  font-size: 0.8rem;
+  color: #0f4c81;
+  text-decoration: none;
+}
+
+.pdf-open-link:hover {
+  text-decoration: underline;
+}
+
+.pdf-embed-fallback {
+  width: 100%;
+  min-height: 300px;
+  flex: 1;
+  border: 1px solid #dbe5f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.pdf-open-fallback {
+  margin: 0.35rem 0 0;
+}
+
+.pdf-open-fallback a {
+  color: #0f4c81;
+}
+
 /* Answers */
 .answers-panel.embedded {
   max-height: calc(100vh - 280px);
@@ -453,5 +515,10 @@
 
   .pdf-preview-frame {
     min-height: 320px;
+  }
+
+  .pdf-canvas-scroll {
+    min-height: 300px;
+    max-height: calc(100vh - 280px);
   }
 }
