@@ -124,7 +124,7 @@ def submit_session(session_id: str, db: Session = Depends(get_db)):
     if errors:
         raise HTTPException(status_code=422, detail={"errors": errors})
 
-    pdf_path = generate_filled_pdf(row.form_id, schema, answers, row.id)
+    pdf_path = generate_filled_pdf(row.form_id, schema, answers, row.id, row.language)
     row.filled_pdf_path = str(pdf_path)
     row.status = SessionStatus.SUBMITTED.value
     row.submitted_at = datetime.now(timezone.utc)
@@ -145,7 +145,7 @@ def download_pdf(session_id: str, db: Session = Depends(get_db)):
 
     path = settings.output_pdf_dir / f"{session_id}_{row.form_id}.pdf"
     try:
-        pdf_path = generate_filled_pdf(row.form_id, schema, answers, row.id)
+        pdf_path = generate_filled_pdf(row.form_id, schema, answers, row.id, row.language)
         row.filled_pdf_path = str(pdf_path)
         row.updated_at = datetime.now(timezone.utc)
         db.commit()

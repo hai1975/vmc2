@@ -6,6 +6,10 @@ from app.models import FormField, FormSchema, FormSummary
 
 SKIPPED_VALUE = "__skipped__"
 
+
+def skipped_pdf_label(language: str = "en") -> str:
+    return "Không có" if language == "vi" else "None"
+
 SKIP_CASCADES: dict[str, list[str]] = {
     "guardian_1_name": ["guardian_1_relationship"],
 }
@@ -280,7 +284,7 @@ def build_voice_system_instruction(
         '  • If the patient says none / không có / skip / not applicable for an OPTIONAL field,',
         '    confirm then call update_form_field(field_id, "__skipped__").',
         "  • Declining IS an answer — you MUST still call update_form_field. Never just move on without saving.",
-        "  • __skipped__ means answered-with-nothing; the field leaves PDF blank but counts as done.",
+        "  • __skipped__ writes Không có (vi) or None (en) on the PDF and counts as done.",
         "  • For insurance 'no insurance' use value uninsured (NOT __skipped__).",
         "  • For boolean consent: no/không = false (NOT __skipped__).",
         "  • For select optional fields: use an allowed value like not_disclose or unknown when patient",

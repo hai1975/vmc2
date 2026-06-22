@@ -8,7 +8,7 @@ from reportlab.pdfgen import canvas
 
 from app.config import settings
 from app.models import FormSchema
-from app.services.form_registry import normalize_field_value, SKIPPED_VALUE
+from app.services.form_registry import normalize_field_value, SKIPPED_VALUE, skipped_pdf_label
 
 FONT_REGULAR = "VMC-Regular"
 FONT_BOLD = "VMC-Bold"
@@ -74,11 +74,18 @@ def _draw_overlay_page(
     return buffer.read()
 
 
-def _resolve_overlay_marks(field, value) -> list[tuple[str, float, float, str]]:
+def _resolve_overlay_marks(field, value, language: str = "en") -> list[tuple[str, float, float, str]]:
     meta = field.validation or {}
     marks: list[tuple[str, float, float, str]] = []
     value = normalize_field_value(field, value)
-    if value is None or value == "" or value == [] or value == SKIPPED_VALUE:
+    if value is None or value == "" or value == []:
+        return marks
+
+    if value == SKIPPED_VALUE:
+        display = skipped_pdf_label(language)
+        x = float(meta.get("x", 150))
+        y = float(meta.get("y", 700))
+        marks.append((display, x, y, "text"))
         return marks
 
     if field.type in ("select", "multiselect") and meta.get("checkbox_positions"):
@@ -115,6 +122,7 @@ def generate_filled_pdf(
     schema: FormSchema,
     answers: dict,
     session_id: str,
+    language: str = "en",
 ) -> Path:
     source_pdf = settings.form_dir / schema.filename
     if not source_pdf.exists():
@@ -126,9 +134,9 @@ def generate_filled_pdf(
     overlays: dict[int, list[tuple[str, float, float, str]]] = {}
     for field in schema.fields:
         value = answers.get(field.id)
-        if value is None or value == "" or value == [] or value == SKIPPED_VALUE:
+        if value is None or value == "" or value == []:
             continue
-        for mark in _resolve_overlay_marks(field, value):
+        for mark in _resolve_overlay_marks(field, value, language):
             overlays.setdefault(field.page, []).append(mark)
 
     for page_index, page in enumerate(reader.pages):
