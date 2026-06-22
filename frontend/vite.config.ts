@@ -21,6 +21,15 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       sourcemap: mode !== 'production',
       emptyOutDir: true,
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              { name: 'vendor-genai', test: /node_modules[\\/]@google[\\/]genai/ },
+            ],
+          },
+        },
+      },
     },
   }
 })

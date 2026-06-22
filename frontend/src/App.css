@@ -14,6 +14,58 @@
   font-size: 1.1rem;
 }
 
+.loading-splash {
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.loading-splash--overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(243, 246, 251, 0.92);
+  backdrop-filter: blur(2px);
+}
+
+.loading-splash-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(15, 76, 129, 0.12);
+}
+
+.loading-splash-logo-wrap {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  animation: logo-spin 1.1s linear infinite;
+}
+
+.loading-splash-logo {
+  width: 52px;
+  height: 52px;
+}
+
+.loading-splash-text {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f4c81;
+  text-align: center;
+}
+
+@keyframes logo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .app-header {
   display: flex;
   justify-content: space-between;
