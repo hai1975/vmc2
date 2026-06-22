@@ -1,4 +1,5 @@
 import type { Language } from '../types'
+import { LOGO_URL } from '../lib/brand'
 
 interface HeaderProps {
   language: Language
@@ -9,7 +10,7 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
   return (
     <header className="app-header">
       <div className="brand">
-        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="VM Clinic" className="brand-logo" />
+        <img src={LOGO_URL} alt="VM Clinic" className="brand-logo" />
         <div>
           <h1>VM Clinic</h1>
           <p>AI Voice Form Assistant</p>

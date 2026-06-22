@@ -1,4 +1,5 @@
 import type { Language } from '../types'
+import { LOGO_URL } from '../lib/brand'
 
 interface LoadingSplashProps {
   language: Language
@@ -16,12 +17,7 @@ export function LoadingSplash({ language, overlay = true, message }: LoadingSpla
     <div className={`loading-splash${overlay ? ' loading-splash--overlay' : ''}`} role="status" aria-live="polite">
       <div className="loading-splash-card">
         <div className="loading-splash-logo-wrap">
-          <img
-            src={`${import.meta.env.BASE_URL}favicon.svg`}
-            alt=""
-            className="loading-splash-logo"
-            aria-hidden
-          />
+          <img src={LOGO_URL} alt="" className="loading-splash-logo" aria-hidden />
         </div>
         <p className="loading-splash-text">{label}</p>
       </div>
