@@ -6,7 +6,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.config import settings
 from app.database import init_db
-from app.routers import forms, sessions
+from app.routers import forms, mc, sessions
 
 
 class StripMountPathMiddleware:
@@ -52,6 +52,7 @@ app.add_middleware(
 
 app.include_router(forms.router, prefix="/api")
 app.include_router(sessions.router, prefix="/api")
+app.include_router(mc.router, prefix="/api")
 
 
 @app.get("/api/health")
