@@ -21,8 +21,9 @@ FONT_DIR = BACKEND_ROOT / "assets" / "fonts"
 _FONTS_READY = False
 
 # Page 1 top-right selfie; page 5 patient signature (PDF coords, origin bottom-left)
+# Signature underline on form_en.pdf page 5: x≈258–432, line at fitz y≈665 → reportlab y≈126
 SELFIE_BOX = {"page": 1, "x": 468, "y": 668, "w": 118, "h": 108}
-SIGNATURE_BOX = {"page": 5, "x": 88, "y": 120, "w": 240, "h": 72}
+SIGNATURE_BOX = {"page": 5, "x": 258, "y": 126, "w": 172, "h": 38}
 
 
 def _font_candidates(name: str) -> list[Path]:
