@@ -139,7 +139,9 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
 
       {sessionId && initialLoading && !displayUrl && !pdfBlob && (
         <div className="pdf-preview-empty">
-          {language === 'vi' ? 'Đang tải PDF...' : 'Loading PDF...'}
+          {language === 'vi'
+            ? 'Đang tạo PDF... (có thể mất vài giây trên server Render)'
+            : 'Generating PDF... (may take a few seconds on Render)'}
         </div>
       )}
 
@@ -170,6 +172,7 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
             </span>
           )}
           <iframe
+            key={displayUrl}
             className="pdf-preview-frame"
             src={displayUrl}
             title={language === 'vi' ? 'Xem trước PDF' : 'PDF Preview'}

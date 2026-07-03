@@ -23,6 +23,11 @@ async function fetchWithTimeout(path: string, init?: RequestInit, timeoutMs = DE
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiTimeoutError(Math.round(timeoutMs / 1000))
     }
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error(
+        'Cannot reach API server. Render may be waking up (wait 30–90s) then click Retry.',
+      )
+    }
     throw error
   } finally {
     window.clearTimeout(timer)
@@ -95,20 +100,32 @@ export const api = {
     request<VoiceConfig>(`/api/sessions/${sessionId}/voice-config`),
   createLiveToken: (sessionId: string) =>
     request<LiveToken>(`/api/sessions/${sessionId}/live-token`, { method: 'POST' }),
-  pdfUrl: (sessionId: string) => `${API_BASE}/api/sessions/${sessionId}/pdf`,
-  fetchPdfBlob: async (sessionId: string) => {
-    const res = await fetchWithTimeout(`/api/sessions/${sessionId}/pdf`, {}, 60_000)
-    if (!res.ok) {
-      const raw = await res.text()
-      try {
-        const parsed = JSON.parse(raw) as { detail?: string }
-        throw new Error(parsed.detail || raw)
-      } catch (error) {
-        if (error instanceof Error && error.message !== raw) throw error
-        throw new Error(raw || `Preview failed: ${res.status}`)
+  pdfUrl: (sessionId: string, cacheBust?: number) =>
+    `${API_BASE}/api/sessions/${sessionId}/pdf${cacheBust ? `?v=${cacheBust}` : ''}`,
+  fetchPdfBlob: async (sessionId: string, attempt = 1): Promise<Blob> => {
+    const maxAttempts = 3
+    const timeoutMs = 120_000
+    const cacheBust = Date.now()
+    try {
+      const res = await fetchWithTimeout(`/api/sessions/${sessionId}/pdf?v=${cacheBust}`, {}, timeoutMs)
+      if (!res.ok) {
+        const raw = await res.text()
+        try {
+          const parsed = JSON.parse(raw) as { detail?: string }
+          throw new Error(parsed.detail || raw)
+        } catch (error) {
+          if (error instanceof Error && error.message !== raw) throw error
+          throw new Error(raw || `Preview failed: ${res.status}`)
+        }
       }
+      return res.blob()
+    } catch (error) {
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => window.setTimeout(resolve, 2000 * attempt))
+        return api.fetchPdfBlob(sessionId, attempt + 1)
+      }
+      throw error
     }
-    return res.blob()
   },
   downloadPdf: async (sessionId: string, filename: string) => {
     const blob = await api.fetchPdfBlob(sessionId)
