@@ -6,8 +6,25 @@ from app.models import FormField, FormSchema, FormSummary
 
 SKIPPED_VALUE = "__skipped__"
 INTERNAL_ANSWER_KEYS = frozenset({"_signature", "_selfie"})
-VOICE_ACK_EN = "Got it, I'll record that."
-VOICE_ACK_VI = "Vâng, tôi sẽ ghi vào."
+
+# Rotate short acks — empty string = skip ack, ask next question directly (most natural).
+VOICE_ACKS_EN = ("", "Thanks.", "Got it.", "Okay,", "Sure,")
+VOICE_ACKS_VI = ("", "Vâng ạ.", "Đã rõ.", "Cảm ơn.", "Ừ ạ,")
+
+
+def pick_voice_ack(language: str, filled_count: int) -> str:
+    pool = VOICE_ACKS_VI if language == "vi" else VOICE_ACKS_EN
+    if not pool:
+        return ""
+    index = max(filled_count - 1, 0) % len(pool)
+    return pool[index]
+
+
+def join_ack_and_question(ack: str, question: str) -> str:
+    if not ack:
+        return question
+    sep = " " if ack.endswith((",", "—", "–")) else " "
+    return f"{ack}{sep}{question}"
 
 
 def skipped_pdf_label(language: str = "en") -> str:
@@ -241,7 +258,7 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
 
 
 def build_say_next(progress: dict, session_language: str = "en") -> str | None:
-    """Brief ack + next question — never echo the answer or ask is that correct."""
+    """Brief varied ack + next question — never echo the answer or ask is that correct."""
     if progress.get("all_fields_collected"):
         if session_language == "vi":
             return (
@@ -253,9 +270,10 @@ def build_say_next(progress: dict, session_language: str = "en") -> str | None:
     ask_vi = progress.get("next_field_ask_vi") or ask_en
     if not ask_en:
         return None
+    filled = int(progress.get("filled_count") or 0)
     if session_language == "vi" and ask_vi:
-        return f"{VOICE_ACK_VI} {ask_vi}"
-    return f"{VOICE_ACK_EN} {ask_en}"
+        return join_ack_and_question(pick_voice_ack("vi", filled), ask_vi)
+    return join_ack_and_question(pick_voice_ack("en", filled), ask_en)
 
 
 def build_say_next_bilingual(progress: dict) -> dict[str, str | None]:
@@ -268,9 +286,10 @@ def build_say_next_bilingual(progress: dict) -> dict[str, str | None]:
     ask_vi = progress.get("next_field_ask_vi") or ask_en
     if not ask_en:
         return {"en": None, "vi": None}
+    filled = int(progress.get("filled_count") or 0)
     return {
-        "en": f"{VOICE_ACK_EN} {ask_en}",
-        "vi": f"{VOICE_ACK_VI} {ask_vi}",
+        "en": join_ack_and_question(pick_voice_ack("en", filled), ask_en),
+        "vi": join_ack_and_question(pick_voice_ack("vi", filled), ask_vi or ask_en),
     }
 
 
@@ -291,7 +310,7 @@ def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> 
     saved = f" ({saved_field_id} saved)" if saved_field_id else ""
     return (
         f"Field saved{saved}. {forbidden} "
-        f"Speak say_next: brief ack ('{VOICE_ACK_EN}' / '{VOICE_ACK_VI}') then the next question. "
+        "Speak say_next naturally — vary short acks or skip ack; then the next question. "
         f"Next ({next_id}): {ask_en}"
     )
 
@@ -351,12 +370,12 @@ def build_voice_system_instruction(
         "When the patient answers a question:",
         "  1. Call update_form_field IMMEDIATELY — do NOT speak first.",
         "  2. Wait for tool response with say_next.",
-        "  3. Speak say_next: a SHORT ack + the NEXT question. Nothing else.",
-        f'  • English ack: "{VOICE_ACK_EN}" then next question.',
-        f'  • Vietnamese ack: "{VOICE_ACK_VI}" then next question.',
-        "  • Other languages: use the same short ack meaning (I will record that), then next question.",
+        "  3. Speak say_next naturally: optional brief ack (vary each turn) + NEXT question.",
+        "  • Often skip ack — just ask the next question (most natural).",
+        "  • Vary acks: Thanks / Got it / Vâng ạ / Đã rõ / Cảm ơn — never repeat the same every turn.",
+        "  • NEVER say 'tôi sẽ ghi vào' or 'I'll record that' every time — sounds robotic.",
         "WRONG: Patient says 'Maria Antonio' → You: 'I heard Maria Antonio — is that correct?'",
-        f'RIGHT: Patient says Maria Antonio → update_form_field → You: "{VOICE_ACK_EN} What is your date of birth?"',
+        "RIGHT: update_form_field → You: 'Thanks. What is your date of birth?' OR just 'What is your date of birth?'",
         "NEVER repeat the patient's answer back. NEVER ask 'is that correct?' per field.",
         "The ONLY 'is that correct?' allowed is the FINAL summary when all_fields_collected is true.",
         "Forbidden per field: I heard, is that correct, did I get that right, just to confirm, let me make sure.",
@@ -366,7 +385,8 @@ def build_voice_system_instruction(
         "- When the session starts, immediately speak aloud without waiting for silence or user input.",
         "- Ask ONE question at a time.",
         "- NO PER-FIELD CONFIRMATION:",
-        "  • After saving, say a SHORT ack (I'll record that / tôi sẽ ghi vào) then the NEXT question.",
+        "  • After saving, use say_next: optional brief varied ack, then NEXT question.",
+        "  • Do NOT repeat 'tôi sẽ ghi vào' / 'I'll record that' every turn.",
         "  • NEVER echo the answer or ask 'is that correct?' for each field.",
         "  • The ONLY confirmation is the FINAL summary when all_fields_collected is true.",
         "- LANGUAGE RULES (critical — follow exactly):",

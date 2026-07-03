@@ -100,7 +100,7 @@ export class GeminiLiveSession {
 
     // Gemini 3.1: use sendRealtimeInput for in-session text (not sendClientContent).
     session.sendRealtimeInput({
-      text: 'Session connected. When patient answers: save with update_form_field first, then say brief ack (Got it I will record that / Vang toi se ghi vao) and ask next question. NEVER ask is that correct per field. START SPEAKING NOW in English: greet and ask first field.',
+      text: 'Session connected. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet and ask first field.',
     })
 
     this.openingTimeout = setTimeout(() => {
@@ -254,7 +254,7 @@ export class GeminiLiveSession {
                   const sayNextVi = typeof last?.say_next_vi === 'string' ? last.say_next_vi : ''
                   if (sayNextEn || sayNextVi) {
                     this.session.sendRealtimeInput({
-                      text: `Field saved. Say in patient's language — brief ack then next question only. English: "${sayNextEn}". Vietnamese: "${sayNextVi}". Do NOT ask is that correct. Do NOT repeat the patient's answer.`,
+                      text: `Field saved. Speak naturally in patient's language — follow say_next (varied ack OK, or no ack). English: "${sayNextEn}". Vietnamese: "${sayNextVi}". Never say "tôi sẽ ghi vào" every time. No confirmation.`,
                     })
                   }
                 }
