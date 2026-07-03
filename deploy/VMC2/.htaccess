@@ -1,0 +1,10 @@
+# Apache: SPA fallback for React app at /VMC2/
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /VMC2/
+
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /VMC2/index.html [L]
+</IfModule>
