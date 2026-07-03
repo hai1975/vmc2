@@ -195,7 +195,7 @@ def get_session_form_progress(
 
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
-    progress = get_form_progress_with_hint(schema, answers, saved_field)
+    progress = get_form_progress_with_hint(schema, answers, saved_field, row.language)
     return FormProgressResponse(**progress)
 
 

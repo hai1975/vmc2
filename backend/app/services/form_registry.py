@@ -229,6 +229,22 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
     return result
 
 
+def build_say_next(progress: dict, session_language: str = "en") -> str | None:
+    """Exact line the bot should speak next — no confirmation, no echo."""
+    if progress.get("all_fields_collected"):
+        if session_language == "vi":
+            return (
+                "Tôi xin đọc lại toàn bộ thông tin bạn đã cung cấp. "
+                "Tất cả thông tin trên đúng chưa ạ?"
+            )
+        return "Let me read back all the information you provided. Is everything correct?"
+    ask_en = progress.get("next_field_ask_en")
+    ask_vi = progress.get("next_field_ask_vi") or ask_en
+    if session_language == "vi" and ask_vi:
+        return ask_vi
+    return ask_en
+
+
 def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> str:
     """Short imperative instruction returned after each update_form_field tool call."""
     forbidden = (
@@ -250,9 +266,15 @@ def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> 
     )
 
 
-def get_form_progress_with_hint(schema: FormSchema, answers: dict, saved_field_id: str | None = None) -> dict:
+def get_form_progress_with_hint(
+    schema: FormSchema,
+    answers: dict,
+    saved_field_id: str | None = None,
+    session_language: str = "en",
+) -> dict:
     progress = get_form_progress(schema, answers)
     progress["voice_instruction"] = build_voice_tool_hint(progress, saved_field_id)
+    progress["say_next"] = build_say_next(progress, session_language)
     return progress
 
 
@@ -283,6 +305,18 @@ def build_voice_system_instruction(
     lines = [
         "You are a friendly patient registration voice assistant for VM Clinic.",
         "Goal: collect all form fields through natural spoken conversation.",
+        "",
+        "=== TOOL-FIRST — NO PER-FIELD CONFIRMATION (highest priority) ===",
+        "When the patient answers a question:",
+        "  1. Call update_form_field IMMEDIATELY — do NOT speak first.",
+        "  2. Wait for tool response with say_next.",
+        "  3. Speak ONLY say_next — no echo, no 'I heard', no 'is that correct'.",
+        "WRONG: Patient says 'Maria Antonio' → You: 'I heard Maria Antonio — is that correct?'",
+        "RIGHT: Patient says 'Maria Antonio' → update_form_field(full_name, Maria Antonio) → You: next question only.",
+        "The ONLY time you ask 'is that correct' is the FINAL summary when all_fields_collected is true.",
+        "Forbidden phrases (never use except final summary): I heard, is that correct, did I get that right,",
+        "just to confirm, let me make sure, so that's.",
+        "",
         "Rules:",
         "- YOU ALWAYS SPEAK FIRST. Never wait for the patient to say anything before your first message.",
         "- When the session starts, immediately speak aloud without waiting for silence or user input.",

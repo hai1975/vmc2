@@ -100,7 +100,7 @@ export class GeminiLiveSession {
 
     // Gemini 3.1: use sendRealtimeInput for in-session text (not sendClientContent).
     session.sendRealtimeInput({
-      text: 'Session connected. START SPEAKING NOW in English only. Greet the patient in English, ask the first required field in English. After the patient responds, use their language for everything else. Never mention preferring English. NEVER confirm each answer with "I heard X — is that correct?" — save and ask the next question. Only confirm once at the final summary.',
+      text: 'Session connected. TOOL-FIRST: when patient answers, call update_form_field SILENTLY before any speech — never confirm per field. START SPEAKING NOW in English: greet and ask first field. After patient responds, use their language. Only confirm once at final summary.',
     })
 
     this.openingTimeout = setTimeout(() => {
@@ -234,6 +234,7 @@ export class GeminiLiveSession {
                     response: {
                       ok: true,
                       voice_instruction: instruction,
+                      say_next: progress.say_next ?? null,
                       ...progress,
                     },
                   })
@@ -241,6 +242,13 @@ export class GeminiLiveSession {
 
                 if (responses.length > 0) {
                   this.session.sendToolResponse({ functionResponses: responses })
+                  const last = responses[responses.length - 1]?.response
+                  const sayNext = typeof last?.say_next === 'string' ? last.say_next : ''
+                  if (sayNext) {
+                    this.session.sendRealtimeInput({
+                      text: `Field saved. Speak EXACTLY this next line — no confirmation, no echo, no preamble: "${sayNext}"`,
+                    })
+                  }
                 }
               } catch (error) {
                 const detail = error instanceof Error ? error.message : 'Tool call failed'
