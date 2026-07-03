@@ -15,6 +15,7 @@ def skipped_pdf_label(language: str = "en") -> str:
 
 SKIP_CASCADES: dict[str, list[str]] = {
     "guardian_1_name": ["guardian_1_relationship"],
+    "guardian_2_name": ["guardian_2_relationship"],
 }
 
 DECLINED_PHRASES = frozenset({
@@ -57,7 +58,7 @@ def list_pdf_forms() -> list[FormSummary]:
                 id=schema.id if schema else _schema_id_from_filename(pdf.name),
                 filename=pdf.name,
                 title=schema.title if schema else {"vi": pdf.stem, "en": pdf.stem},
-                default=schema.default if schema else pdf.name == "f-patient.pdf",
+                default=schema.default if schema else pdf.name == "form_en.pdf",
             )
         )
     return forms
@@ -142,7 +143,15 @@ def normalize_field_value(field: FormField, value: object) -> object | None:
         "not_disclose": ("prefer not to say", "choose not to disclose"),
         "hispanic": ("latino", "latina", "hispanic or latino"),
         "not_hispanic": ("not hispanic", "not latino"),
-        "unknown": ("not sure", "dont know", "don't know"),
+        "unknown": ("not sure", "dont know", "don't know", "khong biet", "không biết"),
+        "yes": ("có", "co", "yeah", "y", "correct", "đúng"),
+        "no": ("không", "khong", "nope", "nah"),
+        "unsure": ("not sure", "don't know", "dont know", "không chắc", "khong chac"),
+        "negative": ("âm tính", "am tinh"),
+        "positive": ("dương tính", "duong tinh"),
+        "ftm": ("female to male", "trans man", "transgender male"),
+        "mtf": ("male to female", "trans woman", "transgender female"),
+        "genderqueer": ("non binary", "non-binary", "phi nhị phân"),
         "asian": ("chau a", "châu á"),
         "white": ("caucasian", "da trang", "da trắng"),
         "african_american": ("black", "african american"),
@@ -287,6 +296,14 @@ def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> 
     )
 
 
+def preferred_voice_language(form_id: str, session_language: str = "en") -> str:
+    if form_id == "form_vn":
+        return "vi"
+    if form_id == "form_en":
+        return "en"
+    return session_language if session_language in ("vi", "en") else "en"
+
+
 def get_form_progress_with_hint(
     schema: FormSchema,
     answers: dict,
@@ -402,8 +419,11 @@ def build_voice_system_instruction(
         "- For select/multiselect/boolean fields, ALWAYS use exact allowed_values — never save label text.",
         "- Example: insurance='uninsured' goes to field_id insurance, NOT guardian_1_name.",
         "- Ask about EVERY field in schema order — required AND optional.",
-        "- Sections to cover (do not skip): personal info, insurance, demographics (race, ethnicity,",
-        "  gender, sexual orientation), pharmacy, treatment consent, emergency contact.",
+        "- Sections to cover (do not skip): page 1 personal/insurance/demographics/pharmacy/consent;",
+        "  page 2 medical history, surgeries, medications, allergies, caretaker, pediatric questions;",
+        "  page 3 family history, tobacco/alcohol/drugs, safety, vaccinations, TB, interpretation;",
+        "  page 4 HIPAA acknowledgement, release contacts, electronic communication consent;",
+        "  page 5 medical records authorization and disclosure purpose.",
         "- ready_to_submit=true only means required fields are done — you MUST keep asking optional",
         "  fields until missing_optional is empty or the patient declines each one.",
         "- Only tell the patient to click Submit when all_fields_collected is true.",

@@ -21,6 +21,7 @@ from app.services.form_registry import (
     get_form_progress_with_hint,
     get_schema_or_raise,
     normalize_answers,
+    preferred_voice_language,
     validate_answers,
 )
 from app.services.gemini_live import create_live_ephemeral_token
@@ -195,7 +196,9 @@ def get_session_form_progress(
 
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
-    progress = get_form_progress_with_hint(schema, answers, saved_field, row.language)
+    progress = get_form_progress_with_hint(
+        schema, answers, saved_field, preferred_voice_language(row.form_id, row.language)
+    )
     return FormProgressResponse(**progress)
 
 
@@ -207,9 +210,10 @@ def get_voice_config(session_id: str, db: Session = Depends(get_db)):
 
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
+    voice_lang = preferred_voice_language(row.form_id, row.language)
     return VoiceConfigResponse(
         form_id=row.form_id,
-        system_instruction=build_voice_system_instruction(schema, row.language, answers),
+        system_instruction=build_voice_system_instruction(schema, voice_lang, answers),
         fields=schema.fields,
         gemini_model=settings.gemini_live_model,
     )
@@ -223,5 +227,6 @@ def create_live_token(session_id: str, db: Session = Depends(get_db)):
 
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
-    system_instruction = build_voice_system_instruction(schema, row.language, answers)
+    voice_lang = preferred_voice_language(row.form_id, row.language)
+    system_instruction = build_voice_system_instruction(schema, voice_lang, answers)
     return create_live_ephemeral_token(system_instruction)

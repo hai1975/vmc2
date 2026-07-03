@@ -1,0 +1,2500 @@
+{
+  "id": "form_en",
+  "filename": "form_en.pdf",
+  "title": {
+    "en": "New Patient Registration (English)",
+    "vi": "Đơn ghi danh bệnh nhân mới (Tiếng Anh)"
+  },
+  "version": "2.0.0",
+  "default": true,
+  "sections": [
+    {
+      "id": "personal",
+      "title": {
+        "en": "Personal Information",
+        "vi": "Thông tin cá nhân"
+      },
+      "order": 1
+    },
+    {
+      "id": "insurance",
+      "title": {
+        "en": "Insurance",
+        "vi": "Bảo hiểm"
+      },
+      "order": 2
+    },
+    {
+      "id": "demographics",
+      "title": {
+        "en": "Demographics",
+        "vi": "Nhân khẩu học"
+      },
+      "order": 3
+    },
+    {
+      "id": "pharmacy",
+      "title": {
+        "en": "Pharmacy",
+        "vi": "Nhà thuốc"
+      },
+      "order": 4
+    },
+    {
+      "id": "consent",
+      "title": {
+        "en": "Consent",
+        "vi": "Đồng ý"
+      },
+      "order": 5
+    },
+    {
+      "id": "medical_history",
+      "title": {
+        "en": "Medical History",
+        "vi": "Lịch sử bệnh án"
+      },
+      "order": 6
+    },
+    {
+      "id": "allergies",
+      "title": {
+        "en": "Allergies",
+        "vi": "Dị ứng"
+      },
+      "order": 7
+    },
+    {
+      "id": "social",
+      "title": {
+        "en": "Social / Caretaker",
+        "vi": "Xã hội / Người chăm sóc"
+      },
+      "order": 8
+    },
+    {
+      "id": "pediatric",
+      "title": {
+        "en": "Pediatric / Pregnancy",
+        "vi": "Nhi / Thai kỳ"
+      },
+      "order": 9
+    },
+    {
+      "id": "family_history",
+      "title": {
+        "en": "Family History",
+        "vi": "Tiền sử gia đình"
+      },
+      "order": 10
+    },
+    {
+      "id": "social_history",
+      "title": {
+        "en": "Social History",
+        "vi": "Tiền sử xã hội"
+      },
+      "order": 11
+    },
+    {
+      "id": "release",
+      "title": {
+        "en": "Release of Information",
+        "vi": "Cấp quyền thông tin"
+      },
+      "order": 12
+    },
+    {
+      "id": "authorization",
+      "title": {
+        "en": "Authorization",
+        "vi": "Ủy quyền hồ sơ"
+      },
+      "order": 13
+    }
+  ],
+  "fields": [
+    {
+      "id": "patient_name",
+      "type": "text",
+      "label": {
+        "en": "Patient Name",
+        "vi": "Họ và tên bệnh nhân"
+      },
+      "voice_prompt": {
+        "en": "What is your full legal name?",
+        "vi": "Xin cho biết họ và tên đầy đủ của bạn?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 175,
+        "y": 674.0,
+        "maxLength": 100
+      }
+    },
+    {
+      "id": "birthday",
+      "type": "date",
+      "label": {
+        "en": "Birthday",
+        "vi": "Ngày sinh"
+      },
+      "voice_prompt": {
+        "en": "What is your date of birth?",
+        "vi": "Ngày sinh của bạn là ngày nào?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 100,
+        "y": 652.0
+      }
+    },
+    {
+      "id": "ssn",
+      "type": "ssn",
+      "label": {
+        "en": "SSN",
+        "vi": "Số SSN"
+      },
+      "voice_prompt": {
+        "en": "What is your Social Security Number? Say none if you don't have one.",
+        "vi": "Số SSN của bạn là gì? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 410,
+        "y": 652.0
+      }
+    },
+    {
+      "id": "guardian_1_name",
+      "type": "text",
+      "label": {
+        "en": "Legal Guardian 1",
+        "vi": "Người giám hộ 1"
+      },
+      "voice_prompt": {
+        "en": "Who is your first legal guardian? Say none if not applicable.",
+        "vi": "Tên người giám hộ hợp pháp thứ nhất? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 255,
+        "y": 630.0
+      }
+    },
+    {
+      "id": "guardian_1_relationship",
+      "type": "text",
+      "label": {
+        "en": "Relationship (Guardian 1)",
+        "vi": "Mối quan hệ (giám hộ 1)"
+      },
+      "voice_prompt": {
+        "en": "What is your relationship to the first guardian?",
+        "vi": "Mối quan hệ với người giám hộ thứ nhất?"
+      },
+      "required": false,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 470,
+        "y": 630.0
+      }
+    },
+    {
+      "id": "guardian_2_name",
+      "type": "text",
+      "label": {
+        "en": "Legal Guardian 2",
+        "vi": "Người giám hộ 2"
+      },
+      "voice_prompt": {
+        "en": "Who is your second legal guardian? Say none if not applicable.",
+        "vi": "Tên người giám hộ hợp pháp thứ hai? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 255,
+        "y": 606.0
+      }
+    },
+    {
+      "id": "guardian_2_relationship",
+      "type": "text",
+      "label": {
+        "en": "Relationship (Guardian 2)",
+        "vi": "Mối quan hệ (giám hộ 2)"
+      },
+      "voice_prompt": {
+        "en": "What is your relationship to the second guardian?",
+        "vi": "Mối quan hệ với người giám hộ thứ hai?"
+      },
+      "required": false,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 470,
+        "y": 606.0
+      }
+    },
+    {
+      "id": "home_address",
+      "type": "textarea",
+      "label": {
+        "en": "Home Address",
+        "vi": "Địa chỉ nhà"
+      },
+      "voice_prompt": {
+        "en": "What is your home address?",
+        "vi": "Địa chỉ nhà của bạn là gì?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 105,
+        "y": 582.0
+      }
+    },
+    {
+      "id": "phone",
+      "type": "phone",
+      "label": {
+        "en": "Phone Number",
+        "vi": "Số điện thoại"
+      },
+      "voice_prompt": {
+        "en": "What is your phone number?",
+        "vi": "Số điện thoại liên lạc của bạn là gì?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 110,
+        "y": 560.0
+      }
+    },
+    {
+      "id": "email",
+      "type": "email",
+      "label": {
+        "en": "Email",
+        "vi": "Email"
+      },
+      "voice_prompt": {
+        "en": "What is your email address? Say none if you don't have one.",
+        "vi": "Địa chỉ email của bạn? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 1,
+      "section": "personal",
+      "validation": {
+        "x": 330,
+        "y": 560.0
+      }
+    },
+    {
+      "id": "insurance",
+      "type": "select",
+      "label": {
+        "en": "Insurance",
+        "vi": "Bảo hiểm"
+      },
+      "voice_prompt": {
+        "en": "What insurance do you have? Medi-Cal, PPO, HMO, or uninsured?",
+        "vi": "Bạn có loại bảo hiểm nào? Medi-Cal, PPO, HMO, hay không có bảo hiểm?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "insurance",
+      "options": [
+        {
+          "value": "medi_cal",
+          "label": {
+            "en": "Medi-Cal",
+            "vi": "Medi-Cal"
+          }
+        },
+        {
+          "value": "ppo",
+          "label": {
+            "en": "PPO",
+            "vi": "PPO"
+          }
+        },
+        {
+          "value": "hmo",
+          "label": {
+            "en": "HMO",
+            "vi": "HMO"
+          }
+        },
+        {
+          "value": "uninsured",
+          "label": {
+            "en": "Uninsured",
+            "vi": "Không có bảo hiểm"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "medi_cal": {
+            "x": 108,
+            "y": 537.0
+          },
+          "ppo": {
+            "x": 216,
+            "y": 537.0
+          },
+          "hmo": {
+            "x": 324,
+            "y": 537.0
+          },
+          "uninsured": {
+            "x": 432,
+            "y": 537.0
+          }
+        }
+      }
+    },
+    {
+      "id": "race",
+      "type": "multiselect",
+      "label": {
+        "en": "Race",
+        "vi": "Chủng tộc"
+      },
+      "voice_prompt": {
+        "en": "What is your race? You may select multiple: Asian, White, African American, Native American, Pacific Islander, or other.",
+        "vi": "Chủng tộc của bạn? Có thể chọn nhiều: Châu Á, Da trắng, Người Mỹ gốc Phi, và các lựa chọn khác."
+      },
+      "required": false,
+      "page": 1,
+      "section": "demographics",
+      "options": [
+        {
+          "value": "asian",
+          "label": {
+            "en": "Asian",
+            "vi": "Châu Á"
+          }
+        },
+        {
+          "value": "white",
+          "label": {
+            "en": "White",
+            "vi": "Da trắng"
+          }
+        },
+        {
+          "value": "african_american",
+          "label": {
+            "en": "African American",
+            "vi": "Người Mỹ gốc Phi"
+          }
+        },
+        {
+          "value": "native_american",
+          "label": {
+            "en": "American Indian or Alaska Native",
+            "vi": "Người da đỏ bản địa"
+          }
+        },
+        {
+          "value": "pacific_islander",
+          "label": {
+            "en": "Native Hawaiian or Pacific Islander",
+            "vi": "Người đảo Thái Bình Dương"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "en": "Other race",
+            "vi": "Chủng tộc khác"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "asian": {
+            "x": 108,
+            "y": 507.0
+          },
+          "white": {
+            "x": 216,
+            "y": 507.0
+          },
+          "african_american": {
+            "x": 324,
+            "y": 507.0
+          },
+          "native_american": {
+            "x": 108,
+            "y": 491.0
+          },
+          "pacific_islander": {
+            "x": 108,
+            "y": 475.0
+          },
+          "other": {
+            "x": 360,
+            "y": 491.0
+          }
+        }
+      }
+    },
+    {
+      "id": "race_other_specify",
+      "type": "text",
+      "label": {
+        "en": "Other race (specify)",
+        "vi": "Chủng tộc khác (ghi rõ)"
+      },
+      "voice_prompt": {
+        "en": "If you selected other race, please specify. Say none if not applicable.",
+        "vi": "Nếu chọn chủng tộc khác, xin ghi rõ. Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 1,
+      "section": "demographics",
+      "validation": {
+        "x": 400,
+        "y": 491.0
+      }
+    },
+    {
+      "id": "ethnicity",
+      "type": "select",
+      "label": {
+        "en": "Ethnicity",
+        "vi": "Dân tộc"
+      },
+      "voice_prompt": {
+        "en": "What is your ethnicity? Hispanic or Latino, Not Hispanic or Latino, or Unknown?",
+        "vi": "Dân tộc: Gốc Tây Ban Nha/La-tinh, không gốc Tây Ban Nha, hay không rõ?"
+      },
+      "required": false,
+      "page": 1,
+      "section": "demographics",
+      "options": [
+        {
+          "value": "hispanic",
+          "label": {
+            "en": "Hispanic or Latino",
+            "vi": "Gốc Tây Ban Nha hoặc La-tinh"
+          }
+        },
+        {
+          "value": "not_hispanic",
+          "label": {
+            "en": "Not Hispanic or Latino",
+            "vi": "Không gốc Tây Ban Nha"
+          }
+        },
+        {
+          "value": "unknown",
+          "label": {
+            "en": "Unknown",
+            "vi": "Không rõ"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "hispanic": {
+            "x": 108,
+            "y": 445.0
+          },
+          "not_hispanic": {
+            "x": 288,
+            "y": 445.0
+          },
+          "unknown": {
+            "x": 504,
+            "y": 445.0
+          }
+        }
+      }
+    },
+    {
+      "id": "gender_identity",
+      "type": "select",
+      "label": {
+        "en": "Gender Identity",
+        "vi": "Giới tính"
+      },
+      "voice_prompt": {
+        "en": "What is your gender identity? Male, Female, prefer not to say, Other, FTM, MTF, or Genderqueer?",
+        "vi": "Giới tính của bạn? Nam, Nữ, không tiết lộ, Khác, FTM, MTF, hay Genderqueer?"
+      },
+      "required": false,
+      "page": 1,
+      "section": "demographics",
+      "options": [
+        {
+          "value": "male",
+          "label": {
+            "en": "Male",
+            "vi": "Nam"
+          }
+        },
+        {
+          "value": "female",
+          "label": {
+            "en": "Female",
+            "vi": "Nữ"
+          }
+        },
+        {
+          "value": "not_disclose",
+          "label": {
+            "en": "Choose not to disclose",
+            "vi": "Chọn không tiết lộ"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "en": "Other",
+            "vi": "Khác"
+          }
+        },
+        {
+          "value": "ftm",
+          "label": {
+            "en": "FTM / Transgender Male",
+            "vi": "Chuyển giới nam (FTM)"
+          }
+        },
+        {
+          "value": "mtf",
+          "label": {
+            "en": "MTF / Transgender Female",
+            "vi": "Chuyển giới nữ (MTF)"
+          }
+        },
+        {
+          "value": "genderqueer",
+          "label": {
+            "en": "Genderqueer",
+            "vi": "Phi nhị phân giới"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "male": {
+            "x": 108,
+            "y": 415.0
+          },
+          "female": {
+            "x": 180,
+            "y": 415.0
+          },
+          "not_disclose": {
+            "x": 252,
+            "y": 415.0
+          },
+          "other": {
+            "x": 396,
+            "y": 415.0
+          },
+          "ftm": {
+            "x": 36,
+            "y": 399.0
+          },
+          "mtf": {
+            "x": 36,
+            "y": 384.0
+          },
+          "genderqueer": {
+            "x": 36,
+            "y": 368.0
+          }
+        }
+      }
+    },
+    {
+      "id": "sexual_orientation",
+      "type": "select",
+      "label": {
+        "en": "Sexual Orientation",
+        "vi": "Xu hướng tình dục"
+      },
+      "voice_prompt": {
+        "en": "What is your sexual orientation? Gay or lesbian, straight, bisexual, don't know, prefer not to say, or other?",
+        "vi": "Xu hướng tình dục? Đồng tính, dị tính, song tính, không biết, không tiết lộ, hay khác?"
+      },
+      "required": false,
+      "page": 1,
+      "section": "demographics",
+      "options": [
+        {
+          "value": "gay_lesbian",
+          "label": {
+            "en": "Gay or lesbian",
+            "vi": "Đồng tính"
+          }
+        },
+        {
+          "value": "straight",
+          "label": {
+            "en": "Straight",
+            "vi": "Dị tính"
+          }
+        },
+        {
+          "value": "bisexual",
+          "label": {
+            "en": "Bisexual",
+            "vi": "Song tính"
+          }
+        },
+        {
+          "value": "unknown",
+          "label": {
+            "en": "Don't know",
+            "vi": "Không biết"
+          }
+        },
+        {
+          "value": "not_disclose",
+          "label": {
+            "en": "Choose not to disclose",
+            "vi": "Chọn không tiết lộ"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "en": "Other",
+            "vi": "Khác"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "gay_lesbian": {
+            "x": 144,
+            "y": 338.0
+          },
+          "straight": {
+            "x": 432,
+            "y": 338.0
+          },
+          "bisexual": {
+            "x": 36,
+            "y": 322.0
+          },
+          "unknown": {
+            "x": 144,
+            "y": 322.0
+          },
+          "not_disclose": {
+            "x": 252,
+            "y": 322.0
+          },
+          "other": {
+            "x": 432,
+            "y": 322.0
+          }
+        }
+      }
+    },
+    {
+      "id": "pharmacy_name",
+      "type": "text",
+      "label": {
+        "en": "Preferred Pharmacy",
+        "vi": "Nhà thuốc ưa thích"
+      },
+      "voice_prompt": {
+        "en": "What is your preferred pharmacy name? Say none if you don't have one.",
+        "vi": "Nhà thuốc ưa thích tên gì? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 1,
+      "section": "pharmacy",
+      "validation": {
+        "x": 120,
+        "y": 294.0
+      }
+    },
+    {
+      "id": "pharmacy_phone",
+      "type": "phone",
+      "label": {
+        "en": "Pharmacy Phone",
+        "vi": "SĐT nhà thuốc"
+      },
+      "voice_prompt": {
+        "en": "What is the pharmacy phone number? Say none if you don't have one.",
+        "vi": "Số điện thoại nhà thuốc? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 1,
+      "section": "pharmacy",
+      "validation": {
+        "x": 420,
+        "y": 294.0
+      }
+    },
+    {
+      "id": "treatment_consent",
+      "type": "boolean",
+      "label": {
+        "en": "Treatment Consent",
+        "vi": "Đồng ý điều trị"
+      },
+      "voice_prompt": {
+        "en": "Do you consent to VM Clinic evaluating and treating you?",
+        "vi": "Bạn có đồng ý cho VM Clinic đánh giá và điều trị không?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "consent",
+      "validation": {
+        "x": 36,
+        "y": 266.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "medical_conditions",
+      "type": "multiselect",
+      "label": {
+        "en": "Medical Conditions",
+        "vi": "Bệnh đã mắc"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with any of these? Diabetes, high blood pressure, cholesterol, heart disease, asthma, stroke, kidney or liver disease, seizures, or mental health. Say none if none apply.",
+        "vi": "Bạn đã từng mắc bệnh nào trong các bệnh: tiểu đường, cao huyết áp, mỡ máu, tim, hen, đột quỵ, thận, gan, động kinh, tâm thần? Nói không có nếu không mắc."
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "options": [
+        {
+          "value": "diabetes",
+          "label": {
+            "en": "Diabetes",
+            "vi": "Tiểu đường"
+          }
+        },
+        {
+          "value": "high_blood_pressure",
+          "label": {
+            "en": "High Blood Pressure",
+            "vi": "Cao huyết áp"
+          }
+        },
+        {
+          "value": "high_cholesterol",
+          "label": {
+            "en": "High Cholesterol",
+            "vi": "Cao mỡ máu"
+          }
+        },
+        {
+          "value": "heart_disease",
+          "label": {
+            "en": "Heart Disease",
+            "vi": "Bệnh tim"
+          }
+        },
+        {
+          "value": "asthma",
+          "label": {
+            "en": "Asthma",
+            "vi": "Hen suyễn"
+          }
+        },
+        {
+          "value": "stroke",
+          "label": {
+            "en": "Stroke",
+            "vi": "Đột quỵ"
+          }
+        },
+        {
+          "value": "kidney_disease",
+          "label": {
+            "en": "Kidney Disease",
+            "vi": "Bệnh thận"
+          }
+        },
+        {
+          "value": "liver_disease",
+          "label": {
+            "en": "Liver Disease",
+            "vi": "Bệnh gan"
+          }
+        },
+        {
+          "value": "seizures",
+          "label": {
+            "en": "Seizures",
+            "vi": "Động kinh"
+          }
+        },
+        {
+          "value": "mental_health",
+          "label": {
+            "en": "Mental Health Conditions",
+            "vi": "Bệnh lý tâm thần"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "diabetes": {
+            "x": 36,
+            "y": 613.0
+          },
+          "high_blood_pressure": {
+            "x": 144,
+            "y": 613.0
+          },
+          "high_cholesterol": {
+            "x": 288,
+            "y": 613.0
+          },
+          "heart_disease": {
+            "x": 432,
+            "y": 613.0
+          },
+          "asthma": {
+            "x": 36,
+            "y": 585.0
+          },
+          "stroke": {
+            "x": 144,
+            "y": 585.0
+          },
+          "kidney_disease": {
+            "x": 288,
+            "y": 585.0
+          },
+          "liver_disease": {
+            "x": 432,
+            "y": 585.0
+          },
+          "seizures": {
+            "x": 36,
+            "y": 558.0
+          },
+          "mental_health": {
+            "x": 36,
+            "y": 531.0
+          }
+        }
+      }
+    },
+    {
+      "id": "cancer_type",
+      "type": "text",
+      "label": {
+        "en": "Cancer (type)",
+        "vi": "Ung thư (loại)"
+      },
+      "voice_prompt": {
+        "en": "Have you had cancer? If yes, what type? Say none if not applicable.",
+        "vi": "Bạn có ung thư không? Nếu có, loại gì? Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 200,
+        "y": 558.0
+      }
+    },
+    {
+      "id": "other_medical_conditions",
+      "type": "text",
+      "label": {
+        "en": "Other conditions",
+        "vi": "Bệnh khác"
+      },
+      "voice_prompt": {
+        "en": "Any other medical conditions not listed? Say none if not applicable.",
+        "vi": "Bệnh khác không có trong danh sách? Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 340,
+        "y": 558.0
+      }
+    },
+    {
+      "id": "surgeries",
+      "type": "textarea",
+      "label": {
+        "en": "Surgeries",
+        "vi": "Phẫu thuật"
+      },
+      "voice_prompt": {
+        "en": "Please list any surgeries you have had and the year. Say none if none.",
+        "vi": "Liệt kê các ca phẫu thuật và năm. Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 120,
+        "y": 492.0
+      }
+    },
+    {
+      "id": "current_medications",
+      "type": "textarea",
+      "label": {
+        "en": "Current Medications",
+        "vi": "Thuốc đang dùng"
+      },
+      "voice_prompt": {
+        "en": "List all current medications including prescriptions, over-the-counter, and supplements. Say none if none.",
+        "vi": "Liệt kê tất cả thuốc đang dùng. Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 120,
+        "y": 442.0
+      }
+    },
+    {
+      "id": "hospitalized_6_months",
+      "type": "select",
+      "label": {
+        "en": "Hospitalized (6 months)",
+        "vi": "Nhập viện 6 tháng qua"
+      },
+      "voice_prompt": {
+        "en": "Have you been hospitalized in the past 6 months? Yes or no.",
+        "vi": "Bạn có nhập viện trong 6 tháng qua không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 432,
+            "y": 412.0
+          },
+          "no": {
+            "x": 504,
+            "y": 412.0
+          }
+        }
+      }
+    },
+    {
+      "id": "hospitalized_details",
+      "type": "text",
+      "label": {
+        "en": "Hospitalization details",
+        "vi": "Chi tiết nhập viện"
+      },
+      "voice_prompt": {
+        "en": "If hospitalized, please specify. Say none if not applicable.",
+        "vi": "Nếu có nhập viện, xin ghi rõ. Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 120,
+        "y": 372.0
+      }
+    },
+    {
+      "id": "no_known_allergies",
+      "type": "boolean",
+      "label": {
+        "en": "No known allergies",
+        "vi": "Không dị ứng"
+      },
+      "voice_prompt": {
+        "en": "Do you have no known allergies?",
+        "vi": "Bạn có phải là không có dị ứng không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "allergies",
+      "validation": {
+        "x": 36,
+        "y": 332.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "medication_allergies",
+      "type": "text",
+      "label": {
+        "en": "Medication allergies",
+        "vi": "Dị ứng thuốc"
+      },
+      "voice_prompt": {
+        "en": "Any medication allergies? List them or say none.",
+        "vi": "Dị ứng thuốc? Liệt kê hoặc nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "allergies",
+      "validation": {
+        "x": 280,
+        "y": 332.0
+      }
+    },
+    {
+      "id": "food_allergies",
+      "type": "text",
+      "label": {
+        "en": "Food allergies",
+        "vi": "Dị ứng thực phẩm"
+      },
+      "voice_prompt": {
+        "en": "Any food allergies? Say none if none.",
+        "vi": "Dị ứng thực phẩm? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "allergies",
+      "validation": {
+        "x": 120,
+        "y": 306.0
+      }
+    },
+    {
+      "id": "environmental_allergies",
+      "type": "text",
+      "label": {
+        "en": "Environmental allergies",
+        "vi": "Dị ứng môi trường"
+      },
+      "voice_prompt": {
+        "en": "Any environmental allergies? Say none if none.",
+        "vi": "Dị ứng môi trường? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "allergies",
+      "validation": {
+        "x": 300,
+        "y": 306.0
+      }
+    },
+    {
+      "id": "main_caretaker",
+      "type": "text",
+      "label": {
+        "en": "Main caretaker",
+        "vi": "Người chăm sóc chính"
+      },
+      "voice_prompt": {
+        "en": "Who is your main caretaker? Say none if not applicable.",
+        "vi": "Người chăm sóc chính của bạn? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 2,
+      "section": "social",
+      "validation": {
+        "x": 120,
+        "y": 267.0
+      }
+    },
+    {
+      "id": "caretaker_relationship",
+      "type": "text",
+      "label": {
+        "en": "Caretaker relationship",
+        "vi": "Mối quan hệ người chăm sóc"
+      },
+      "voice_prompt": {
+        "en": "What is your relationship to the caretaker?",
+        "vi": "Mối quan hệ với người chăm sóc?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "social",
+      "validation": {
+        "x": 400,
+        "y": 267.0
+      }
+    },
+    {
+      "id": "pregnancy_complications",
+      "type": "textarea",
+      "label": {
+        "en": "Pregnancy complications",
+        "vi": "Biến chứng thai kỳ"
+      },
+      "voice_prompt": {
+        "en": "Any medications or complications during pregnancy? Say none or not applicable.",
+        "vi": "Thuốc hoặc biến chứng trong thai kỳ? Nói không có hoặc không áp dụng."
+      },
+      "required": false,
+      "page": 2,
+      "section": "pediatric",
+      "validation": {
+        "x": 120,
+        "y": 212.0
+      }
+    },
+    {
+      "id": "mother_return_activities",
+      "type": "text",
+      "label": {
+        "en": "Mother return to activities",
+        "vi": "Mẹ quay lại sinh hoạt"
+      },
+      "voice_prompt": {
+        "en": "When does mother plan to return to normal activities after birth? Say not applicable if not relevant.",
+        "vi": "Khi nào mẹ dự định quay lại sinh hoạt sau sinh? Nói không áp dụng nếu không liên quan."
+      },
+      "required": false,
+      "page": 2,
+      "section": "pediatric",
+      "validation": {
+        "x": 120,
+        "y": 162.0
+      }
+    },
+    {
+      "id": "breastfeeding_or_formula",
+      "type": "text",
+      "label": {
+        "en": "Breastfeeding or formula",
+        "vi": "Bú mẹ hay sữa công thức"
+      },
+      "voice_prompt": {
+        "en": "Is the patient breastfeeding or formula fed? Say not applicable if not relevant.",
+        "vi": "Bệnh nhân bú mẹ hay uống sữa công thức? Nói không áp dụng nếu không liên quan."
+      },
+      "required": false,
+      "page": 2,
+      "section": "pediatric",
+      "validation": {
+        "x": 120,
+        "y": 122.0
+      }
+    },
+    {
+      "id": "uses_car_seat",
+      "type": "select",
+      "label": {
+        "en": "Uses car seat",
+        "vi": "Ghế an toàn xe"
+      },
+      "voice_prompt": {
+        "en": "Is the patient currently using a car seat? Yes, no, or not applicable.",
+        "vi": "Bệnh nhân có dùng ghế an toàn trên xe không? Có, không, hoặc không áp dụng."
+      },
+      "required": false,
+      "page": 2,
+      "section": "pediatric",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 432,
+            "y": 94.0
+          },
+          "no": {
+            "x": 504,
+            "y": 94.0
+          }
+        }
+      }
+    },
+    {
+      "id": "family_history",
+      "type": "multiselect",
+      "label": {
+        "en": "Family History",
+        "vi": "Tiền sử gia đình"
+      },
+      "voice_prompt": {
+        "en": "Has anyone in your immediate family had diabetes, cancer, heart disease, high blood pressure, stroke, or mental illness? Say none if none.",
+        "vi": "Gia đình có ai mắc tiểu đường, ung thư, tim, cao huyết áp, đột quỵ, tâm thần? Nói không có nếu không."
+      },
+      "required": false,
+      "page": 3,
+      "section": "family_history",
+      "options": [
+        {
+          "value": "diabetes",
+          "label": {
+            "en": "Diabetes",
+            "vi": "Tiểu đường"
+          }
+        },
+        {
+          "value": "cancer",
+          "label": {
+            "en": "Cancer",
+            "vi": "Ung thư"
+          }
+        },
+        {
+          "value": "heart_disease",
+          "label": {
+            "en": "Heart Disease",
+            "vi": "Bệnh tim"
+          }
+        },
+        {
+          "value": "high_blood_pressure",
+          "label": {
+            "en": "High Blood Pressure",
+            "vi": "Cao huyết áp"
+          }
+        },
+        {
+          "value": "stroke",
+          "label": {
+            "en": "Stroke",
+            "vi": "Đột quỵ"
+          }
+        },
+        {
+          "value": "mental_illness",
+          "label": {
+            "en": "Mental Illness",
+            "vi": "Bệnh tâm thần"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "en": "Other",
+            "vi": "Khác"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "diabetes": {
+            "x": 36,
+            "y": 673.0
+          },
+          "cancer": {
+            "x": 144,
+            "y": 673.0
+          },
+          "heart_disease": {
+            "x": 262,
+            "y": 673.0
+          },
+          "high_blood_pressure": {
+            "x": 406,
+            "y": 673.0
+          },
+          "stroke": {
+            "x": 36,
+            "y": 645.0
+          },
+          "mental_illness": {
+            "x": 144,
+            "y": 645.0
+          },
+          "other": {
+            "x": 262,
+            "y": 645.0
+          }
+        }
+      }
+    },
+    {
+      "id": "family_history_other",
+      "type": "text",
+      "label": {
+        "en": "Family history (other)",
+        "vi": "Tiền sử gia đình khác"
+      },
+      "voice_prompt": {
+        "en": "Any other family history to specify? Say none if not applicable.",
+        "vi": "Tiền sử gia đình khác? Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 3,
+      "section": "family_history",
+      "validation": {
+        "x": 300,
+        "y": 645.0
+      }
+    },
+    {
+      "id": "secondhand_smoke",
+      "type": "select",
+      "label": {
+        "en": "Secondhand smoke",
+        "vi": "Khói thuốc thụ động"
+      },
+      "voice_prompt": {
+        "en": "Have you been exposed to secondhand smoke at home? Yes or no.",
+        "vi": "Có tiếp xúc khói thuốc lá thụ động trong nhà không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 432,
+            "y": 612.0
+          },
+          "no": {
+            "x": 504,
+            "y": 612.0
+          }
+        }
+      }
+    },
+    {
+      "id": "tobacco_use",
+      "type": "select",
+      "label": {
+        "en": "Tobacco use",
+        "vi": "Hút thuốc"
+      },
+      "voice_prompt": {
+        "en": "Do you smoke or use tobacco? Yes or no.",
+        "vi": "Bạn có hút thuốc hoặc dùng thuốc lá không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 180,
+            "y": 581.0
+          },
+          "no": {
+            "x": 252,
+            "y": 581.0
+          }
+        }
+      }
+    },
+    {
+      "id": "tobacco_frequency",
+      "type": "text",
+      "label": {
+        "en": "Tobacco frequency",
+        "vi": "Tần suất hút thuốc"
+      },
+      "voice_prompt": {
+        "en": "If you use tobacco, how much and how often? Say none if not applicable.",
+        "vi": "Nếu hút thuốc, bao nhiêu và bao lâu? Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "validation": {
+        "x": 360,
+        "y": 568.0
+      }
+    },
+    {
+      "id": "alcohol_use",
+      "type": "select",
+      "label": {
+        "en": "Alcohol use",
+        "vi": "Uống rượu"
+      },
+      "voice_prompt": {
+        "en": "Do you consume alcohol? Yes or no.",
+        "vi": "Bạn có uống rượu không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 180,
+            "y": 540.0
+          },
+          "no": {
+            "x": 252,
+            "y": 540.0
+          }
+        }
+      }
+    },
+    {
+      "id": "alcohol_frequency",
+      "type": "text",
+      "label": {
+        "en": "Alcohol frequency",
+        "vi": "Tần suất uống rượu"
+      },
+      "voice_prompt": {
+        "en": "If you drink alcohol, how much and how often? Say none if not applicable.",
+        "vi": "Nếu uống rượu, bao nhiêu và bao lâu?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "validation": {
+        "x": 360,
+        "y": 527.0
+      }
+    },
+    {
+      "id": "recreational_drugs",
+      "type": "select",
+      "label": {
+        "en": "Recreational drugs",
+        "vi": "Thuốc gây nghiện"
+      },
+      "voice_prompt": {
+        "en": "Do you use recreational drugs? Yes or no.",
+        "vi": "Bạn có dùng thuốc gây nghiện không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 180,
+            "y": 498.0
+          },
+          "no": {
+            "x": 252,
+            "y": 498.0
+          }
+        }
+      }
+    },
+    {
+      "id": "recreational_drugs_list",
+      "type": "text",
+      "label": {
+        "en": "Recreational drugs (list)",
+        "vi": "Thuốc gây nghiện (liệt kê)"
+      },
+      "voice_prompt": {
+        "en": "If yes, please list recreational drugs used. Say none if not applicable.",
+        "vi": "Nếu có, liệt kê. Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "validation": {
+        "x": 360,
+        "y": 486.0
+      }
+    },
+    {
+      "id": "parent_drug_alcohol",
+      "type": "select",
+      "label": {
+        "en": "Parent drug/alcohol use",
+        "vi": "Cha mẹ dùng chất"
+      },
+      "voice_prompt": {
+        "en": "Do either parent or guardian use illicit drugs or drink excessively? Yes or no.",
+        "vi": "Cha mẹ hoặc người giám hộ có dùng ma túy hoặc uống quá mức không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 432,
+            "y": 457.0
+          },
+          "no": {
+            "x": 504,
+            "y": 457.0
+          }
+        }
+      }
+    },
+    {
+      "id": "feel_safe_home",
+      "type": "select",
+      "label": {
+        "en": "Feel safe at home",
+        "vi": "An toàn nơi ở"
+      },
+      "voice_prompt": {
+        "en": "Do you feel safe where you live? Yes or no.",
+        "vi": "Bạn có cảm thấy an toàn nơi mình sống không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 432,
+            "y": 416.0
+          },
+          "no": {
+            "x": 504,
+            "y": 416.0
+          }
+        }
+      }
+    },
+    {
+      "id": "vaccinations_up_to_date",
+      "type": "select",
+      "label": {
+        "en": "Vaccinations up to date",
+        "vi": "Tiêm chủng đầy đủ"
+      },
+      "voice_prompt": {
+        "en": "Are your vaccinations up to date? Yes, no, or unsure.",
+        "vi": "Tiêm chủng đã đầy đủ chưa? Có, không, hay không chắc?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "en": "Unsure",
+            "vi": "Không chắc"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 360,
+            "y": 374.0
+          },
+          "no": {
+            "x": 432,
+            "y": 374.0
+          },
+          "unsure": {
+            "x": 504,
+            "y": 374.0
+          }
+        }
+      }
+    },
+    {
+      "id": "tb_tested",
+      "type": "select",
+      "label": {
+        "en": "TB tested",
+        "vi": "Xét nghiệm lao"
+      },
+      "voice_prompt": {
+        "en": "Have you been tested for tuberculosis? Yes, no, or unsure.",
+        "vi": "Bạn đã xét nghiệm lao chưa?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "en": "Unsure",
+            "vi": "Không chắc"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 360,
+            "y": 333.0
+          },
+          "no": {
+            "x": 432,
+            "y": 333.0
+          },
+          "unsure": {
+            "x": 504,
+            "y": 333.0
+          }
+        }
+      }
+    },
+    {
+      "id": "tb_result",
+      "type": "select",
+      "label": {
+        "en": "TB test result",
+        "vi": "Kết quả xét nghiệm lao"
+      },
+      "voice_prompt": {
+        "en": "If tested for TB, what was the result? Negative, positive, unsure, or not applicable.",
+        "vi": "Kết quả xét nghiệm lao? Âm tính, dương tính, không chắc, hoặc không áp dụng."
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "negative",
+          "label": {
+            "en": "Negative",
+            "vi": "Âm tính"
+          }
+        },
+        {
+          "value": "positive",
+          "label": {
+            "en": "Positive",
+            "vi": "Dương tính"
+          }
+        },
+        {
+          "value": "unsure",
+          "label": {
+            "en": "Unsure",
+            "vi": "Không chắc"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "negative": {
+            "x": 360,
+            "y": 292.0
+          },
+          "positive": {
+            "x": 432,
+            "y": 292.0
+          },
+          "unsure": {
+            "x": 504,
+            "y": 292.0
+          }
+        }
+      }
+    },
+    {
+      "id": "communication_requirements",
+      "type": "select",
+      "label": {
+        "en": "Communication requirements",
+        "vi": "Yêu cầu giao tiếp"
+      },
+      "voice_prompt": {
+        "en": "Do you have specific communication requirements? Yes or no.",
+        "vi": "Bạn có yêu cầu đặc biệt về giao tiếp không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 432,
+            "y": 249.0
+          },
+          "no": {
+            "x": 504,
+            "y": 249.0
+          }
+        }
+      }
+    },
+    {
+      "id": "communication_details",
+      "type": "text",
+      "label": {
+        "en": "Communication details",
+        "vi": "Chi tiết giao tiếp"
+      },
+      "voice_prompt": {
+        "en": "If yes, please specify communication needs. Say none if not applicable.",
+        "vi": "Nếu có, xin ghi rõ. Nếu không, nói không có."
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "validation": {
+        "x": 120,
+        "y": 200.0
+      }
+    },
+    {
+      "id": "interpretation_needed",
+      "type": "select",
+      "label": {
+        "en": "Interpretation needed",
+        "vi": "Cần thông dịch"
+      },
+      "voice_prompt": {
+        "en": "Do you need interpretation services? Yes or no.",
+        "vi": "Bạn có cần thông dịch không?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 432,
+            "y": 173.0
+          },
+          "no": {
+            "x": 504,
+            "y": 173.0
+          }
+        }
+      }
+    },
+    {
+      "id": "interpretation_language",
+      "type": "text",
+      "label": {
+        "en": "Interpretation language",
+        "vi": "Ngôn ngữ thông dịch"
+      },
+      "voice_prompt": {
+        "en": "If interpretation is needed, which language? Say none if not applicable.",
+        "vi": "Nếu cần thông dịch, ngôn ngữ nào?"
+      },
+      "required": false,
+      "page": 3,
+      "section": "social_history",
+      "validation": {
+        "x": 120,
+        "y": 121.0
+      }
+    },
+    {
+      "id": "hipaa_acknowledgement",
+      "type": "boolean",
+      "label": {
+        "en": "HIPAA Acknowledgement",
+        "vi": "Xác nhận HIPAA"
+      },
+      "voice_prompt": {
+        "en": "Do you acknowledge receiving the Notice of Privacy Practices?",
+        "vi": "Bạn xác nhận đã nhận Thông báo Quyền riêng tư chưa?"
+      },
+      "required": true,
+      "page": 4,
+      "section": "consent",
+      "validation": {
+        "x": 36,
+        "y": 292.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "release_contact_1_name",
+      "type": "text",
+      "label": {
+        "en": "Release contact 1 name",
+        "vi": "Người được cấp quyền 1"
+      },
+      "voice_prompt": {
+        "en": "Name of person authorized to access your health information. Say none if not applicable.",
+        "vi": "Tên người được phép truy cập thông tin sức khỏe. Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "validation": {
+        "x": 80,
+        "y": 204.0
+      }
+    },
+    {
+      "id": "release_contact_1_relationship",
+      "type": "text",
+      "label": {
+        "en": "Release contact 1 relationship",
+        "vi": "Quan hệ (người 1)"
+      },
+      "voice_prompt": {
+        "en": "Relationship of the first authorized person.",
+        "vi": "Mối quan hệ với người thứ nhất?"
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "validation": {
+        "x": 300,
+        "y": 204.0
+      }
+    },
+    {
+      "id": "release_contact_1_phone",
+      "type": "phone",
+      "label": {
+        "en": "Release contact 1 phone",
+        "vi": "SĐT người 1"
+      },
+      "voice_prompt": {
+        "en": "Phone number for the first authorized person.",
+        "vi": "Số điện thoại người thứ nhất?"
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "validation": {
+        "x": 80,
+        "y": 189.0
+      }
+    },
+    {
+      "id": "release_contact_1_emergency",
+      "type": "select",
+      "label": {
+        "en": "Emergency contact 1",
+        "vi": "Liên hệ khẩn cấp 1"
+      },
+      "voice_prompt": {
+        "en": "Is the first person an emergency contact? Yes or no.",
+        "vi": "Người thứ nhất có phải liên hệ khẩn cấp không?"
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 360,
+            "y": 189.0
+          },
+          "no": {
+            "x": 432,
+            "y": 189.0
+          }
+        }
+      }
+    },
+    {
+      "id": "release_contact_2_name",
+      "type": "text",
+      "label": {
+        "en": "Release contact 2 name",
+        "vi": "Người được cấp quyền 2"
+      },
+      "voice_prompt": {
+        "en": "Name of a second person authorized to access your health information. Say none if not applicable.",
+        "vi": "Tên người thứ hai được phép truy cập. Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "validation": {
+        "x": 80,
+        "y": 175.0
+      }
+    },
+    {
+      "id": "release_contact_2_relationship",
+      "type": "text",
+      "label": {
+        "en": "Release contact 2 relationship",
+        "vi": "Quan hệ (người 2)"
+      },
+      "voice_prompt": {
+        "en": "Relationship of the second authorized person.",
+        "vi": "Mối quan hệ với người thứ hai?"
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "validation": {
+        "x": 300,
+        "y": 175.0
+      }
+    },
+    {
+      "id": "release_contact_2_phone",
+      "type": "phone",
+      "label": {
+        "en": "Release contact 2 phone",
+        "vi": "SĐT người 2"
+      },
+      "voice_prompt": {
+        "en": "Phone number for the second authorized person.",
+        "vi": "Số điện thoại người thứ hai?"
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "validation": {
+        "x": 80,
+        "y": 160.0
+      }
+    },
+    {
+      "id": "release_contact_2_emergency",
+      "type": "select",
+      "label": {
+        "en": "Emergency contact 2",
+        "vi": "Liên hệ khẩn cấp 2"
+      },
+      "voice_prompt": {
+        "en": "Is the second person an emergency contact? Yes or no.",
+        "vi": "Người thứ hai có phải liên hệ khẩn cấp không?"
+      },
+      "required": false,
+      "page": 4,
+      "section": "release",
+      "options": [
+        {
+          "value": "yes",
+          "label": {
+            "en": "Yes",
+            "vi": "Có"
+          }
+        },
+        {
+          "value": "no",
+          "label": {
+            "en": "No",
+            "vi": "Không"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "yes": {
+            "x": 360,
+            "y": 160.0
+          },
+          "no": {
+            "x": 432,
+            "y": 160.0
+          }
+        }
+      }
+    },
+    {
+      "id": "electronic_communication_consent",
+      "type": "boolean",
+      "label": {
+        "en": "Electronic Communication",
+        "vi": "Đồng ý liên lạc điện tử"
+      },
+      "voice_prompt": {
+        "en": "Do you consent to VM Clinic communicating via phone, text, and email?",
+        "vi": "Bạn đồng ý VM Clinic liên lạc qua điện thoại, tin nhắn và email không?"
+      },
+      "required": true,
+      "page": 4,
+      "section": "consent",
+      "validation": {
+        "x": 36,
+        "y": 124.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "release_authorization_name",
+      "type": "text",
+      "label": {
+        "en": "Authorized person name",
+        "vi": "Tên người cho phép"
+      },
+      "voice_prompt": {
+        "en": "I authorize release of records — what is your full name for this authorization?",
+        "vi": "Tôi cho phép tiết lộ hồ sơ — họ tên đầy đủ của bạn?"
+      },
+      "required": true,
+      "page": 5,
+      "section": "authorization",
+      "validation": {
+        "x": 80,
+        "y": 657.0
+      }
+    },
+    {
+      "id": "provider_facility_name",
+      "type": "text",
+      "label": {
+        "en": "Provider/Facility",
+        "vi": "Bác sĩ/Cơ sở"
+      },
+      "voice_prompt": {
+        "en": "Name of provider or facility to release records from. Say none if releasing to VM Clinic only.",
+        "vi": "Tên bác sĩ hoặc cơ sở cung cấp hồ sơ? Nếu chỉ gửi về VM Clinic, nói không có."
+      },
+      "required": false,
+      "page": 5,
+      "section": "authorization",
+      "validation": {
+        "x": 120,
+        "y": 623.0
+      }
+    },
+    {
+      "id": "provider_phone",
+      "type": "phone",
+      "label": {
+        "en": "Provider phone",
+        "vi": "SĐT cơ sở"
+      },
+      "voice_prompt": {
+        "en": "Provider phone number. Say none if not applicable.",
+        "vi": "Số điện thoại cơ sở? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 5,
+      "section": "authorization",
+      "validation": {
+        "x": 80,
+        "y": 598.0
+      }
+    },
+    {
+      "id": "provider_fax",
+      "type": "text",
+      "label": {
+        "en": "Provider fax",
+        "vi": "Fax cơ sở"
+      },
+      "voice_prompt": {
+        "en": "Provider fax number. Say none if not applicable.",
+        "vi": "Số fax cơ sở? Nếu không có, nói không có."
+      },
+      "required": false,
+      "page": 5,
+      "section": "authorization",
+      "validation": {
+        "x": 380,
+        "y": 598.0
+      }
+    },
+    {
+      "id": "records_to_release",
+      "type": "multiselect",
+      "label": {
+        "en": "Records to release",
+        "vi": "Hồ sơ cần cung cấp"
+      },
+      "voice_prompt": {
+        "en": "What information should be released? Complete record, office notes, lab, radiology, immunization, medication, or other.",
+        "vi": "Thông tin nào được cung cấp? Toàn bộ hồ sơ, bệnh án, xét nghiệm, X-quang, tiêm chủng, thuốc, hay khác?"
+      },
+      "required": false,
+      "page": 5,
+      "section": "authorization",
+      "options": [
+        {
+          "value": "complete_record",
+          "label": {
+            "en": "Complete Medical Record",
+            "vi": "Toàn bộ hồ sơ"
+          }
+        },
+        {
+          "value": "office_notes",
+          "label": {
+            "en": "Office Visit Notes",
+            "vi": "Bệnh án"
+          }
+        },
+        {
+          "value": "lab_reports",
+          "label": {
+            "en": "Lab/Pathology Reports",
+            "vi": "Xét nghiệm"
+          }
+        },
+        {
+          "value": "radiology",
+          "label": {
+            "en": "Radiology/Imaging",
+            "vi": "Hình ảnh/X-quang"
+          }
+        },
+        {
+          "value": "immunization",
+          "label": {
+            "en": "Immunization Records",
+            "vi": "Tiêm chủng"
+          }
+        },
+        {
+          "value": "medication_records",
+          "label": {
+            "en": "Medication Records",
+            "vi": "Hồ sơ thuốc"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "en": "Other",
+            "vi": "Khác"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "complete_record": {
+            "x": 36,
+            "y": 465.0
+          },
+          "office_notes": {
+            "x": 216,
+            "y": 465.0
+          },
+          "lab_reports": {
+            "x": 360,
+            "y": 465.0
+          },
+          "radiology": {
+            "x": 36,
+            "y": 437.0
+          },
+          "immunization": {
+            "x": 216,
+            "y": 437.0
+          },
+          "medication_records": {
+            "x": 360,
+            "y": 437.0
+          },
+          "other": {
+            "x": 504,
+            "y": 437.0
+          }
+        }
+      }
+    },
+    {
+      "id": "disclosure_purpose",
+      "type": "multiselect",
+      "label": {
+        "en": "Purpose of disclosure",
+        "vi": "Mục đích tiết lộ"
+      },
+      "voice_prompt": {
+        "en": "Purpose of disclosure: continuation of care, personal use, legal, insurance, post-hospital, or other.",
+        "vi": "Mục đích: tiếp tục điều trị, cá nhân, pháp lý, bảo hiểm, sau nhập viện, hay khác?"
+      },
+      "required": false,
+      "page": 5,
+      "section": "authorization",
+      "options": [
+        {
+          "value": "continuation_of_care",
+          "label": {
+            "en": "Continuation of care",
+            "vi": "Tiếp tục điều trị"
+          }
+        },
+        {
+          "value": "personal_use",
+          "label": {
+            "en": "Personal use",
+            "vi": "Sử dụng cá nhân"
+          }
+        },
+        {
+          "value": "legal",
+          "label": {
+            "en": "Legal purposes",
+            "vi": "Pháp lý"
+          }
+        },
+        {
+          "value": "insurance",
+          "label": {
+            "en": "Insurance",
+            "vi": "Bảo hiểm"
+          }
+        },
+        {
+          "value": "post_hospital",
+          "label": {
+            "en": "Post ER/Hospital follow-up",
+            "vi": "Theo dõi sau nhập viện"
+          }
+        },
+        {
+          "value": "other",
+          "label": {
+            "en": "Other",
+            "vi": "Khác"
+          }
+        }
+      ],
+      "validation": {
+        "checkbox_positions": {
+          "continuation_of_care": {
+            "x": 36,
+            "y": 382.0
+          },
+          "personal_use": {
+            "x": 216,
+            "y": 382.0
+          },
+          "legal": {
+            "x": 360,
+            "y": 382.0
+          },
+          "insurance": {
+            "x": 36,
+            "y": 355.0
+          },
+          "post_hospital": {
+            "x": 216,
+            "y": 355.0
+          },
+          "other": {
+            "x": 360,
+            "y": 355.0
+          }
+        }
+      }
+    },
+    {
+      "id": "release_consent_acknowledgement",
+      "type": "boolean",
+      "label": {
+        "en": "Release consent",
+        "vi": "Đồng ý tiết lộ hồ sơ"
+      },
+      "voice_prompt": {
+        "en": "Do you authorize the release of your medical information as described?",
+        "vi": "Bạn có đồng ý cho phép tiết lộ thông tin y tế như mô tả không?"
+      },
+      "required": true,
+      "page": 5,
+      "section": "authorization",
+      "validation": {
+        "x": 36,
+        "y": 295.0,
+        "render_as_check": true
+      }
+    }
+  ]
+}

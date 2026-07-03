@@ -17,7 +17,7 @@ const VoiceAssistant = lazy(() =>
   import('./components/VoiceAssistant').then((module) => ({ default: module.VoiceAssistant })),
 )
 
-const DEFAULT_FORM_ID = 'f-patient'
+const DEFAULT_FORM_ID = 'form_en'
 
 function App() {
   const [language, setLanguage] = useState<Language>('en')

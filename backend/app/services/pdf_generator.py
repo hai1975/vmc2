@@ -20,9 +20,9 @@ BACKEND_ROOT = Path(__file__).resolve().parents[2]
 FONT_DIR = BACKEND_ROOT / "assets" / "fonts"
 _FONTS_READY = False
 
-# Page 1 top-right selfie box; page 5 signature area (PDF coords, origin bottom-left)
+# Page 1 top-right selfie; page 5 patient signature (PDF coords, origin bottom-left)
 SELFIE_BOX = {"page": 1, "x": 468, "y": 668, "w": 118, "h": 108}
-SIGNATURE_BOX = {"page": 5, "x": 88, "y": 48, "w": 240, "h": 72}
+SIGNATURE_BOX = {"page": 5, "x": 88, "y": 120, "w": 240, "h": 72}
 
 
 def _font_candidates(name: str) -> list[Path]:
