@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { api, BOOT_TIMEOUT_MS } from './api/client'
 import { AnswersPanel } from './components/AnswersPanel'
 import { ContentTabs } from './components/ContentTabs'
+import { DocumentScanModal } from './components/DocumentScanModal'
 import { FormSelector } from './components/FormSelector'
 import { Header } from './components/Header'
 import { LoadingSplash } from './components/LoadingSplash'
@@ -32,6 +33,7 @@ function App() {
   const [error, setError] = useState('')
   const [voiceActive, setVoiceActive] = useState(false)
   const [submitOpen, setSubmitOpen] = useState(false)
+  const [scanOpen, setScanOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const voiceRef = useRef<VoiceAssistantHandle>(null)
@@ -271,6 +273,20 @@ function App() {
             type="button"
             className="icon-btn"
             disabled={!session || booting}
+            onClick={() => setScanOpen(true)}
+            title={language === 'vi' ? 'Quét giấy tờ (webcam)' : 'Scan ID / insurance (webcam)'}
+            aria-label={language === 'vi' ? 'Quét giấy tờ' : 'Scan document'}
+          >
+            <span className="icon-btn-symbol" aria-hidden="true">
+              📷
+            </span>
+            <span className="icon-btn-label">{language === 'vi' ? 'Quét' : 'Scan'}</span>
+          </button>
+
+          <button
+            type="button"
+            className="icon-btn"
+            disabled={!session || booting}
             onClick={() => void handleSave()}
             title={language === 'vi' ? 'Lưu nháp' : 'Save'}
             aria-label={language === 'vi' ? 'Lưu nháp' : 'Save'}
@@ -349,6 +365,20 @@ function App() {
         busy={submitting}
         onClose={() => setSubmitOpen(false)}
         onConfirm={(payload) => void handleSubmitConfirm(payload)}
+      />
+      <DocumentScanModal
+        language={language}
+        open={scanOpen}
+        sessionId={session?.id ?? null}
+        onClose={() => setScanOpen(false)}
+        onSessionUpdate={(updated) => {
+          setSession(updated)
+          setMessage(
+            language === 'vi'
+              ? 'Đã cập nhật form từ giấy tờ quét.'
+              : 'Form updated from scanned document.',
+          )
+        }}
       />
       <SettingsModal language={language} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>

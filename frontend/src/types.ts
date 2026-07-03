@@ -85,3 +85,11 @@ export interface FormProgress {
   say_next_en?: string | null
   say_next_vi?: string | null
 }
+
+export interface DocumentScanResult {
+  detected_document: string
+  extracted_fields: Record<string, unknown>
+  applied_fields: Record<string, unknown>
+  filled_count: number
+  session: FormSession | null
+}

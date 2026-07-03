@@ -1,4 +1,4 @@
-import type { AppSettings, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
+import type { AppSettings, DocumentScanResult, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? ''
 const DEFAULT_TIMEOUT_MS = 30_000
@@ -100,6 +100,15 @@ export const api = {
     request<VoiceConfig>(`/api/sessions/${sessionId}/voice-config`),
   createLiveToken: (sessionId: string) =>
     request<LiveToken>(`/api/sessions/${sessionId}/live-token`, { method: 'POST' }),
+  scanDocument: (sessionId: string, image: string, docType = 'auto', merge = true) =>
+    request<DocumentScanResult>(
+      `/api/sessions/${sessionId}/scan-document`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ image, doc_type: docType, merge }),
+      },
+      60_000,
+    ),
   pdfUrl: (sessionId: string, cacheBust?: number) =>
     `${API_BASE}/api/sessions/${sessionId}/pdf${cacheBust ? `?v=${cacheBust}` : ''}`,
   fetchPdfBlob: async (sessionId: string, attempt = 1): Promise<Blob> => {

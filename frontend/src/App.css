@@ -295,6 +295,88 @@
   flex: 1;
 }
 
+.voice-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.voice-camera-badge {
+  font-size: 0.75rem;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.voice-camera-panel {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(15, 76, 129, 0.06);
+}
+
+.voice-camera-video-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #111827;
+}
+
+.voice-camera-video {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+}
+
+.voice-camera-frame {
+  pointer-events: none;
+  position: absolute;
+  inset: 10% 8%;
+  border: 2px dashed rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+}
+
+.voice-camera-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.voice-camera-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.voice-camera-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.voice-camera-error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #991b1b;
+}
+
+@media (max-width: 720px) {
+  .voice-camera-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
 .status-pill {
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -755,6 +837,95 @@
   object-fit: cover;
   border-radius: 12px;
   border: 2px solid #dbe5f0;
+}
+
+.document-scan-modal {
+  max-width: 520px;
+}
+
+.document-scan-hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+.document-scan-video-wrap {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111827;
+}
+
+.document-scan-video {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+}
+
+.document-scan-frame {
+  pointer-events: none;
+  position: absolute;
+  inset: 12% 8%;
+  border: 2px dashed rgba(255, 255, 255, 0.75);
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
+}
+
+.document-scan-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  align-items: center;
+}
+
+.document-scan-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.document-scan-select select {
+  min-width: 180px;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #dbe5f0;
+}
+
+.document-scan-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.document-scan-status {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #1d4ed8;
+}
+
+.document-scan-total {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #059669;
+}
+
+.document-scan-details {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.document-scan-details ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.25rem;
+  color: #4b5563;
 }
 
 .signature-canvas-wrap {

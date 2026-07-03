@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import FormSession, SessionStatus, dumps_answers, get_db, loads_answers
 from app.models import (
+    DocumentScanRequest,
+    DocumentScanResponse,
     FormProgressResponse,
     LiveTokenResponse,
     SessionCreate,
@@ -15,6 +17,7 @@ from app.models import (
     SessionUpdateAnswers,
     VoiceConfigResponse,
 )
+from app.services.document_scan import extract_fields_from_document_image, merge_extracted_into_answers
 from app.services.email_service import send_pdf_email
 from app.services.form_registry import (
     build_voice_system_instruction,
@@ -105,6 +108,44 @@ def update_answers(
     db.commit()
     db.refresh(row)
     return _to_response(row)
+
+
+@router.post("/{session_id}/scan-document", response_model=DocumentScanResponse)
+def scan_document(
+    session_id: str,
+    payload: DocumentScanRequest,
+    db: Session = Depends(get_db),
+):
+    row = db.get(FormSession, session_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    schema = get_schema_or_raise(row.form_id)
+    result = extract_fields_from_document_image(
+        schema,
+        payload.image,
+        doc_type=payload.doc_type,
+        language=row.language,
+    )
+    extracted = result["extracted_fields"]
+    session_response: SessionResponse | None = None
+
+    if payload.merge and extracted:
+        current = loads_answers(row.answers_json)
+        merged = merge_extracted_into_answers(schema, current, extracted)
+        row.answers_json = dumps_answers(merged)
+        row.updated_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(row)
+        session_response = _to_response(row)
+
+    return DocumentScanResponse(
+        detected_document=str(result["detected_document"]),
+        extracted_fields=extracted,
+        applied_fields=extracted if payload.merge else {},
+        filled_count=len(extracted),
+        session=session_response,
+    )
 
 
 @router.post("/{session_id}/save", response_model=SessionResponse)

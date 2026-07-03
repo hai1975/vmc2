@@ -40,7 +40,29 @@ def _build_form_tool() -> types.Tool:
                     },
                     required=["field_id", "value"],
                 ),
-            )
+            ),
+            types.FunctionDeclaration(
+                name="scan_document_fields",
+                description=(
+                    "Read ID, passport, driver license, or insurance card from the LIVE webcam "
+                    "and save all visible form fields at once. Call when the patient shows a document "
+                    "on camera or asks you to look at their ID/insurance. "
+                    "Use exact field_id keys and allowed_values from schema. Omit fields not visible."
+                ),
+                parameters=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "fields_json": types.Schema(
+                            type=types.Type.STRING,
+                            description=(
+                                'JSON object mapping field_id to value, e.g. '
+                                '{"patient_name":"Maria Garcia","dob":"1990-05-12","insurance":"medi_cal"}'
+                            ),
+                        ),
+                    },
+                    required=["fields_json"],
+                ),
+            ),
         ]
     )
 
@@ -59,6 +81,7 @@ def create_live_ephemeral_token(system_instruction: str) -> dict:
         "response_modalities": ["AUDIO"],
         "system_instruction": system_instruction,
         "thinking_config": {"thinking_level": "MINIMAL"},
+        "media_resolution": types.MediaResolution.MEDIA_RESOLUTION_MEDIUM,
         "speech_config": {
             "voice_config": {
                 "prebuilt_voice_config": {"voice_name": "Aoede"},

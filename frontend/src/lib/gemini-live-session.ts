@@ -9,6 +9,7 @@ export interface GeminiLiveCallbacks {
   onUserText: (text: string) => void
   onError: (message: string) => void
   onFieldUpdate: (fieldId: string, value: unknown) => Promise<Record<string, unknown>>
+  onBatchFieldUpdate?: (fields: Record<string, unknown>) => Promise<Record<string, unknown>>
 }
 
 function parseToolValue(raw: string): unknown {
@@ -53,6 +54,25 @@ export class GeminiLiveSession {
 
   private canSendAudio(): boolean {
     return this.canUseTools() && this.openingDone
+  }
+
+  private canSendVideo(): boolean {
+    return this.canUseTools() && !this.toolCallPending
+  }
+
+  sendVideoFrame(base64Jpeg: string) {
+    if (!this.canSendVideo() || !this.session || !base64Jpeg) return
+
+    try {
+      this.session.sendRealtimeInput({
+        video: {
+          data: base64Jpeg,
+          mimeType: 'image/jpeg',
+        },
+      })
+    } catch {
+      void this.disconnect()
+    }
   }
 
   private sendAudioChunk(base64Pcm: string) {
@@ -100,7 +120,7 @@ export class GeminiLiveSession {
 
     // Gemini 3.1: use sendRealtimeInput for in-session text (not sendClientContent).
     session.sendRealtimeInput({
-      text: 'Session connected. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet and ask first field.',
+      text: 'Session connected. Live webcam is ON — patient may show ID/passport/license/insurance on camera; use scan_document_fields when they ask you to read it. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet, mention they can show documents to the camera, then ask first field.',
     })
 
     this.openingTimeout = setTimeout(() => {
@@ -219,27 +239,62 @@ export class GeminiLiveSession {
 
               try {
                 for (const call of functionCalls) {
-                  if (call.name !== 'update_form_field' || !call.id) continue
+                  if (!call.id) continue
 
-                  const args = (call.args ?? {}) as { field_id?: string; value?: string }
-                  if (!args.field_id) continue
+                  if (call.name === 'update_form_field') {
+                    const args = (call.args ?? {}) as { field_id?: string; value?: string }
+                    if (!args.field_id) continue
 
-                  const parsedValue = parseToolValue(String(args.value ?? ''))
-                  const progress = await callbacks.onFieldUpdate(args.field_id, parsedValue)
-                  const instruction =
-                    typeof progress.voice_instruction === 'string' ? progress.voice_instruction : ''
-                  responses.push({
-                    id: call.id,
-                    name: call.name,
-                    response: {
-                      ok: true,
-                      voice_instruction: instruction,
-                      say_next: progress.say_next ?? null,
-                      say_next_en: progress.say_next_en ?? null,
-                      say_next_vi: progress.say_next_vi ?? null,
-                      ...progress,
-                    },
-                  })
+                    const parsedValue = parseToolValue(String(args.value ?? ''))
+                    const progress = await callbacks.onFieldUpdate(args.field_id, parsedValue)
+                    const instruction =
+                      typeof progress.voice_instruction === 'string' ? progress.voice_instruction : ''
+                    responses.push({
+                      id: call.id,
+                      name: call.name,
+                      response: {
+                        ok: true,
+                        voice_instruction: instruction,
+                        say_next: progress.say_next ?? null,
+                        say_next_en: progress.say_next_en ?? null,
+                        say_next_vi: progress.say_next_vi ?? null,
+                        ...progress,
+                      },
+                    })
+                    continue
+                  }
+
+                  if (call.name === 'scan_document_fields' && callbacks.onBatchFieldUpdate) {
+                    const args = (call.args ?? {}) as { fields_json?: string }
+                    let fields: Record<string, unknown> = {}
+                    try {
+                      const parsed = JSON.parse(String(args.fields_json ?? '{}'))
+                      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                        fields = parsed as Record<string, unknown>
+                      }
+                    } catch {
+                      responses.push({
+                        id: call.id,
+                        name: call.name,
+                        response: { ok: false, error: 'Invalid fields_json' },
+                      })
+                      continue
+                    }
+
+                    const progress = await callbacks.onBatchFieldUpdate(fields)
+                    responses.push({
+                      id: call.id,
+                      name: call.name,
+                      response: {
+                        ok: true,
+                        saved_count: Object.keys(fields).length,
+                        say_next: progress.say_next ?? null,
+                        say_next_en: progress.say_next_en ?? null,
+                        say_next_vi: progress.say_next_vi ?? null,
+                        ...progress,
+                      },
+                    })
+                  }
                 }
 
                 if (responses.length > 0) {
@@ -252,16 +307,22 @@ export class GeminiLiveSession {
                         ? last.say_next
                         : ''
                   const sayNextVi = typeof last?.say_next_vi === 'string' ? last.say_next_vi : ''
+                  const savedCount = typeof last?.saved_count === 'number' ? last.saved_count : 0
                   if (sayNextEn || sayNextVi) {
+                    const scanHint =
+                      savedCount > 0
+                        ? `Document scan saved ${savedCount} field(s). Briefly tell patient what you read, then continue. `
+                        : ''
                     this.session.sendRealtimeInput({
-                      text: `Field saved. Speak naturally in patient's language — follow say_next (varied ack OK, or no ack). English: "${sayNextEn}". Vietnamese: "${sayNextVi}". Never say "tôi sẽ ghi vào" every time. No confirmation.`,
+                      text: `${scanHint}Speak naturally in patient's language — follow say_next (varied ack OK, or no ack). English: "${sayNextEn}". Vietnamese: "${sayNextVi}". Never say "tôi sẽ ghi vào" every time. No per-field confirmation.`,
                     })
                   }
                 }
               } catch (error) {
                 const detail = error instanceof Error ? error.message : 'Tool call failed'
                 const errorResponses = functionCalls.flatMap((call) => {
-                  if (!call.id || call.name !== 'update_form_field') return []
+                  if (!call.id) return []
+                  if (call.name !== 'update_form_field' && call.name !== 'scan_document_fields') return []
                   return [{
                     id: call.id,
                     name: call.name,

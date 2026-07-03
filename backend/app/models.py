@@ -117,3 +117,17 @@ class AppSettingsUpdate(BaseModel):
     smtp_user: str | None = None
     smtp_password: str | None = None
     smtp_from: str | None = None
+
+
+class DocumentScanRequest(BaseModel):
+    image: str = Field(description="Base64 data URL or raw base64 JPEG/PNG")
+    doc_type: str = Field(default="auto", description="auto|id|passport|license|insurance")
+    merge: bool = True
+
+
+class DocumentScanResponse(BaseModel):
+    detected_document: str
+    extracted_fields: dict[str, object]
+    applied_fields: dict[str, object]
+    filled_count: int
+    session: SessionResponse | None = None
