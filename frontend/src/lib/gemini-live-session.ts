@@ -100,7 +100,7 @@ export class GeminiLiveSession {
 
     // Gemini 3.1: use sendRealtimeInput for in-session text (not sendClientContent).
     session.sendRealtimeInput({
-      text: 'Session connected. TOOL-FIRST: when patient answers, call update_form_field SILENTLY before any speech — never confirm per field. START SPEAKING NOW in English: greet and ask first field. After patient responds, use their language. Only confirm once at final summary.',
+      text: 'Session connected. When patient answers: save with update_form_field first, then say brief ack (Got it I will record that / Vang toi se ghi vao) and ask next question. NEVER ask is that correct per field. START SPEAKING NOW in English: greet and ask first field.',
     })
 
     this.openingTimeout = setTimeout(() => {
@@ -235,6 +235,8 @@ export class GeminiLiveSession {
                       ok: true,
                       voice_instruction: instruction,
                       say_next: progress.say_next ?? null,
+                      say_next_en: progress.say_next_en ?? null,
+                      say_next_vi: progress.say_next_vi ?? null,
                       ...progress,
                     },
                   })
@@ -243,10 +245,16 @@ export class GeminiLiveSession {
                 if (responses.length > 0) {
                   this.session.sendToolResponse({ functionResponses: responses })
                   const last = responses[responses.length - 1]?.response
-                  const sayNext = typeof last?.say_next === 'string' ? last.say_next : ''
-                  if (sayNext) {
+                  const sayNextEn =
+                    typeof last?.say_next_en === 'string'
+                      ? last.say_next_en
+                      : typeof last?.say_next === 'string'
+                        ? last.say_next
+                        : ''
+                  const sayNextVi = typeof last?.say_next_vi === 'string' ? last.say_next_vi : ''
+                  if (sayNextEn || sayNextVi) {
                     this.session.sendRealtimeInput({
-                      text: `Field saved. Speak EXACTLY this next line — no confirmation, no echo, no preamble: "${sayNext}"`,
+                      text: `Field saved. Say in patient's language — brief ack then next question only. English: "${sayNextEn}". Vietnamese: "${sayNextVi}". Do NOT ask is that correct. Do NOT repeat the patient's answer.`,
                     })
                   }
                 }

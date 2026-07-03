@@ -6,6 +6,8 @@ from app.models import FormField, FormSchema, FormSummary
 
 SKIPPED_VALUE = "__skipped__"
 INTERNAL_ANSWER_KEYS = frozenset({"_signature", "_selfie"})
+VOICE_ACK_EN = "Got it, I'll record that."
+VOICE_ACK_VI = "Vâng, tôi sẽ ghi vào."
 
 
 def skipped_pdf_label(language: str = "en") -> str:
@@ -230,7 +232,7 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
 
 
 def build_say_next(progress: dict, session_language: str = "en") -> str | None:
-    """Exact line the bot should speak next — no confirmation, no echo."""
+    """Brief ack + next question — never echo the answer or ask is that correct."""
     if progress.get("all_fields_collected"):
         if session_language == "vi":
             return (
@@ -240,9 +242,27 @@ def build_say_next(progress: dict, session_language: str = "en") -> str | None:
         return "Let me read back all the information you provided. Is everything correct?"
     ask_en = progress.get("next_field_ask_en")
     ask_vi = progress.get("next_field_ask_vi") or ask_en
+    if not ask_en:
+        return None
     if session_language == "vi" and ask_vi:
-        return ask_vi
-    return ask_en
+        return f"{VOICE_ACK_VI} {ask_vi}"
+    return f"{VOICE_ACK_EN} {ask_en}"
+
+
+def build_say_next_bilingual(progress: dict) -> dict[str, str | None]:
+    if progress.get("all_fields_collected"):
+        return {
+            "en": "Let me read back all the information you provided. Is everything correct?",
+            "vi": "Tôi xin đọc lại toàn bộ thông tin bạn đã cung cấp. Tất cả thông tin trên đúng chưa ạ?",
+        }
+    ask_en = progress.get("next_field_ask_en")
+    ask_vi = progress.get("next_field_ask_vi") or ask_en
+    if not ask_en:
+        return {"en": None, "vi": None}
+    return {
+        "en": f"{VOICE_ACK_EN} {ask_en}",
+        "vi": f"{VOICE_ACK_VI} {ask_vi}",
+    }
 
 
 def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> str:
@@ -262,7 +282,8 @@ def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> 
     saved = f" ({saved_field_id} saved)" if saved_field_id else ""
     return (
         f"Field saved{saved}. {forbidden} "
-        f"Do NOT confirm this field. IMMEDIATELY ask ONLY the next question ({next_id}): {ask_en}"
+        f"Speak say_next: brief ack ('{VOICE_ACK_EN}' / '{VOICE_ACK_VI}') then the next question. "
+        f"Next ({next_id}): {ask_en}"
     )
 
 
@@ -274,7 +295,10 @@ def get_form_progress_with_hint(
 ) -> dict:
     progress = get_form_progress(schema, answers)
     progress["voice_instruction"] = build_voice_tool_hint(progress, saved_field_id)
+    bilingual = build_say_next_bilingual(progress)
     progress["say_next"] = build_say_next(progress, session_language)
+    progress["say_next_en"] = bilingual["en"]
+    progress["say_next_vi"] = bilingual["vi"]
     return progress
 
 
@@ -306,28 +330,28 @@ def build_voice_system_instruction(
         "You are a friendly patient registration voice assistant for VM Clinic.",
         "Goal: collect all form fields through natural spoken conversation.",
         "",
-        "=== TOOL-FIRST — NO PER-FIELD CONFIRMATION (highest priority) ===",
+        "=== AFTER EACH ANSWER (highest priority) ===",
         "When the patient answers a question:",
         "  1. Call update_form_field IMMEDIATELY — do NOT speak first.",
         "  2. Wait for tool response with say_next.",
-        "  3. Speak ONLY say_next — no echo, no 'I heard', no 'is that correct'.",
+        "  3. Speak say_next: a SHORT ack + the NEXT question. Nothing else.",
+        f'  • English ack: "{VOICE_ACK_EN}" then next question.',
+        f'  • Vietnamese ack: "{VOICE_ACK_VI}" then next question.',
+        "  • Other languages: use the same short ack meaning (I will record that), then next question.",
         "WRONG: Patient says 'Maria Antonio' → You: 'I heard Maria Antonio — is that correct?'",
-        "RIGHT: Patient says 'Maria Antonio' → update_form_field(full_name, Maria Antonio) → You: next question only.",
-        "The ONLY time you ask 'is that correct' is the FINAL summary when all_fields_collected is true.",
-        "Forbidden phrases (never use except final summary): I heard, is that correct, did I get that right,",
-        "just to confirm, let me make sure, so that's.",
+        f'RIGHT: Patient says Maria Antonio → update_form_field → You: "{VOICE_ACK_EN} What is your date of birth?"',
+        "NEVER repeat the patient's answer back. NEVER ask 'is that correct?' per field.",
+        "The ONLY 'is that correct?' allowed is the FINAL summary when all_fields_collected is true.",
+        "Forbidden per field: I heard, is that correct, did I get that right, just to confirm, let me make sure.",
         "",
         "Rules:",
         "- YOU ALWAYS SPEAK FIRST. Never wait for the patient to say anything before your first message.",
         "- When the session starts, immediately speak aloud without waiting for silence or user input.",
         "- Ask ONE question at a time.",
-        "- NO PER-FIELD CONFIRMATION (critical — patients hate this):",
-        "  • After a clear answer, save with update_form_field and ask the NEXT question immediately.",
-        "  • NEVER say: 'I heard X for your full name — is that correct?', 'Did I get that right?',",
-        "    'Just to confirm', 'Let me make sure I have this right', or any echo-then-confirm pattern.",
-        "  • The ONLY confirmation moment is the FINAL summary when all_fields_collected is true.",
-        "  • If audio was unclear or the patient corrects you, fix the field — still no 'is that correct?'",
-        "    unless you genuinely could not hear them (ask them to repeat, not to confirm a guess).",
+        "- NO PER-FIELD CONFIRMATION:",
+        "  • After saving, say a SHORT ack (I'll record that / tôi sẽ ghi vào) then the NEXT question.",
+        "  • NEVER echo the answer or ask 'is that correct?' for each field.",
+        "  • The ONLY confirmation is the FINAL summary when all_fields_collected is true.",
         "- LANGUAGE RULES (critical — follow exactly):",
         "  • OPENING ONLY in English: your first greeting and your first form question must be in English.",
         '  • Opening greeting (English only): "VM Clinic is listening. I can help you register."',
@@ -347,8 +371,8 @@ def build_voice_system_instruction(
         "  • Workflow: patient answers clearly → call update_form_field FIRST → then ask next question.",
         "  • NEVER: patient answers → you confirm → then save. Save first, no echo.",
         "  • When the patient gives a CLEAR answer, call update_form_field right away.",
-        "  • After the tool returns, follow voice_instruction exactly — usually ask the next question only.",
-        "  • Move to the next question immediately after saving. Do NOT read back what they said.",
+        "  • After the tool returns, speak say_next exactly: ack + next question.",
+        "  • Do NOT read back what they said. Do NOT ask if it is correct.",
         "- RE-CONFIRM ONLY at final summary (never per field):",
         "  • Do NOT confirm individual fields — even names, email, phone, or dates.",
         "  • Only re-ask if audio was inaudible: 'Sorry, could you repeat that?' — not 'is that correct?'",

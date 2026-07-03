@@ -17,8 +17,8 @@ def _build_form_tool() -> types.Tool:
                     "Persist one form field from the patient's spoken answer. "
                     "Save immediately when clear — NEVER confirm per field. "
                     "TOOL-FIRST: call this function SILENTLY before speaking. "
-                    "After saving, speak ONLY the say_next line from the response. "
-                    "Forbidden speech: 'I heard X — is that correct?'. "
+                    "After saving, speak say_next: short ack (Got it I'll record that / Vâng tôi sẽ ghi vào) "
+                    "then the next question. NEVER ask is that correct per field. "
                     "Only confirm once at the end when all_fields_collected is true. "
                     "Use exact field_id from schema. Encode value as JSON string "
                     '(e.g. "John", true, ["asian"], "medi_cal"). '

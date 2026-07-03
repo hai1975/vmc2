@@ -95,6 +95,8 @@ class FormProgressResponse(BaseModel):
     next_field_allowed_values: list[str] | None = None
     voice_instruction: str | None = None
     say_next: str | None = None
+    say_next_en: str | None = None
+    say_next_vi: str | None = None
 
 
 class AppSettingsResponse(BaseModel):

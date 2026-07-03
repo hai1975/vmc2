@@ -82,4 +82,6 @@ export interface FormProgress {
   next_field_ask_vi?: string
   voice_instruction?: string
   say_next?: string | null
+  say_next_en?: string | null
+  say_next_vi?: string | null
 }
