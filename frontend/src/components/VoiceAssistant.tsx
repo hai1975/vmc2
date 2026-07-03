@@ -102,7 +102,7 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
             startTransition(() => {
               onAnswersUpdate(updated.answers)
             })
-            const progress = await api.getFormProgress(sessionId)
+            const progress = await api.getFormProgress(sessionId, fieldId)
             return { ...progress }
           },
         })

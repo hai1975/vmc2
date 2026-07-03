@@ -8,6 +8,12 @@
     <title>VM Clinic — Voice Form Assistant</title>
     <link rel="preconnect" href="https://vmc-api-u0fk.onrender.com" crossorigin />
     <link rel="dns-prefetch" href="https://vmc-api-u0fk.onrender.com" />
+    <script>
+      (function () {
+        var api = 'https://vmc-api-u0fk.onrender.com'
+        fetch(api + '/api/health', { mode: 'cors', credentials: 'omit' }).catch(function () {})
+      })()
+    </script>
     <style>
       #boot-splash {
         position: fixed;

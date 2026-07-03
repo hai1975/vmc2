@@ -80,4 +80,5 @@ export interface FormProgress {
   total_fields?: number
   next_field_ask_en?: string
   next_field_ask_vi?: string
+  voice_instruction?: string
 }

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -18,7 +18,7 @@ from app.models import (
 from app.services.email_service import send_pdf_email
 from app.services.form_registry import (
     build_voice_system_instruction,
-    get_form_progress,
+    get_form_progress_with_hint,
     get_schema_or_raise,
     normalize_answers,
     validate_answers,
@@ -184,14 +184,18 @@ def download_pdf(session_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{session_id}/form-progress", response_model=FormProgressResponse)
-def get_session_form_progress(session_id: str, db: Session = Depends(get_db)):
+def get_session_form_progress(
+    session_id: str,
+    saved_field: str | None = Query(default=None, alias="saved_field"),
+    db: Session = Depends(get_db),
+):
     row = db.get(FormSession, session_id)
     if not row:
         raise HTTPException(status_code=404, detail="Session not found")
 
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
-    progress = get_form_progress(schema, answers)
+    progress = get_form_progress_with_hint(schema, answers, saved_field)
     return FormProgressResponse(**progress)
 
 

@@ -229,6 +229,33 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
     return result
 
 
+def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> str:
+    """Short imperative instruction returned after each update_form_field tool call."""
+    forbidden = (
+        "FORBIDDEN after saving a field: 'I heard', 'is that correct', 'did I get that right', "
+        "'just to confirm', 'let me make sure', or echoing the saved value back."
+    )
+    if progress.get("all_fields_collected"):
+        return (
+            f"{forbidden} "
+            "ALL fields are now collected. Read ONE full summary of everything. "
+            "Ask ONCE whether ALL information is correct — this is the ONLY confirmation allowed."
+        )
+    next_id = progress.get("next_field_id")
+    ask_en = progress.get("next_field_ask_en") or next_id or "the next field"
+    saved = f" ({saved_field_id} saved)" if saved_field_id else ""
+    return (
+        f"Field saved{saved}. {forbidden} "
+        f"Do NOT confirm this field. IMMEDIATELY ask ONLY the next question ({next_id}): {ask_en}"
+    )
+
+
+def get_form_progress_with_hint(schema: FormSchema, answers: dict, saved_field_id: str | None = None) -> dict:
+    progress = get_form_progress(schema, answers)
+    progress["voice_instruction"] = build_voice_tool_hint(progress, saved_field_id)
+    return progress
+
+
 def normalize_answers(schema: FormSchema, answers: dict) -> dict:
     field_map = {field.id: field for field in schema.fields}
     internal = {k: v for k, v in answers.items() if k.startswith("_")}
@@ -260,7 +287,13 @@ def build_voice_system_instruction(
         "- YOU ALWAYS SPEAK FIRST. Never wait for the patient to say anything before your first message.",
         "- When the session starts, immediately speak aloud without waiting for silence or user input.",
         "- Ask ONE question at a time.",
-        "- Confirm spelling for names, email, and phone when unclear.",
+        "- NO PER-FIELD CONFIRMATION (critical — patients hate this):",
+        "  • After a clear answer, save with update_form_field and ask the NEXT question immediately.",
+        "  • NEVER say: 'I heard X for your full name — is that correct?', 'Did I get that right?',",
+        "    'Just to confirm', 'Let me make sure I have this right', or any echo-then-confirm pattern.",
+        "  • The ONLY confirmation moment is the FINAL summary when all_fields_collected is true.",
+        "  • If audio was unclear or the patient corrects you, fix the field — still no 'is that correct?'",
+        "    unless you genuinely could not hear them (ask them to repeat, not to confirm a guess).",
         "- LANGUAGE RULES (critical — follow exactly):",
         "  • OPENING ONLY in English: your first greeting and your first form question must be in English.",
         '  • Opening greeting (English only): "VM Clinic is listening. I can help you register."',
@@ -277,14 +310,15 @@ def build_voice_system_instruction(
         "- Form field values (names, addresses, phone, email) must be saved exactly as the patient says them.",
         "- For select/multiselect fields, still save exact allowed_values (English codes like medi_cal, uninsured).",
         "- SAVE RULE (default — save immediately when the answer is clear):",
-        "  • When the patient gives a CLEAR answer, call update_form_field right away — do NOT confirm every field.",
-        "  • Move to the next question immediately after saving.",
-        "- RE-CONFIRM ONLY when uncertain (do NOT confirm routine clear answers):",
-        "  • Audio was unclear, mumbling, or interrupted.",
-        "  • Value is ambiguous (e.g. similar names, unsure spelling, partial phone number).",
-        "  • Patient corrects themselves or says you heard wrong.",
-        "  • Names, email, phone, or dates that are hard to hear — spell back once, then save.",
-        "  • Never ask 'is that correct?' after every normal answer — that annoys patients.",
+        "  • Workflow: patient answers clearly → call update_form_field FIRST → then ask next question.",
+        "  • NEVER: patient answers → you confirm → then save. Save first, no echo.",
+        "  • When the patient gives a CLEAR answer, call update_form_field right away.",
+        "  • After the tool returns, follow voice_instruction exactly — usually ask the next question only.",
+        "  • Move to the next question immediately after saving. Do NOT read back what they said.",
+        "- RE-CONFIRM ONLY at final summary (never per field):",
+        "  • Do NOT confirm individual fields — even names, email, phone, or dates.",
+        "  • Only re-ask if audio was inaudible: 'Sorry, could you repeat that?' — not 'is that correct?'",
+        "  • Patient corrects themselves → update_form_field, then continue to next question.",
         "- After each update_form_field call, read next_field_id and ask that question next.",
         "- FINAL SUMMARY (once — when all_fields_collected becomes true):",
         "  • Read back ALL collected fields in a concise summary (grouped: personal, insurance, etc.).",

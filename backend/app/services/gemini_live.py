@@ -15,14 +15,15 @@ def _build_form_tool() -> types.Tool:
                 name="update_form_field",
                 description=(
                     "Persist one form field from the patient's spoken answer. "
-                    "Save immediately when the answer is clear. Re-confirm only if uncertain. "
+                    "Save immediately when clear — NEVER confirm per field. "
+                    "After saving, follow voice_instruction in the response: ask the NEXT question only. "
+                    "Forbidden speech: 'I heard X — is that correct?'. "
+                    "Only confirm once at the end when all_fields_collected is true. "
                     "Use exact field_id from schema. Encode value as JSON string "
                     '(e.g. "John", true, ["asian"], "medi_cal"). '
                     "For insurance use field_id=insurance with value uninsured|medi_cal|ppo|hmo. "
                     "For optional fields declined/none/không có, use value __skipped__. "
-                    "When all_fields_collected is true, read full summary once for final confirmation. "
-                    "The response includes next_field_id, filled_count, remaining_count, total_fields. "
-                    "Always ask next_field_id next. Use ONLY returned counts for progress — never guess."
+                    "The response includes voice_instruction, next_field_id, filled_count, remaining_count."
                 ),
                 parameters=types.Schema(
                     type=types.Type.OBJECT,

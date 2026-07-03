@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import { api } from './api/client'
+import { api, BOOT_TIMEOUT_MS } from './api/client'
 import { AnswersPanel } from './components/AnswersPanel'
 import { ContentTabs } from './components/ContentTabs'
 import { FormSelector } from './components/FormSelector'
@@ -26,6 +26,8 @@ function App() {
   const [schema, setSchema] = useState<FormSchema | null>(null)
   const [session, setSession] = useState<FormSession | null>(null)
   const [booting, setBooting] = useState(true)
+  const [bootMessage, setBootMessage] = useState<string | undefined>()
+  const [bootAttempt, setBootAttempt] = useState(0)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [voiceActive, setVoiceActive] = useState(false)
@@ -45,7 +47,10 @@ function App() {
     setSession(null)
     setSchema(null)
 
-    void Promise.all([api.getSchema(selectedFormId), api.createSession(selectedFormId, language)])
+    void Promise.all([
+      api.getSchema(selectedFormId, BOOT_TIMEOUT_MS),
+      api.createSession(selectedFormId, language, BOOT_TIMEOUT_MS),
+    ])
       .then(([nextSchema, created]) => {
         if (cancelled) return
         setSchema(nextSchema)
@@ -66,15 +71,25 @@ function App() {
 
   useEffect(() => {
     let cancelled = false
+    const slowTimer = window.setTimeout(() => {
+      if (!cancelled) {
+        setBootMessage(
+          language === 'vi'
+            ? 'Đang đánh thức server (có thể mất 30–90 giây)...'
+            : 'Waking server (may take 30–90 seconds)...',
+        )
+      }
+    }, 12_000)
 
     async function boot() {
       setBooting(true)
+      setBootMessage(undefined)
       setError('')
 
       const [listResult, schemaResult, sessionResult] = await Promise.allSettled([
-        api.listForms(),
-        api.getSchema(DEFAULT_FORM_ID),
-        api.createSession(DEFAULT_FORM_ID, language),
+        api.listForms(BOOT_TIMEOUT_MS),
+        api.getSchema(DEFAULT_FORM_ID, BOOT_TIMEOUT_MS),
+        api.createSession(DEFAULT_FORM_ID, language, BOOT_TIMEOUT_MS),
       ])
 
       if (cancelled) return
@@ -105,15 +120,17 @@ function App() {
       }
 
       setBooting(false)
+      setBootMessage(undefined)
       initialBootRef.current = false
     }
 
     void boot()
     return () => {
       cancelled = true
+      window.clearTimeout(slowTimer)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once on mount
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on mount / retry
+  }, [bootAttempt])
 
   const handleFieldChange = async (fieldId: string, value: unknown) => {
     if (!session) return
@@ -209,7 +226,7 @@ function App() {
           language={language}
           message={
             booting
-              ? undefined
+              ? bootMessage
               : language === 'vi'
                 ? 'Đang tạo phiên làm việc...'
                 : 'Starting your session...'
@@ -217,7 +234,14 @@ function App() {
         />
       )}
 
-      {error && <div className="alert error">{error}</div>}
+      {error && (
+        <div className="alert error">
+          <span>{error}</span>
+          <button type="button" className="alert-retry" onClick={() => setBootAttempt((n) => n + 1)}>
+            {language === 'vi' ? 'Thử lại' : 'Retry'}
+          </button>
+        </div>
+      )}
       {message && !booting && session && <div className="alert success">{message}</div>}
 
       <div className="toolbar-row card">

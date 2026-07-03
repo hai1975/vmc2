@@ -100,7 +100,7 @@ export class GeminiLiveSession {
 
     // Gemini 3.1: use sendRealtimeInput for in-session text (not sendClientContent).
     session.sendRealtimeInput({
-      text: 'Session connected. START SPEAKING NOW in English only. Greet the patient in English, ask the first required field in English. After the patient responds, use their language for everything else. Never mention preferring English.',
+      text: 'Session connected. START SPEAKING NOW in English only. Greet the patient in English, ask the first required field in English. After the patient responds, use their language for everything else. Never mention preferring English. NEVER confirm each answer with "I heard X — is that correct?" — save and ask the next question. Only confirm once at the final summary.',
     })
 
     this.openingTimeout = setTimeout(() => {
@@ -226,10 +226,16 @@ export class GeminiLiveSession {
 
                   const parsedValue = parseToolValue(String(args.value ?? ''))
                   const progress = await callbacks.onFieldUpdate(args.field_id, parsedValue)
+                  const instruction =
+                    typeof progress.voice_instruction === 'string' ? progress.voice_instruction : ''
                   responses.push({
                     id: call.id,
                     name: call.name,
-                    response: { ok: true, ...progress },
+                    response: {
+                      ok: true,
+                      voice_instruction: instruction,
+                      ...progress,
+                    },
                   })
                 }
 

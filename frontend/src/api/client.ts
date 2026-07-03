@@ -1,12 +1,43 @@
 import type { AppSettings, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? ''
+const DEFAULT_TIMEOUT_MS = 30_000
+export const BOOT_TIMEOUT_MS = 90_000
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
-    ...init,
-  })
+export class ApiTimeoutError extends Error {
+  constructor(seconds: number) {
+    super(`Request timed out after ${seconds}s. The server may be waking up — please try again.`)
+    this.name = 'ApiTimeoutError'
+  }
+}
+
+async function fetchWithTimeout(path: string, init?: RequestInit, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController()
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(`${API_BASE}${path}`, {
+      ...init,
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiTimeoutError(Math.round(timeoutMs / 1000))
+    }
+    throw error
+  } finally {
+    window.clearTimeout(timer)
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<T> {
+  const res = await fetchWithTimeout(
+    path,
+    {
+      headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
+      ...init,
+    },
+    timeoutMs,
+  )
   if (!res.ok) {
     const raw = await res.text()
     try {
@@ -27,17 +58,30 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** Ping API early to reduce Render cold-start wait before real requests. */
+export function wakeApi(): void {
+  if (!API_BASE) return
+  void fetchWithTimeout('/api/health', {}, 45_000).catch(() => {})
+}
+
 export const api = {
-  listForms: () => request<FormSummary[]>('/api/forms'),
-  getSchema: (formId: string) => request<FormSchema>(`/api/forms/${formId}/schema`),
-  createSession: (formId: string, language: string) =>
-    request<FormSession>('/api/sessions', {
-      method: 'POST',
-      body: JSON.stringify({ form_id: formId, language }),
-    }),
+  listForms: (timeoutMs?: number) => request<FormSummary[]>('/api/forms', undefined, timeoutMs),
+  getSchema: (formId: string, timeoutMs?: number) =>
+    request<FormSchema>(`/api/forms/${formId}/schema`, undefined, timeoutMs),
+  createSession: (formId: string, language: string, timeoutMs?: number) =>
+    request<FormSession>(
+      '/api/sessions',
+      {
+        method: 'POST',
+        body: JSON.stringify({ form_id: formId, language }),
+      },
+      timeoutMs,
+    ),
   getSession: (sessionId: string) => request<FormSession>(`/api/sessions/${sessionId}`),
-  getFormProgress: (sessionId: string) =>
-    request<FormProgress>(`/api/sessions/${sessionId}/form-progress`),
+  getFormProgress: (sessionId: string, savedFieldId?: string) => {
+    const query = savedFieldId ? `?saved_field=${encodeURIComponent(savedFieldId)}` : ''
+    return request<FormProgress>(`/api/sessions/${sessionId}/form-progress${query}`)
+  },
   updateAnswers: (sessionId: string, answers: Record<string, unknown>) =>
     request<FormSession>(`/api/sessions/${sessionId}/answers`, {
       method: 'PATCH',
@@ -53,7 +97,7 @@ export const api = {
     request<LiveToken>(`/api/sessions/${sessionId}/live-token`, { method: 'POST' }),
   pdfUrl: (sessionId: string) => `${API_BASE}/api/sessions/${sessionId}/pdf`,
   fetchPdfBlob: async (sessionId: string) => {
-    const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/pdf`)
+    const res = await fetchWithTimeout(`/api/sessions/${sessionId}/pdf`, {}, 60_000)
     if (!res.ok) {
       const raw = await res.text()
       try {
