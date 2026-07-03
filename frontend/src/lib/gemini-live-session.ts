@@ -120,7 +120,7 @@ export class GeminiLiveSession {
 
     // Gemini 3.1: use sendRealtimeInput for in-session text (not sendClientContent).
     session.sendRealtimeInput({
-      text: 'Session connected. Live webcam is ON — patient may show ID/passport/license/insurance on camera; use scan_document_fields when they ask you to read it. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet, mention they can show documents to the camera, then ask first field.',
+      text: 'Session connected. Patient may enable webcam to show ID/passport/license/insurance; use scan_document_fields when they ask you to read it. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet, mention they can enable the camera to show documents, then ask first field.',
     })
 
     this.openingTimeout = setTimeout(() => {
