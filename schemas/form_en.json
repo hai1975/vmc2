@@ -263,7 +263,7 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 105,
+        "x": 130,
         "y": 582.0
       }
     },
@@ -282,7 +282,7 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 110,
+        "x": 145,
         "y": 560.0
       }
     },
@@ -301,7 +301,7 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 330,
+        "x": 375,
         "y": 560.0
       }
     },
@@ -730,7 +730,7 @@
       "page": 1,
       "section": "pharmacy",
       "validation": {
-        "x": 120,
+        "x": 180,
         "y": 294.0
       }
     },
@@ -749,7 +749,7 @@
       "page": 1,
       "section": "pharmacy",
       "validation": {
-        "x": 420,
+        "x": 430,
         "y": 294.0
       }
     },

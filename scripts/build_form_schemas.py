@@ -23,6 +23,11 @@ def txt(top: float, left: float = 120.0, **extra) -> dict:
     return meta
 
 
+def line(label_top: float, x: float, drop: float = 12.0, **extra) -> dict:
+    """Blank input line below a label row (fitz top coords from form_en.pdf)."""
+    return txt(label_top + drop, x, **extra)
+
+
 def field(
     fid: str,
     ftype: str,
@@ -132,14 +137,14 @@ def page1_fields() -> list[dict]:
               1, "personal", False, validation=txt(186, 470)),
         field("home_address", "textarea", "Home Address", "Địa chỉ nhà",
               "What is your home address?", "Địa chỉ nhà của bạn là gì?",
-              1, "personal", True, validation=txt(210, 105)),
+              1, "personal", True, validation=line(198, 130)),
         field("phone", "phone", "Phone Number", "Số điện thoại",
               "What is your phone number?", "Số điện thoại liên lạc của bạn là gì?",
-              1, "personal", True, validation=txt(232, 110)),
+              1, "personal", True, validation=line(220, 145)),
         field("email", "email", "Email", "Email",
               "What is your email address? Say none if you don't have one.",
               "Địa chỉ email của bạn? Nếu không có, nói không có.",
-              1, "personal", False, validation=txt(232, 330)),
+              1, "personal", False, validation=line(220, 375)),
         field("insurance", "select", "Insurance", "Bảo hiểm",
               "What insurance do you have? Medi-Cal, PPO, HMO, or uninsured?",
               "Bạn có loại bảo hiểm nào? Medi-Cal, PPO, HMO, hay không có bảo hiểm?",
@@ -191,11 +196,11 @@ def page1_fields() -> list[dict]:
         field("pharmacy_name", "text", "Preferred Pharmacy", "Nhà thuốc ưa thích",
               "What is your preferred pharmacy name? Say none if you don't have one.",
               "Nhà thuốc ưa thích tên gì? Nếu không có, nói không có.",
-              1, "pharmacy", False, validation=txt(498, 120)),
+              1, "pharmacy", False, validation=line(486, 180)),
         field("pharmacy_phone", "phone", "Pharmacy Phone", "SĐT nhà thuốc",
               "What is the pharmacy phone number? Say none if you don't have one.",
               "Số điện thoại nhà thuốc? Nếu không có, nói không có.",
-              1, "pharmacy", False, validation=txt(498, 420)),
+              1, "pharmacy", False, validation=line(486, 430)),
         field("treatment_consent", "boolean", "Treatment Consent", "Đồng ý điều trị",
               "Do you consent to VM Clinic evaluating and treating you?",
               "Bạn có đồng ý cho VM Clinic đánh giá và điều trị không?",
