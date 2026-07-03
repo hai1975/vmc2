@@ -62,6 +62,8 @@ class SessionResponse(BaseModel):
     created_at: str
     updated_at: str
     submitted_at: str | None = None
+    email_sent: bool | None = None
+    email_error: str | None = None
 
 
 class VoiceConfigResponse(BaseModel):
@@ -91,3 +93,23 @@ class FormProgressResponse(BaseModel):
     next_field_ask_en: str | None = None
     next_field_ask_vi: str | None = None
     next_field_allowed_values: list[str] | None = None
+
+
+class AppSettingsResponse(BaseModel):
+    email_enabled: str = "false"
+    email_to: str = ""
+    smtp_host: str = ""
+    smtp_port: str = "587"
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+
+
+class AppSettingsUpdate(BaseModel):
+    email_enabled: str | None = None
+    email_to: str | None = None
+    smtp_host: str | None = None
+    smtp_port: str | None = None
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None

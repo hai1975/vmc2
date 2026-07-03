@@ -41,6 +41,18 @@ export interface FormSession {
   created_at: string
   updated_at: string
   submitted_at: string | null
+  email_sent?: boolean | null
+  email_error?: string | null
+}
+
+export interface AppSettings {
+  email_enabled: string
+  email_to: string
+  smtp_host: string
+  smtp_port: string
+  smtp_user: string
+  smtp_password: string
+  smtp_from: string
 }
 
 export interface LiveToken {

@@ -14,14 +14,14 @@ def _build_form_tool() -> types.Tool:
             types.FunctionDeclaration(
                 name="update_form_field",
                 description=(
-                    "Persist one form field ONLY after the patient explicitly confirmed the value. "
-                    "Never call this before confirmation. "
+                    "Persist one form field from the patient's spoken answer. "
+                    "Save immediately when the answer is clear. Re-confirm only if uncertain. "
                     "Use exact field_id from schema. Encode value as JSON string "
                     '(e.g. "John", true, ["asian"], "medi_cal"). '
                     "For insurance use field_id=insurance with value uninsured|medi_cal|ppo|hmo. "
-                    "For optional fields declined/none/không có, use value __skipped__ after confirmation. "
-                    "The response includes next_field_id, filled_count, remaining_count, total_fields, "
-                    "missing_optional, ready_to_submit, and all_fields_collected. "
+                    "For optional fields declined/none/không có, use value __skipped__. "
+                    "When all_fields_collected is true, read full summary once for final confirmation. "
+                    "The response includes next_field_id, filled_count, remaining_count, total_fields. "
                     "Always ask next_field_id next. Use ONLY returned counts for progress — never guess."
                 ),
                 parameters=types.Schema(

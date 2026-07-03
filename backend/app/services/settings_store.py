@@ -1,0 +1,47 @@
+from sqlalchemy.orm import Session
+
+from app.database import AppSetting
+
+SETTING_KEYS = (
+    "email_enabled",
+    "email_to",
+    "smtp_host",
+    "smtp_port",
+    "smtp_user",
+    "smtp_password",
+    "smtp_from",
+)
+
+DEFAULTS: dict[str, str] = {
+    "email_enabled": "false",
+    "email_to": "",
+    "smtp_host": "",
+    "smtp_port": "587",
+    "smtp_user": "",
+    "smtp_password": "",
+    "smtp_from": "",
+}
+
+
+def get_all_settings(db: Session) -> dict[str, str]:
+    rows = db.query(AppSetting).all()
+    stored = {row.key: row.value for row in rows}
+    merged = {**DEFAULTS, **stored}
+    if merged.get("smtp_password"):
+        merged["smtp_password"] = "***"
+    return merged
+
+
+def update_settings(db: Session, payload: dict[str, str]) -> dict[str, str]:
+    for key, value in payload.items():
+        if key not in SETTING_KEYS:
+            continue
+        if key == "smtp_password" and (not value or value == "***"):
+            continue
+        row = db.get(AppSetting, key)
+        if row:
+            row.value = value
+        else:
+            db.add(AppSetting(key=key, value=value))
+    db.commit()
+    return get_all_settings(db)

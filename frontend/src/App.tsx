@@ -6,6 +6,8 @@ import { FormSelector } from './components/FormSelector'
 import { Header } from './components/Header'
 import { LoadingSplash } from './components/LoadingSplash'
 import { PdfPreview } from './components/PdfPreview'
+import { SettingsModal } from './components/SettingsModal'
+import { SubmitModal } from './components/SubmitModal'
 import type { VoiceAssistantHandle } from './components/VoiceAssistant'
 import type { GeminiLiveStatus } from './lib/gemini-live-session'
 import type { FormSchema, FormSession, FormSummary, Language } from './types'
@@ -27,6 +29,9 @@ function App() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [voiceActive, setVoiceActive] = useState(false)
+  const [submitOpen, setSubmitOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const voiceRef = useRef<VoiceAssistantHandle>(null)
   const initialBootRef = useRef(true)
 
@@ -123,15 +128,39 @@ function App() {
     setMessage(language === 'vi' ? 'Đã lưu bản nháp.' : 'Draft saved.')
   }
 
-  const handleSubmit = async () => {
+  const handleSubmitClick = () => {
     if (!session) return
+    setSubmitOpen(true)
+  }
+
+  const handleSubmitConfirm = async (payload: { signature: string; selfie: string }) => {
+    if (!session) return
+    setSubmitting(true)
+    setError('')
     try {
+      const withAttachments = await api.updateAnswers(session.id, {
+        _signature: payload.signature,
+        _selfie: payload.selfie,
+      })
+      setSession(withAttachments)
       const submitted = await api.submitSession(session.id)
       setSession(submitted)
-      setMessage(language === 'vi' ? 'Đã submit form thành công!' : 'Form submitted successfully!')
+      setSubmitOpen(false)
+      let msg =
+        language === 'vi' ? 'Đã submit form thành công!' : 'Form submitted successfully!'
+      if (submitted.email_sent) {
+        msg += language === 'vi' ? ' PDF đã gửi email.' : ' PDF emailed.'
+      } else if (submitted.email_error) {
+        msg +=
+          language === 'vi'
+            ? ` (Gửi email lỗi: ${submitted.email_error})`
+            : ` (Email failed: ${submitted.email_error})`
+      }
+      setMessage(msg)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Submit failed'
-      setError(message)
+      setError(err instanceof Error ? err.message : 'Submit failed')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -169,7 +198,11 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Header language={language} onLanguageChange={setLanguage} />
+      <Header
+        language={language}
+        onLanguageChange={setLanguage}
+        onOpenSettings={() => setSettingsOpen(true)}
+      />
 
       {(booting || waitingSession) && (
         <LoadingSplash
@@ -242,7 +275,7 @@ function App() {
             type="button"
             className="icon-btn primary"
             disabled={!session || booting}
-            onClick={() => void handleSubmit()}
+            onClick={() => handleSubmitClick()}
             title="Submit"
             aria-label="Submit"
           >
@@ -286,6 +319,14 @@ function App() {
           />
         }
       />
+      <SubmitModal
+        language={language}
+        open={submitOpen}
+        busy={submitting}
+        onClose={() => setSubmitOpen(false)}
+        onConfirm={(payload) => void handleSubmitConfirm(payload)}
+      />
+      <SettingsModal language={language} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }

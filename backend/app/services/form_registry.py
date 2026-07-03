@@ -5,6 +5,7 @@ from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
 
 SKIPPED_VALUE = "__skipped__"
+INTERNAL_ANSWER_KEYS = frozenset({"_signature", "_selfie"})
 
 
 def skipped_pdf_label(language: str = "en") -> str:
@@ -230,15 +231,20 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
 
 def normalize_answers(schema: FormSchema, answers: dict) -> dict:
     field_map = {field.id: field for field in schema.fields}
+    internal = {k: v for k, v in answers.items() if k.startswith("_")}
     normalized: dict = {}
     for field_id, value in answers.items():
+        if field_id.startswith("_"):
+            continue
         field = field_map.get(field_id)
         if not field:
             continue
         cleaned = normalize_field_value(field, value)
         if cleaned == SKIPPED_VALUE or not _is_empty(cleaned):
             normalized[field_id] = cleaned
-    return apply_skip_cascades(schema, normalized)
+    merged = apply_skip_cascades(schema, normalized)
+    merged.update(internal)
+    return merged
 
 
 def build_voice_system_instruction(
@@ -270,19 +276,24 @@ def build_voice_system_instruction(
         "  • Match the patient's language naturally — do not announce or justify your language choice.",
         "- Form field values (names, addresses, phone, email) must be saved exactly as the patient says them.",
         "- For select/multiselect fields, still save exact allowed_values (English codes like medi_cal, uninsured).",
-        "- CONFIRMATION RULE (critical — before every update_form_field call):",
-        "  • NEVER call update_form_field immediately after the patient speaks.",
-        "  • ALWAYS read back what you understood and ask the patient to confirm first.",
-        '  • Example (English): "I heard John Smith for your first name — is that correct?"',
-        '  • Example (Vietnamese): "Tôi nghe là Nguyễn Văn A — đúng không ạ?"',
-        "  • Wait for the patient to say yes / correct / đúng / ừ / vâng before calling update_form_field.",
-        "  • If the patient says no or corrects you, ask again and confirm the corrected value.",
-        "  • For names, email, phone, and dates: spell or repeat clearly before confirming.",
-        "  • Only after explicit confirmation, call update_form_field(field_id, value).",
-        "- After each confirmed answer and update_form_field call, read next_field_id and ask that question next.",
+        "- SAVE RULE (default — save immediately when the answer is clear):",
+        "  • When the patient gives a CLEAR answer, call update_form_field right away — do NOT confirm every field.",
+        "  • Move to the next question immediately after saving.",
+        "- RE-CONFIRM ONLY when uncertain (do NOT confirm routine clear answers):",
+        "  • Audio was unclear, mumbling, or interrupted.",
+        "  • Value is ambiguous (e.g. similar names, unsure spelling, partial phone number).",
+        "  • Patient corrects themselves or says you heard wrong.",
+        "  • Names, email, phone, or dates that are hard to hear — spell back once, then save.",
+        "  • Never ask 'is that correct?' after every normal answer — that annoys patients.",
+        "- After each update_form_field call, read next_field_id and ask that question next.",
+        "- FINAL SUMMARY (once — when all_fields_collected becomes true):",
+        "  • Read back ALL collected fields in a concise summary (grouped: personal, insurance, etc.).",
+        "  • Ask ONCE: 'Is all of this information correct?' / 'Tất cả thông tin trên đúng chưa ạ?'",
+        "  • If patient corrects any field, update it, then briefly confirm only the correction.",
+        "  • After final yes, tell patient to tap Submit on screen for signature and photo.",
         "- DECLINING / NONE ANSWERS (critical for optional fields):",
-        '  • If the patient says none / không có / skip / not applicable for an OPTIONAL field,',
-        '    confirm then call update_form_field(field_id, "__skipped__").',
+        '  • If the patient says none / không có / skip for an OPTIONAL field,',
+        '    call update_form_field(field_id, "__skipped__") without extra confirmation if intent is clear.',
         "  • Declining IS an answer — you MUST still call update_form_field. Never just move on without saving.",
         "  • __skipped__ writes Không có (vi) or None (en) on the PDF and counts as done.",
         "  • For insurance 'no insurance' use value uninsured (NOT __skipped__).",
@@ -308,8 +319,8 @@ def build_voice_system_instruction(
         "- When asking a field, use ask_en while still in the English opening phase; after switching to the patient's",
         "  language, use ask_vi for Vietnamese, or translate ask_en naturally for other languages.",
         "- When all_fields_collected is true, tell the patient clearly in THEIR current language:",
-        '  English: "You have completed the form. Please click the Submit button on the screen to finish registration."',
-        '  Vietnamese: "Bạn đã hoàn thành form. Vui lòng bấm nút Submit trên màn hình để hoàn tất đăng ký."',
+        '  English: "Please review the summary, then tap Submit on the screen to sign and take your photo."',
+        '  Vietnamese: "Vui lòng xem lại tóm tắt, rồi bấm Submit trên màn hình để ký và chụp ảnh."',
         "- IMMEDIATELY when the session begins, speak FIRST without waiting for the patient.",
         "- Do NOT wait for the patient to speak, cough, or make any sound before you talk.",
         "",
@@ -333,7 +344,9 @@ def build_voice_system_instruction(
             lines.append(f"NEXT QUESTION MUST BE: {progress['next_field_id']}")
         lines.append("")
     if progress.get("all_fields_collected"):
-        lines.append("All fields collected. Tell the patient to click Submit.")
+        lines.append(
+            "All fields collected. Read FULL summary once, ask if all correct, then tell patient to tap Submit."
+        )
         lines.append("")
     elif progress.get("ready_to_submit"):
         lines.append(

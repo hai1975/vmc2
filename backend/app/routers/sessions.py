@@ -15,6 +15,7 @@ from app.models import (
     SessionUpdateAnswers,
     VoiceConfigResponse,
 )
+from app.services.email_service import send_pdf_email
 from app.services.form_registry import (
     build_voice_system_instruction,
     get_form_progress,
@@ -28,7 +29,11 @@ from app.services.pdf_generator import generate_filled_pdf
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
-def _to_response(row: FormSession) -> SessionResponse:
+def _to_response(
+    row: FormSession,
+    email_sent: bool | None = None,
+    email_error: str | None = None,
+) -> SessionResponse:
     pdf_url = None
     if row.filled_pdf_path:
         pdf_url = f"/api/sessions/{row.id}/pdf"
@@ -42,6 +47,8 @@ def _to_response(row: FormSession) -> SessionResponse:
         created_at=row.created_at.isoformat(),
         updated_at=row.updated_at.isoformat(),
         submitted_at=row.submitted_at.isoformat() if row.submitted_at else None,
+        email_sent=email_sent,
+        email_error=email_error,
     )
 
 
@@ -131,7 +138,20 @@ def submit_session(session_id: str, db: Session = Depends(get_db)):
     row.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(row)
-    return _to_response(row)
+
+    email_sent: bool | None = None
+    email_error: str | None = None
+    try:
+        if send_pdf_email(db, pdf_path, row.form_id, row.id):
+            email_sent = True
+    except ValueError as exc:
+        email_sent = False
+        email_error = str(exc)
+    except Exception as exc:
+        email_sent = False
+        email_error = str(exc)
+
+    return _to_response(row, email_sent=email_sent, email_error=email_error)
 
 
 @router.get("/{session_id}/pdf")

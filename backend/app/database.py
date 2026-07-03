@@ -37,6 +37,13 @@ class FormSession(Base):
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class AppSetting(Base):
+    __tablename__ = "app_settings"
+
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, default="")
+
+
 engine = create_engine(
     settings.database_url.replace("sqlite:///", "sqlite:///"),
     connect_args={"check_same_thread": False},

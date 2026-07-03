@@ -1,4 +1,4 @@
-import type { FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
+import type { AppSettings, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? ''
 
@@ -77,4 +77,10 @@ export const api = {
     link.remove()
     URL.revokeObjectURL(url)
   },
+  getSettings: () => request<AppSettings>('/api/settings'),
+  updateSettings: (payload: Partial<AppSettings>) =>
+    request<AppSettings>('/api/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
 }

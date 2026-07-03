@@ -4,9 +4,10 @@ import { LOGO_URL } from '../lib/brand'
 interface HeaderProps {
   language: Language
   onLanguageChange: (lang: Language) => void
+  onOpenSettings: () => void
 }
 
-export function Header({ language, onLanguageChange }: HeaderProps) {
+export function Header({ language, onLanguageChange, onOpenSettings }: HeaderProps) {
   return (
     <header className="app-header">
       <div className="brand">
@@ -16,7 +17,17 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
           <p>AI Voice Form Assistant</p>
         </div>
       </div>
-      <div className="lang-switch">
+      <div className="header-actions">
+        <button
+          type="button"
+          className="settings-btn"
+          onClick={onOpenSettings}
+          title={language === 'vi' ? 'Cài đặt' : 'Settings'}
+          aria-label={language === 'vi' ? 'Cài đặt' : 'Settings'}
+        >
+          ⚙
+        </button>
+        <div className="lang-switch">
         <button
           type="button"
           className={language === 'vi' ? 'active' : ''}
@@ -31,6 +42,7 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
         >
           EN
         </button>
+        </div>
       </div>
     </header>
   )
