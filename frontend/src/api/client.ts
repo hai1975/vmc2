@@ -1,4 +1,4 @@
-import type { AppSettings, DocumentScanResult, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
+import type { AppSettings, DocumentScanResult, EmailSendResult, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, VoiceConfig } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? ''
 const DEFAULT_TIMEOUT_MS = 30_000
@@ -147,6 +147,8 @@ export const api = {
     link.remove()
     URL.revokeObjectURL(url)
   },
+  sendSessionEmail: (sessionId: string) =>
+    request<EmailSendResult>(`/api/sessions/${sessionId}/send-email`, { method: 'POST' }, 90_000),
   getSettings: () => request<AppSettings>('/api/settings'),
   updateSettings: (payload: Partial<AppSettings>) =>
     request<AppSettings>('/api/settings', {

@@ -36,6 +36,7 @@ function App() {
   const [scanOpen, setScanOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [emailing, setEmailing] = useState(false)
   const voiceRef = useRef<VoiceAssistantHandle>(null)
   const initialBootRef = useRef(true)
 
@@ -195,6 +196,24 @@ function App() {
     }
   }
 
+  const handleEmail = async () => {
+    if (!session) return
+    setError('')
+    setEmailing(true)
+    try {
+      const result = await api.sendSessionEmail(session.id)
+      setMessage(
+        language === 'vi'
+          ? `Đã gửi email đến ${result.to}.`
+          : `Email sent to ${result.to}.`,
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : language === 'vi' ? 'Gửi email thất bại' : 'Email failed')
+    } finally {
+      setEmailing(false)
+    }
+  }
+
   const handleVoiceStatusChange = useCallback((status: GeminiLiveStatus) => {
     const active =
       status === 'connecting' ||
@@ -309,6 +328,20 @@ function App() {
               ⬇
             </span>
             <span className="icon-btn-label">{language === 'vi' ? 'Tải' : 'Download'}</span>
+          </button>
+
+          <button
+            type="button"
+            className="icon-btn"
+            disabled={!session || booting || emailing}
+            onClick={() => void handleEmail()}
+            title={language === 'vi' ? 'Gửi PDF qua email' : 'Email PDF'}
+            aria-label={language === 'vi' ? 'Gửi email' : 'Email'}
+          >
+            <span className="icon-btn-symbol" aria-hidden="true">
+              ✉
+            </span>
+            <span className="icon-btn-label">{language === 'vi' ? 'Email' : 'Email'}</span>
           </button>
 
           <button

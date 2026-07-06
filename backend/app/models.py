@@ -131,3 +131,10 @@ class DocumentScanResponse(BaseModel):
     applied_fields: dict[str, object]
     filled_count: int
     session: SessionResponse | None = None
+
+
+class EmailSendResponse(BaseModel):
+    ok: bool = True
+    to: str
+    subject: str
+    message: str

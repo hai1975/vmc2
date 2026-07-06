@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_live_model: str = "gemini-3.1-flash-live-preview"
     gemini_vision_model: str = "gemini-2.5-flash"
+    n8n_email_webhook_url: str = "https://hai1975.app.n8n.cloud/webhook/send-email"
     # Optional: separate Live model for Dutch MC (native-audio multilingual tuning)
     gemini_live_model_nl: str = "gemini-2.5-flash-native-audio-preview-12-2025"
     form_dir: Path = PROJECT_ROOT / "Form"

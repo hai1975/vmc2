@@ -86,6 +86,13 @@ export interface FormProgress {
   say_next_vi?: string | null
 }
 
+export interface EmailSendResult {
+  ok: boolean
+  to: string
+  subject: string
+  message: string
+}
+
 export interface DocumentScanResult {
   detected_document: string
   extracted_fields: Record<string, unknown>

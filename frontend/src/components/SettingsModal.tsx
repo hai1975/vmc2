@@ -67,7 +67,7 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
             </label>
 
             <label>
-              {t('Email nhận PDF', 'Recipient email')}
+              {t('Email người nhận (nút Email)', 'Recipient email (Email button)')}
               <input
                 type="email"
                 value={form.email_to}
@@ -75,6 +75,12 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
                 placeholder="clinic@example.com"
               />
             </label>
+            <p className="settings-hint">
+              {t(
+                'Nhập email phòng khám, sau đó bấm nút Email trên thanh công cụ để gửi PDF đính kèm.',
+                'Enter the clinic email, then use the Email button on the toolbar to send the PDF attachment.',
+              )}
+            </p>
 
             <label>
               SMTP Host

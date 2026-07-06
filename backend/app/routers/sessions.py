@@ -10,6 +10,7 @@ from app.database import FormSession, SessionStatus, dumps_answers, get_db, load
 from app.models import (
     DocumentScanRequest,
     DocumentScanResponse,
+    EmailSendResponse,
     FormProgressResponse,
     LiveTokenResponse,
     SessionCreate,
@@ -19,6 +20,7 @@ from app.models import (
 )
 from app.services.document_scan import extract_fields_from_document_image, merge_extracted_into_answers
 from app.services.email_service import send_pdf_email
+from app.services.email_templates import build_pdf_email_body, build_pdf_email_subject
 from app.services.form_registry import (
     build_voice_system_instruction,
     get_form_progress_with_hint,
@@ -28,7 +30,9 @@ from app.services.form_registry import (
     validate_answers,
 )
 from app.services.gemini_live import create_live_ephemeral_token
+from app.services.n8n_email import send_pdf_via_n8n
 from app.services.pdf_generator import generate_filled_pdf
+from app.services.settings_store import get_all_settings
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -223,6 +227,38 @@ def download_pdf(session_id: str, db: Session = Depends(get_db)):
         media_type="application/pdf",
         filename=f"{row.form_id}_{session_id}.pdf",
     )
+
+
+@router.post("/{session_id}/send-email", response_model=EmailSendResponse)
+def send_session_email(session_id: str, db: Session = Depends(get_db)):
+    row = db.get(FormSession, session_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    cfg = get_all_settings(db)
+    to_addr = (cfg.get("email_to") or "").strip()
+    if not to_addr:
+        raise HTTPException(
+            status_code=400,
+            detail="Recipient email is empty. Open Settings and enter the recipient email.",
+        )
+
+    schema = get_schema_or_raise(row.form_id)
+    answers = loads_answers(row.answers_json)
+
+    try:
+        pdf_path = generate_filled_pdf(row.form_id, schema, answers, row.id, row.language)
+        row.filled_pdf_path = str(pdf_path)
+        row.updated_at = datetime.now(timezone.utc)
+        db.commit()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    subject = build_pdf_email_subject(schema, row.language, answers)
+    body = build_pdf_email_body(schema, row.id, row.language, answers)
+    send_pdf_via_n8n(to_addr, subject, body, pdf_path)
+
+    return EmailSendResponse(ok=True, to=to_addr, subject=subject, message=body)
 
 
 @router.get("/{session_id}/form-progress", response_model=FormProgressResponse)

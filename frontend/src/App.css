@@ -968,3 +968,10 @@
   align-items: center;
   gap: 0.5rem !important;
 }
+
+.settings-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
