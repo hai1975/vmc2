@@ -21,8 +21,14 @@ class Settings(BaseSettings):
 
     gemini_api_key: str = ""
     gemini_live_model: str = "gemini-3.1-flash-live-preview"
+    # Optional: Live model for Vietnamese MC (Chương trình 2)
+    gemini_live_model_vi: str = ""
     # Optional: separate Live model for Dutch MC (native-audio multilingual tuning)
     gemini_live_model_nl: str = "gemini-2.5-flash-native-audio-preview-12-2025"
+    azure_speech_key: str = ""
+    azure_speech_region: str = "westeurope"
+    azure_voicelive_model: str = "gpt-realtime-mini"
+    azure_voicelive_endpoint: str = ""
     form_dir: Path = PROJECT_ROOT / "Form"
     schema_dir: Path = PROJECT_ROOT / "schemas"
     data_dir: Path = PROJECT_ROOT / "data"

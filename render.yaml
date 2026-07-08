@@ -12,6 +12,12 @@ services:
         value: gemini-3.1-flash-live-preview
       - key: GEMINI_LIVE_MODEL_NL
         value: gemini-2.5-flash-native-audio-preview-12-2025
+      - key: AZURE_SPEECH_KEY
+        sync: false
+      - key: AZURE_SPEECH_REGION
+        value: westeurope
+      - key: AZURE_VOICELIVE_MODEL
+        value: gpt-realtime-mini
       - key: CORS_ORIGINS
         value: https://hai1975.com,https://www.hai1975.com
       - key: FORM_DIR
