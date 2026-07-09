@@ -27,6 +27,7 @@ export function buildProgram2SystemInstruction(): string {
     '- Nội dung gửi kèm là KỊCH BẢN CHÍNH THỨC đã duyệt. PHẢI đọc CHÍNH XÁC theo hướng dẫn trong kịch bản đó.\n' +
     '- Đọc ĐÚNG từng câu, đúng thứ tự, giữ nguyên ý và câu chữ — KHÔNG diễn giải lại, KHÔNG tóm tắt, KHÔNG sáng tác thêm.\n' +
     '- Giữ nguyên tên riêng, tên bài hát, trích dẫn trong ngoặc kép, và mọi chi tiết như trong PDF.\n' +
+    "- Tên ca sĩ khách mời: Trân Oanh — viết ĐÚNG 'Trân Oanh', KHÔNG 'Trần Oánh', KHÔNG 'Trần Oanh'.\n" +
     '- KHÔNG bỏ đoạn, KHÔNG gộp câu, KHÔNG thay từ đồng nghĩa.\n' +
     '- KHÔNG nói số thứ tự tiết mục.\n' +
     '- KHÔNG thêm "kính thưa" hay "quý vị".\n' +
@@ -42,6 +43,7 @@ export function buildProgram2OpeningPrompt(mcScript: string): string {
     'Yêu cầu bắt buộc:\n' +
     '- Đọc ĐÚNG NGUYÊN VĂN từng câu dưới đây — không paraphrase, không rút gọn, không thêm lời dẫn hay câu kết.\n' +
     '- Giữ nguyên tên người, tên bài, trích dẫn và thứ tự như trong kịch bản.\n' +
+    "- Tên ca sĩ: Trân Oanh — đọc đúng 'Trân Oanh', không đổi thành Trần Oánh.\n" +
     '- Tốc độ vừa phải (hơi chậm nhẹ, không quá chậm), giọng nữ MIỀN TÂY thật ngọt ngào và du dương.\n' +
     '- Nếu kịch bản có nhiều đoạn (cách nhau bởi dòng trống): đọc từng đoạn, sau mỗi đoạn DỪNG IM LẶNG 1 giây rồi mới đọc đoạn kế.\n' +
     '- Đọc HẾT toàn bộ kịch bản sau:\n\n' +
