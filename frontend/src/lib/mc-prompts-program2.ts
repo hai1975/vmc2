@@ -31,6 +31,7 @@ export function buildProgram2SystemInstruction(): string {
     '- KHÔNG nói số thứ tự tiết mục.\n' +
     '- KHÔNG thêm "kính thưa" hay "quý vị".\n' +
     '- Tốc độ vừa phải — đọc HẾT kịch bản từ đầu đến cuối, không dừng giữa chừng.\n' +
+    '- Kịch bản có thể gồm NHIỀU ĐOẠN, mỗi đoạn cách nhau bởi dòng trống. Sau khi đọc xong mỗi đoạn, DỪNG IM LẶNG đúng 1 giây rồi mới đọc đoạn tiếp theo — KHÔNG nối liền các đoạn.\n' +
     '- Chỉ thay đổi cách phát âm (giọng miền Tây ngọt ngào); KHÔNG thay đổi nội dung lời nói.'
   )
 }
@@ -42,7 +43,8 @@ export function buildProgram2OpeningPrompt(mcScript: string): string {
     '- Đọc ĐÚNG NGUYÊN VĂN từng câu dưới đây — không paraphrase, không rút gọn, không thêm lời dẫn hay câu kết.\n' +
     '- Giữ nguyên tên người, tên bài, trích dẫn và thứ tự như trong kịch bản.\n' +
     '- Tốc độ vừa phải (hơi chậm nhẹ, không quá chậm), giọng nữ MIỀN TÂY thật ngọt ngào và du dương.\n' +
-    '- Đọc HẾT toàn bộ đoạn kịch bản sau:\n\n' +
+    '- Nếu kịch bản có nhiều đoạn (cách nhau bởi dòng trống): đọc từng đoạn, sau mỗi đoạn DỪNG IM LẶNG 1 giây rồi mới đọc đoạn kế.\n' +
+    '- Đọc HẾT toàn bộ kịch bản sau:\n\n' +
     mcScript.trim()
   )
 }
