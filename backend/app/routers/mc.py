@@ -64,6 +64,9 @@ def mc_version():
         "script_mode_supported": True,
         "gemini_script_model_default": "gemini-2.5-flash-native-audio-preview-12-2025",
     }
+
+
+class LiveTokenRequest(BaseModel):
     number: int
     performer: str
     piece: str
