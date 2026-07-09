@@ -11,8 +11,8 @@ from app.services.mc_prompts import (
     Lang,
     Gender,
     build_opening_prompt,
-    build_program2_opening_prompt,
-    build_program2_system_instruction,
+    build_program2_gemini_opening_prompt,
+    build_program2_gemini_system_instruction,
     build_system_instruction,
     gemini_voice,
     lang_code,
@@ -34,8 +34,11 @@ def _is_native_audio_model(model: str) -> bool:
 
 
 def _resolve_model(lang: Lang, *, script_mode: bool = False) -> str:
-    if script_mode and settings.gemini_live_model_vi.strip():
-        return settings.gemini_live_model_vi.strip()
+    if script_mode:
+        if settings.gemini_live_model_vi.strip():
+            return settings.gemini_live_model_vi.strip()
+        # Native-audio model follows verbatim Vietnamese scripts better than flash-live MC models.
+        return "gemini-2.5-flash-native-audio-preview-12-2025"
     if lang == "nl" and settings.gemini_live_model_nl.strip():
         return settings.gemini_live_model_nl.strip()
     return settings.gemini_live_model
@@ -75,8 +78,9 @@ async def mc_live_token(req: LiveTokenRequest) -> LiveTokenResponse:
 
     script_mode = bool(req.mc_script and req.mc_script.strip())
     if script_mode:
-        system_instruction = build_program2_system_instruction()
-        opening_prompt = build_program2_opening_prompt(req.mc_script or "")
+        mc_script = (req.mc_script or "").strip()
+        system_instruction = build_program2_gemini_system_instruction()
+        opening_prompt = build_program2_gemini_opening_prompt(mc_script)
         lang: Lang = "vi"
         gender: Gender = "female"
     else:
@@ -94,13 +98,16 @@ async def mc_live_token(req: LiveTokenRequest) -> LiveTokenResponse:
 
     model = _resolve_model(lang, script_mode=script_mode)
 
-    live_config = {
+    live_config: dict = {
         "response_modalities": ["AUDIO"],
         "system_instruction": system_instruction,
         "speech_config": _build_speech_config(lang, gender, model, force_language=script_mode),
         "input_audio_transcription": {},
         "output_audio_transcription": {},
     }
+    if script_mode:
+        live_config["generation_config"] = {"temperature": 0.1, "top_p": 0.85}
+        live_config["thinking_config"] = {"thinking_level": "MINIMAL"}
 
     client = genai.Client(api_key=settings.gemini_api_key, http_options={"api_version": "v1alpha"})
     now = datetime.now(timezone.utc)

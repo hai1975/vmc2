@@ -145,6 +145,29 @@ def build_program2_system_instruction() -> str:
     return _PROGRAM2_SYSTEM
 
 
+def build_program2_gemini_system_instruction() -> str:
+    """Gemini Live — chế độ teleprompter, tránh MC sáng tác."""
+    return (
+        "BẮT BUỘC chỉ nói tiếng Việt. KHÔNG dùng tiếng Anh hay ngôn ngữ khác.\n\n"
+        "VAI TRÒ: Bạn là MÁY ĐỌC KỊCH BẢN (teleprompter), KHÔNG phải MC tự sáng tác. "
+        "Nhiệm vụ DUY NHẤT: phát âm CHÍNH XÁC 100% nguyên văn kịch bản user gửi — không thêm, không bớt, không đổi từ.\n\n"
+        "QUY TẮC TUYỆT ĐỐI (ƯU TIÊN CAO NHẤT — VƯỢT MỌI QUY TẮC KHÁC):\n"
+        "- Output phải ĐÚNG 100% từng chữ trong kịch bản — mỗi từ, mỗi câu, đúng thứ tự.\n"
+        "- CẤM paraphrase, diễn giải, tóm tắt, sáng tác, thêm câu mở đầu/kết.\n"
+        "- CẤM filler: à, ừ, vâng ạ, xin chào, kính thưa, quý vị, các bạn thân mến...\n"
+        "- CẤM thay từ đồng nghĩa (vd: không đổi 'Thân chào' thành 'Xin chào').\n"
+        "- CẤM bỏ câu, bỏ đoạn, gộp đoạn, nhảy cóc.\n"
+        "- CẤM nói số tiết mục.\n"
+        "- Giữ nguyên tên riêng, tên bài, trích dẫn, dấu câu như trong kịch bản.\n"
+        "- Nếu kịch bản có nhiều đoạn (cách nhau dòng trống): đọc xong mỗi đoạn → im lặng 1 giây → đọc đoạn tiếp.\n"
+        "- Giọng nữ miền Tây ngọt ngào CHỈ ảnh hưởng cách phát âm — TUYỆT ĐỐI không đổi chữ.\n\n"
+        "GHI CHÚ ĐẠO DIỄN (chỉ phát âm, không đổi nội dung):\n"
+        "- Giọng nữ MIỀN TÂY ngọt ngào, mềm, du dương (Cần Thơ, Mỹ Tho).\n"
+        "- Tốc độ vừa phải (~90%), hơi chậm nhẹ — không kéo dài từ.\n"
+        "- Xưng hô theo đúng chữ trong kịch bản — không tự thêm xưng hô khác."
+    )
+
+
 def build_program2_opening_prompt(mc_script: str) -> str:
     return (
         "NHIỆM VỤ: Đọc CHÍNH XÁC kịch bản MC chính thức (theo programNew.pdf) cho mọi người trong khu vườn.\n"
@@ -155,6 +178,22 @@ def build_program2_opening_prompt(mc_script: str) -> str:
         "- Nếu kịch bản có nhiều đoạn (cách nhau bởi dòng trống): đọc từng đoạn, sau mỗi đoạn DỪNG IM LẶNG 1 giây rồi mới đọc đoạn kế.\n"
         "- Đọc HẾT toàn bộ kịch bản sau:\n\n"
         + mc_script.strip()
+    )
+
+
+def build_program2_gemini_opening_prompt(mc_script: str) -> str:
+    """Gemini Live — kịch bản đầy đủ trong user message, siết verbatim."""
+    script = mc_script.strip()
+    return (
+        "=== ĐỌC NGUYÊN VĂN 100% — TUYỆT ĐỐI KHÔNG THÊM, KHÔNG BỚT, KHÔNG ĐỔI TỪ ===\n"
+        "Đây là lời MC chính thức đã duyệt. Bạn CHỈ được phát âm đúng từng chữ dưới đây.\n"
+        "KHÔNG paraphrase. KHÔNG thêm lời dẫn. KHÔNG tóm tắt. KHÔNG sáng tác.\n"
+        "Sau mỗi đoạn (cách nhau dòng trống), dừng im lặng 1 giây rồi đọc đoạn tiếp.\n"
+        "Giọng nữ miền Tây ngọt ngào — chỉ đổi cách phát âm, không đổi chữ.\n"
+        "─── KỊCH BẢN BẮT ĐẦU ───\n"
+        f"{script}\n"
+        "─── KỊCH BẢN KẾT THÚC ───\n"
+        "Đọc NGAY toàn bộ kịch bản trên, nguyên văn từ đầu đến cuối."
     )
 
 

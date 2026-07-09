@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_live_model: str = "gemini-3.1-flash-live-preview"
     # Optional: Live model for Vietnamese MC (Chương trình 2)
-    gemini_live_model_vi: str = ""
+    gemini_live_model_vi: str = "gemini-2.5-flash-native-audio-preview-12-2025"
     # Optional: separate Live model for Dutch MC (native-audio multilingual tuning)
     gemini_live_model_nl: str = "gemini-2.5-flash-native-audio-preview-12-2025"
     azure_speech_key: str = ""

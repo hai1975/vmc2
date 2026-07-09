@@ -12,6 +12,8 @@ services:
         value: gemini-3.1-flash-live-preview
       - key: GEMINI_LIVE_MODEL_NL
         value: gemini-2.5-flash-native-audio-preview-12-2025
+      - key: GEMINI_LIVE_MODEL_VI
+        value: gemini-2.5-flash-native-audio-preview-12-2025
       - key: AZURE_SPEECH_KEY
         sync: false
       - key: AZURE_SPEECH_REGION
