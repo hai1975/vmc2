@@ -43,7 +43,7 @@ class FormSummary(BaseModel):
 
 
 class SessionCreate(BaseModel):
-    form_id: str
+    form_id: str = "triage"
     language: str = "en"
 
 
@@ -107,6 +107,7 @@ class AppSettingsResponse(BaseModel):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = ""
+    pediatric_age_threshold: str = "18"
 
 
 class AppSettingsUpdate(BaseModel):
@@ -117,6 +118,19 @@ class AppSettingsUpdate(BaseModel):
     smtp_user: str | None = None
     smtp_password: str | None = None
     smtp_from: str | None = None
+    pediatric_age_threshold: str | None = None
+
+
+class SelectFormRequest(BaseModel):
+    dob: str
+    voice_language: str = Field(default="en", description="vi if patient speaks Vietnamese, else en")
+
+
+class SelectFormResponse(BaseModel):
+    form_id: str
+    patient_age: int
+    is_pediatric: bool
+    session: SessionResponse
 
 
 class DocumentScanRequest(BaseModel):

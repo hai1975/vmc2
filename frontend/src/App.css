@@ -178,6 +178,21 @@
   max-width: 360px;
 }
 
+.form-status-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 200px;
+  flex: 1;
+  max-width: 420px;
+}
+
+.form-status-label {
+  font-size: 0.88rem;
+  color: #1e3a5f;
+  line-height: 1.35;
+}
+
 .form-select-label {
   font-size: 0.85rem;
   font-weight: 600;

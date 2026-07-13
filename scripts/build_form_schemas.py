@@ -571,34 +571,80 @@ def all_fields() -> list[dict]:
     return page1_fields() + page2_fields() + page3_fields() + page4_fields() + page5_fields()
 
 
-def build_schema(form_id: str, filename: str, title_en: str, title_vi: str, default: bool) -> dict:
+def build_schema(
+    form_id: str,
+    filename: str,
+    title_en: str,
+    title_vi: str,
+    default: bool,
+    fields: list[dict] | None = None,
+) -> dict:
     return {
         "id": form_id,
         "filename": filename,
         "title": {"en": title_en, "vi": title_vi},
-        "version": "2.0.0",
+        "version": "2.1.0",
         "default": default,
         "sections": SECTIONS,
-        "fields": all_fields(),
+        "fields": fields if fields is not None else all_fields(),
     }
 
 
 def main() -> None:
     SCHEMA_DIR.mkdir(parents=True, exist_ok=True)
+    shared_fields = all_fields()
     schemas = [
         build_schema(
-            "form_en",
-            "form_en.pdf",
-            "New Patient Registration (English)",
-            "Đơn ghi danh bệnh nhân mới (Tiếng Anh)",
+            "triage",
+            "adult_en.pdf",
+            "Registration intake",
+            "Tiếp nhận đăng ký",
             default=True,
+            fields=[
+                field(
+                    "dob",
+                    "date",
+                    "Date of birth",
+                    "Ngày sinh",
+                    "What is your date of birth?",
+                    "Ngày sinh của bạn là gì ạ?",
+                    1,
+                    "personal",
+                    True,
+                ),
+            ],
         ),
         build_schema(
-            "form_vn",
-            "form_vn.pdf",
-            "New Patient Registration (Vietnamese)",
-            "Đơn ghi danh bệnh nhân mới (Tiếng Việt)",
+            "adult_en",
+            "adult_en.pdf",
+            "Adult Registration (English)",
+            "Đăng ký người lớn (Tiếng Anh)",
             default=False,
+            fields=shared_fields,
+        ),
+        build_schema(
+            "adult_vn",
+            "adult_vn.pdf",
+            "Adult Registration (Vietnamese)",
+            "Đăng ký người lớn (Tiếng Việt)",
+            default=False,
+            fields=shared_fields,
+        ),
+        build_schema(
+            "child_en",
+            "Child_en.pdf",
+            "Pediatric Registration (English)",
+            "Đăng ký trẻ em (Tiếng Anh)",
+            default=False,
+            fields=shared_fields,
+        ),
+        build_schema(
+            "child_vn",
+            "Child_vn.pdf",
+            "Pediatric Registration (Vietnamese)",
+            "Đăng ký trẻ em (Tiếng Việt)",
+            default=False,
+            fields=shared_fields,
         ),
     ]
     for schema in schemas:

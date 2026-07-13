@@ -9,12 +9,13 @@ const PdfCanvasView = lazy(() =>
 
 interface PdfPreviewProps {
   sessionId: string | null
+  formId?: string | null
   answers: Record<string, unknown>
   language: Language
   embedded?: boolean
 }
 
-export function PdfPreview({ sessionId, answers, language, embedded = false }: PdfPreviewProps) {
+export function PdfPreview({ sessionId, formId, answers, language, embedded = false }: PdfPreviewProps) {
   const [displayUrl, setDisplayUrl] = useState<string | null>(null)
   const [pendingUrl, setPendingUrl] = useState<string | null>(null)
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null)
@@ -52,7 +53,13 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
   }, [sessionId])
 
   useEffect(() => {
-    if (!sessionId) return
+    if (!sessionId || formId === 'triage') {
+      clearAllUrls()
+      setError('')
+      setInitialLoading(false)
+      setRefreshing(false)
+      return
+    }
 
     let cancelled = false
     const reqId = ++requestIdRef.current
@@ -104,7 +111,7 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
       cancelled = true
       window.clearTimeout(timer)
     }
-  }, [sessionId, answersKey, mobileView])
+  }, [sessionId, formId, answersKey, mobileView])
 
   useEffect(() => {
     return () => {
@@ -137,7 +144,15 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
         </div>
       )}
 
-      {sessionId && initialLoading && !displayUrl && !pdfBlob && (
+      {sessionId && formId === 'triage' && (
+        <div className="pdf-preview-empty">
+          {language === 'vi'
+            ? 'Bấm Nói và cho biết ngày sinh — PDF sẽ hiện sau khi chọn form.'
+            : 'Press Speak and give your date of birth — PDF preview appears after form selection.'}
+        </div>
+      )}
+
+      {sessionId && formId !== 'triage' && initialLoading && !displayUrl && !pdfBlob && (
         <div className="pdf-preview-empty">
           {language === 'vi'
             ? 'Đang tạo PDF... (có thể mất vài giây trên server Render)'
@@ -145,7 +160,7 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
         </div>
       )}
 
-      {sessionId && mobileView && pdfBlob && (
+      {sessionId && formId !== 'triage' && mobileView && pdfBlob && (
         <div className="pdf-preview-viewport">
           <Suspense
             fallback={
@@ -164,7 +179,7 @@ export function PdfPreview({ sessionId, answers, language, embedded = false }: P
         </div>
       )}
 
-      {sessionId && !mobileView && displayUrl && (
+      {sessionId && formId !== 'triage' && !mobileView && displayUrl && (
         <div className="pdf-preview-viewport">
           {refreshing && (
             <span className="pdf-preview-live-badge">

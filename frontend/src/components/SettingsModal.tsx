@@ -10,6 +10,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
   const [emailTo, setEmailTo] = useState('')
+  const [pediatricAgeThreshold, setPediatricAgeThreshold] = useState('18')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -20,7 +21,10 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
     setMessage('')
     void api
       .getSettings()
-      .then((settings) => setEmailTo(settings.email_to))
+      .then((settings) => {
+        setEmailTo(settings.email_to)
+        setPediatricAgeThreshold(settings.pediatric_age_threshold || '18')
+      })
       .catch((err: Error) => setError(err.message))
   }, [open])
 
@@ -30,8 +34,12 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
     setSaving(true)
     setError('')
     try {
-      const updated = await api.updateSettings({ email_to: emailTo.trim() })
+      const updated = await api.updateSettings({
+        email_to: emailTo.trim(),
+        pediatric_age_threshold: pediatricAgeThreshold.trim() || '18',
+      })
       setEmailTo(updated.email_to)
+      setPediatricAgeThreshold(updated.pediatric_age_threshold || '18')
       setMessage(language === 'vi' ? 'Đã lưu cài đặt.' : 'Settings saved.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed')
@@ -69,6 +77,23 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
             {t(
               'Email gửi qua n8n. Bấm nút Email trên thanh công cụ để gửi PDF đính kèm.',
               'Email is sent via n8n. Use the Email button on the toolbar to send the PDF attachment.',
+            )}
+          </p>
+
+          <label>
+            {t('Tuổi trẻ em (dưới mức này = trẻ nhỏ)', 'Pediatric age (under = child form)')}
+            <input
+              type="number"
+              min={1}
+              max={25}
+              value={pediatricAgeThreshold}
+              onChange={(e) => setPediatricAgeThreshold(e.target.value)}
+            />
+          </label>
+          <p className="settings-hint">
+            {t(
+              'Mặc định 18. Bot hỏi ngày sinh trước để chọn form người lớn hoặc trẻ em.',
+              'Default 18. The bot asks date of birth first to pick adult or pediatric form.',
             )}
           </p>
         </div>

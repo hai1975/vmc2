@@ -3,7 +3,6 @@ import { api, BOOT_TIMEOUT_MS } from './api/client'
 import { AnswersPanel } from './components/AnswersPanel'
 import { ContentTabs } from './components/ContentTabs'
 import { DocumentScanModal } from './components/DocumentScanModal'
-import { FormSelector } from './components/FormSelector'
 import { Header } from './components/Header'
 import { LoadingSplash } from './components/LoadingSplash'
 import { PdfPreview } from './components/PdfPreview'
@@ -11,19 +10,32 @@ import { SettingsModal } from './components/SettingsModal'
 import { SubmitModal } from './components/SubmitModal'
 import type { VoiceAssistantHandle } from './components/VoiceAssistant'
 import type { GeminiLiveStatus } from './lib/gemini-live-session'
-import type { FormSchema, FormSession, FormSummary, Language } from './types'
+import type { FormSchema, FormSession, FormSummary, Language, SelectFormResult } from './types'
 import './App.css'
 
 const VoiceAssistant = lazy(() =>
   import('./components/VoiceAssistant').then((module) => ({ default: module.VoiceAssistant })),
 )
 
-const DEFAULT_FORM_ID = 'form_en'
+const TRIAGE_FORM_ID = 'triage'
+
+function formStatusLabel(
+  formId: string | undefined,
+  forms: FormSummary[],
+  language: Language,
+): string {
+  if (!formId || formId === TRIAGE_FORM_ID) {
+    return language === 'vi'
+      ? 'Chưa chọn form — bấm Nói và cho biết ngày sinh'
+      : 'Form pending — press Speak and tell us your date of birth'
+  }
+  const found = forms.find((f) => f.id === formId)
+  return found?.title[language] ?? found?.title.en ?? formId
+}
 
 function App() {
   const [language, setLanguage] = useState<Language>('en')
   const [forms, setForms] = useState<FormSummary[]>([])
-  const [selectedFormId, setSelectedFormId] = useState(DEFAULT_FORM_ID)
   const [schema, setSchema] = useState<FormSchema | null>(null)
   const [session, setSession] = useState<FormSession | null>(null)
   const [booting, setBooting] = useState(true)
@@ -38,39 +50,9 @@ function App() {
   const [submitting, setSubmitting] = useState(false)
   const [emailing, setEmailing] = useState(false)
   const voiceRef = useRef<VoiceAssistantHandle>(null)
-  const initialBootRef = useRef(true)
 
-  useEffect(() => {
-    if (initialBootRef.current) return
-    if (!selectedFormId) return
-
-    let cancelled = false
-    setBooting(true)
-    setError('')
-    setSession(null)
-    setSchema(null)
-
-    void Promise.all([
-      api.getSchema(selectedFormId, BOOT_TIMEOUT_MS),
-      api.createSession(selectedFormId, language, BOOT_TIMEOUT_MS),
-    ])
-      .then(([nextSchema, created]) => {
-        if (cancelled) return
-        setSchema(nextSchema)
-        setSession(created)
-        setMessage(language === 'vi' ? 'Đã tạo phiên mới.' : 'New session created.')
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setError(err.message)
-      })
-      .finally(() => {
-        if (!cancelled) setBooting(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [selectedFormId, language])
+  const activeFormId = session?.form_id
+  const formReady = Boolean(activeFormId && activeFormId !== TRIAGE_FORM_ID)
 
   useEffect(() => {
     let cancelled = false
@@ -91,20 +73,14 @@ function App() {
 
       const [listResult, schemaResult, sessionResult] = await Promise.allSettled([
         api.listForms(BOOT_TIMEOUT_MS),
-        api.getSchema(DEFAULT_FORM_ID, BOOT_TIMEOUT_MS),
-        api.createSession(DEFAULT_FORM_ID, language, BOOT_TIMEOUT_MS),
+        api.getSchema(TRIAGE_FORM_ID, BOOT_TIMEOUT_MS),
+        api.createSession(TRIAGE_FORM_ID, language, BOOT_TIMEOUT_MS),
       ])
 
       if (cancelled) return
 
-      if (listResult.status === 'fulfilled' && listResult.value.length > 0) {
+      if (listResult.status === 'fulfilled') {
         setForms(listResult.value)
-        const defaultForm = listResult.value.find((f) => f.default) ?? listResult.value[0]
-        if (defaultForm && defaultForm.id !== DEFAULT_FORM_ID) {
-          initialBootRef.current = false
-          setSelectedFormId(defaultForm.id)
-          return
-        }
       } else if (listResult.status === 'rejected') {
         setError(listResult.reason instanceof Error ? listResult.reason.message : 'Failed to load forms')
       }
@@ -115,7 +91,11 @@ function App() {
 
       if (sessionResult.status === 'fulfilled') {
         setSession(sessionResult.value)
-        setMessage(language === 'vi' ? 'Đã tạo phiên mới.' : 'New session created.')
+        setMessage(
+          language === 'vi'
+            ? 'Sẵn sàng. Bấm Nói — bot sẽ hỏi ngày sinh để chọn form.'
+            : 'Ready. Press Speak — the bot will ask your date of birth to pick the form.',
+        )
       } else if (sessionResult.status === 'rejected') {
         const reason =
           sessionResult.reason instanceof Error ? sessionResult.reason.message : 'Failed to start session'
@@ -124,7 +104,6 @@ function App() {
 
       setBooting(false)
       setBootMessage(undefined)
-      initialBootRef.current = false
     }
 
     void boot()
@@ -134,6 +113,18 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on mount / retry
   }, [bootAttempt])
+
+  const handleFormSelected = async (result: SelectFormResult) => {
+    setSession(result.session)
+    const nextSchema = await api.getSchema(result.form_id)
+    setSchema(nextSchema)
+    const label = forms.find((f) => f.id === result.form_id)?.title[language]
+    setMessage(
+      language === 'vi'
+        ? `Đã chọn form ${label ?? result.form_id} (tuổi ${result.patient_age}).`
+        : `Selected ${label ?? result.form_id} (age ${result.patient_age}).`,
+    )
+  }
 
   const handleFieldChange = async (fieldId: string, value: unknown) => {
     if (!session) return
@@ -232,7 +223,7 @@ function App() {
     }
   }
 
-  const waitingSession = !booting && selectedFormId && !session && !error
+  const waitingSession = !booting && !session && !error
 
   return (
     <div className="app-shell">
@@ -266,12 +257,10 @@ function App() {
       {message && !booting && session && <div className="alert success">{message}</div>}
 
       <div className="toolbar-row card">
-        <FormSelector
-          forms={forms}
-          selectedId={selectedFormId}
-          language={language}
-          onChange={setSelectedFormId}
-        />
+        <div className="form-status-wrap">
+          <span className="form-select-label">{language === 'vi' ? 'Biểu mẫu' : 'Form'}</span>
+          <span className="form-status-label">{formStatusLabel(activeFormId, forms, language)}</span>
+        </div>
 
         <div className="toolbar-actions">
           <button
@@ -291,7 +280,7 @@ function App() {
           <button
             type="button"
             className="icon-btn"
-            disabled={!session || booting}
+            disabled={!session || booting || !formReady}
             onClick={() => setScanOpen(true)}
             title={language === 'vi' ? 'Quét giấy tờ (webcam)' : 'Scan ID / insurance (webcam)'}
             aria-label={language === 'vi' ? 'Quét giấy tờ' : 'Scan document'}
@@ -319,7 +308,7 @@ function App() {
           <button
             type="button"
             className="icon-btn"
-            disabled={!session || booting}
+            disabled={!session || booting || !formReady}
             onClick={() => void handleDownload()}
             title={language === 'vi' ? 'Tải PDF' : 'Download'}
             aria-label={language === 'vi' ? 'Tải PDF' : 'Download'}
@@ -333,7 +322,7 @@ function App() {
           <button
             type="button"
             className="icon-btn"
-            disabled={!session || booting || emailing}
+            disabled={!session || booting || emailing || !formReady}
             onClick={() => void handleEmail()}
             title={language === 'vi' ? 'Gửi PDF qua email' : 'Email PDF'}
             aria-label={language === 'vi' ? 'Gửi email' : 'Email'}
@@ -347,7 +336,7 @@ function App() {
           <button
             type="button"
             className="icon-btn primary"
-            disabled={!session || booting}
+            disabled={!session || booting || !formReady}
             onClick={() => handleSubmitClick()}
             title="Submit"
             aria-label="Submit"
@@ -365,8 +354,10 @@ function App() {
           <VoiceAssistant
             ref={voiceRef}
             sessionId={session.id}
+            formId={session.form_id}
             language={language}
             onAnswersUpdate={(answers) => setSession((s) => (s ? { ...s, answers } : s))}
+            onFormSelected={(result) => void handleFormSelected(result)}
             onStatusChange={handleVoiceStatusChange}
           />
         </Suspense>
@@ -378,6 +369,7 @@ function App() {
           <PdfPreview
             embedded
             sessionId={session?.id ?? null}
+            formId={activeFormId}
             answers={session?.answers ?? {}}
             language={language}
           />

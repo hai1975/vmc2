@@ -1,0 +1,133 @@
+{
+  "id": "triage",
+  "filename": "adult_en.pdf",
+  "title": {
+    "en": "Registration intake",
+    "vi": "Tiếp nhận đăng ký"
+  },
+  "version": "2.1.0",
+  "default": true,
+  "sections": [
+    {
+      "id": "personal",
+      "title": {
+        "en": "Personal Information",
+        "vi": "Thông tin cá nhân"
+      },
+      "order": 1
+    },
+    {
+      "id": "insurance",
+      "title": {
+        "en": "Insurance",
+        "vi": "Bảo hiểm"
+      },
+      "order": 2
+    },
+    {
+      "id": "demographics",
+      "title": {
+        "en": "Demographics",
+        "vi": "Nhân khẩu học"
+      },
+      "order": 3
+    },
+    {
+      "id": "pharmacy",
+      "title": {
+        "en": "Pharmacy",
+        "vi": "Nhà thuốc"
+      },
+      "order": 4
+    },
+    {
+      "id": "consent",
+      "title": {
+        "en": "Consent",
+        "vi": "Đồng ý"
+      },
+      "order": 5
+    },
+    {
+      "id": "medical_history",
+      "title": {
+        "en": "Medical History",
+        "vi": "Lịch sử bệnh án"
+      },
+      "order": 6
+    },
+    {
+      "id": "allergies",
+      "title": {
+        "en": "Allergies",
+        "vi": "Dị ứng"
+      },
+      "order": 7
+    },
+    {
+      "id": "social",
+      "title": {
+        "en": "Social / Caretaker",
+        "vi": "Xã hội / Người chăm sóc"
+      },
+      "order": 8
+    },
+    {
+      "id": "pediatric",
+      "title": {
+        "en": "Pediatric / Pregnancy",
+        "vi": "Nhi / Thai kỳ"
+      },
+      "order": 9
+    },
+    {
+      "id": "family_history",
+      "title": {
+        "en": "Family History",
+        "vi": "Tiền sử gia đình"
+      },
+      "order": 10
+    },
+    {
+      "id": "social_history",
+      "title": {
+        "en": "Social History",
+        "vi": "Tiền sử xã hội"
+      },
+      "order": 11
+    },
+    {
+      "id": "release",
+      "title": {
+        "en": "Release of Information",
+        "vi": "Cấp quyền thông tin"
+      },
+      "order": 12
+    },
+    {
+      "id": "authorization",
+      "title": {
+        "en": "Authorization",
+        "vi": "Ủy quyền hồ sơ"
+      },
+      "order": 13
+    }
+  ],
+  "fields": [
+    {
+      "id": "dob",
+      "type": "date",
+      "label": {
+        "en": "Date of birth",
+        "vi": "Ngày sinh"
+      },
+      "voice_prompt": {
+        "en": "What is your date of birth?",
+        "vi": "Ngày sinh của bạn là gì ạ?"
+      },
+      "required": true,
+      "page": 1,
+      "section": "personal"
+    }
+  ]
+}

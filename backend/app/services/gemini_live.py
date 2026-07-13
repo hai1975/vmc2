@@ -8,11 +8,10 @@ from google.genai import types
 from app.config import settings
 
 
-def _build_form_tool() -> types.Tool:
-    return types.Tool(
-        function_declarations=[
-            types.FunctionDeclaration(
-                name="update_form_field",
+def _build_form_tool(include_form_selection: bool = False) -> types.Tool:
+    declarations = [
+        types.FunctionDeclaration(
+            name="update_form_field",
                 description=(
                     "Persist one form field from the patient's spoken answer. "
                     "Save immediately when clear — NEVER confirm per field. "
@@ -64,10 +63,40 @@ def _build_form_tool() -> types.Tool:
                 ),
             ),
         ]
-    )
+
+    if include_form_selection:
+        declarations.append(
+            types.FunctionDeclaration(
+                name="select_registration_form",
+                description=(
+                    "TRIAGE ONLY: call once you have the patient's date of birth and detected language. "
+                    "Selects pediatric vs adult and Vietnamese vs English PDF form. "
+                    "voice_language must be 'vi' if patient speaks Vietnamese, 'en' for any other language."
+                ),
+                parameters=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "dob": types.Schema(
+                            type=types.Type.STRING,
+                            description="Date of birth (MM/DD/YYYY or YYYY-MM-DD)",
+                        ),
+                        "voice_language": types.Schema(
+                            type=types.Type.STRING,
+                            description="vi if patient speaks Vietnamese, en otherwise",
+                        ),
+                    },
+                    required=["dob", "voice_language"],
+                ),
+            )
+        )
+
+    return types.Tool(function_declarations=declarations)
 
 
-def create_live_ephemeral_token(system_instruction: str) -> dict:
+def create_live_ephemeral_token(
+    system_instruction: str,
+    include_form_selection: bool = False,
+) -> dict:
     if not settings.gemini_api_key:
         raise HTTPException(
             status_code=503,
@@ -87,7 +116,7 @@ def create_live_ephemeral_token(system_instruction: str) -> dict:
                 "prebuilt_voice_config": {"voice_name": "Aoede"},
             }
         },
-        "tools": [_build_form_tool()],
+        "tools": [_build_form_tool(include_form_selection)],
         "input_audio_transcription": {},
         "output_audio_transcription": {},
     }

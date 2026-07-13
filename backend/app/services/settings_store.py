@@ -10,6 +10,7 @@ SETTING_KEYS = (
     "smtp_user",
     "smtp_password",
     "smtp_from",
+    "pediatric_age_threshold",
 )
 
 DEFAULTS: dict[str, str] = {
@@ -20,6 +21,7 @@ DEFAULTS: dict[str, str] = {
     "smtp_user": "",
     "smtp_password": "",
     "smtp_from": "",
+    "pediatric_age_threshold": "18",
 }
 
 

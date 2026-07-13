@@ -10,6 +10,11 @@ export interface GeminiLiveCallbacks {
   onError: (message: string) => void
   onFieldUpdate: (fieldId: string, value: unknown) => Promise<Record<string, unknown>>
   onBatchFieldUpdate?: (fields: Record<string, unknown>) => Promise<Record<string, unknown>>
+  onFormSelect?: (dob: string, voiceLanguage: string) => Promise<Record<string, unknown>>
+}
+
+export interface GeminiLiveConnectOptions {
+  triage?: boolean
 }
 
 function parseToolValue(raw: string): unknown {
@@ -47,6 +52,8 @@ export class GeminiLiveSession {
   private resolveOpening: (() => void) | null = null
   private openingTimeout: ReturnType<typeof setTimeout> | null = null
   private toolCallPending = false
+  private triageMode = false
+  private requestVoiceRestart: (() => void) | null = null
 
   private canUseTools(): boolean {
     return !this.closed && this.ready && this.session !== null
@@ -118,10 +125,11 @@ export class GeminiLiveSession {
     if (this.openingPending || this.closed) return
     this.openingPending = true
 
-    // Gemini 3.1: use sendRealtimeInput for in-session text (not sendClientContent).
-    session.sendRealtimeInput({
-      text: 'Session connected. Patient may enable webcam to show ID/passport/license/insurance; use scan_document_fields when they ask you to read it. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet, mention they can enable the camera to show documents, then ask first field.',
-    })
+    const openingText = this.triageMode
+      ? 'Session connected. TRIAGE MODE. Greet warmly. Your FIRST question must ONLY be date of birth. Detect language (vi=Vietnamese, en=anything else). When you have DOB, call select_registration_form. START SPEAKING NOW.'
+      : 'Session connected. Patient may enable webcam to show ID/passport/license/insurance; use scan_document_fields when they ask you to read it. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet, mention they can enable the camera to show documents, then ask first field.'
+
+    session.sendRealtimeInput({ text: openingText })
 
     this.openingTimeout = setTimeout(() => {
       void this.tryFinishOpeningForced()
@@ -143,11 +151,19 @@ export class GeminiLiveSession {
     callbacks.onStatus('listening')
   }
 
-  async connect(token: string, model: string, callbacks: GeminiLiveCallbacks): Promise<void> {
+  async connect(
+    token: string,
+    model: string,
+    callbacks: GeminiLiveCallbacks,
+    options?: GeminiLiveConnectOptions,
+    onRestart?: () => void,
+  ): Promise<void> {
     await this.disconnect()
 
     this.closed = false
     this.ready = false
+    this.triageMode = Boolean(options?.triage)
+    this.requestVoiceRestart = onRestart ?? null
     this.toolCallPending = false
     this.openingPending = false
     this.openingDone = false
@@ -238,10 +254,45 @@ export class GeminiLiveSession {
               const responses: Array<{ id: string; name: string; response: Record<string, unknown> }> = []
 
               try {
+                let restartAfterFormSelect = false
                 for (const call of functionCalls) {
                   if (!call.id) continue
 
+                  if (call.name === 'select_registration_form' && callbacks.onFormSelect) {
+                    const args = (call.args ?? {}) as { dob?: string; voice_language?: string }
+                    const progress = await callbacks.onFormSelect(
+                      String(args.dob ?? ''),
+                      String(args.voice_language ?? 'en'),
+                    )
+                    responses.push({
+                      id: call.id,
+                      name: call.name,
+                      response: {
+                        ok: true,
+                        form_selected: true,
+                        say_next: progress.say_next ?? null,
+                        say_next_en: progress.say_next_en ?? null,
+                        say_next_vi: progress.say_next_vi ?? null,
+                        ...progress,
+                      },
+                    })
+                    restartAfterFormSelect = true
+                    continue
+                  }
+
                   if (call.name === 'update_form_field') {
+                    if (this.triageMode) {
+                      responses.push({
+                        id: call.id,
+                        name: call.name,
+                        response: {
+                          ok: false,
+                          error: 'Triage mode: call select_registration_form with DOB first.',
+                        },
+                      })
+                      continue
+                    }
+
                     const args = (call.args ?? {}) as { field_id?: string; value?: string }
                     if (!args.field_id) continue
 
@@ -317,12 +368,22 @@ export class GeminiLiveSession {
                       text: `${scanHint}Speak naturally in patient's language — follow say_next (varied ack OK, or no ack). English: "${sayNextEn}". Vietnamese: "${sayNextVi}". Never say "tôi sẽ ghi vào" every time. No per-field confirmation.`,
                     })
                   }
+
+                  if (restartAfterFormSelect) {
+                    this.requestVoiceRestart?.()
+                  }
                 }
               } catch (error) {
                 const detail = error instanceof Error ? error.message : 'Tool call failed'
                 const errorResponses = functionCalls.flatMap((call) => {
                   if (!call.id) return []
-                  if (call.name !== 'update_form_field' && call.name !== 'scan_document_fields') return []
+                  if (
+                    call.name !== 'update_form_field' &&
+                    call.name !== 'scan_document_fields' &&
+                    call.name !== 'select_registration_form'
+                  ) {
+                    return []
+                  }
                   return [{
                     id: call.id,
                     name: call.name,

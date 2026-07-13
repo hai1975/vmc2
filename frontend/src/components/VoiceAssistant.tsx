@@ -3,7 +3,7 @@ import { api } from '../api/client'
 import { ConnectionRingtone } from '../lib/connection-ring'
 import { GeminiLiveSession, type GeminiLiveStatus } from '../lib/gemini-live-session'
 import { VideoFrameStreamer } from '../lib/video-frame-streamer'
-import type { Language } from '../types'
+import type { Language, SelectFormResult } from '../types'
 
 export interface VoiceAssistantHandle {
   start: () => Promise<void>
@@ -13,8 +13,10 @@ export interface VoiceAssistantHandle {
 
 interface VoiceAssistantProps {
   sessionId: string | null
+  formId: string | null
   language: Language
   onAnswersUpdate: (answers: Record<string, unknown>) => void
+  onFormSelected?: (result: SelectFormResult) => void | Promise<void>
   onStatusChange?: (status: GeminiLiveStatus) => void
 }
 
@@ -31,7 +33,7 @@ function statusLabel(status: GeminiLiveStatus, language: Language): string {
 }
 
 export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantProps>(
-  function VoiceAssistant({ sessionId, language, onAnswersUpdate, onStatusChange }, ref) {
+  function VoiceAssistant({ sessionId, formId, language, onAnswersUpdate, onFormSelected, onStatusChange }, ref) {
     const [status, setStatus] = useState<GeminiLiveStatus>('idle')
     const [transcript, setTranscript] = useState('')
     const [botMessage, setBotMessage] = useState('')
@@ -43,6 +45,7 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
     const ringRef = useRef<ConnectionRingtone | null>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
     const videoStreamerRef = useRef<VideoFrameStreamer | null>(null)
+    const restartPendingRef = useRef(false)
 
     const updateStatus = (next: GeminiLiveStatus) => {
       setStatus(next)
@@ -122,6 +125,20 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
       void ringRef.current?.stop()
     }
 
+    const restartVoiceAfterFormSelect = async () => {
+      if (restartPendingRef.current) return
+      restartPendingRef.current = true
+      try {
+        await liveRef.current?.disconnect()
+        await stopCamera()
+        liveRef.current = null
+        updateStatus('idle')
+        await startVoice()
+      } finally {
+        restartPendingRef.current = false
+      }
+    }
+
     const startVoice = async () => {
       if (!sessionId) return
       setError('')
@@ -137,10 +154,14 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
         void ringRef.current?.start()
 
         const liveToken = await api.createLiveToken(sessionId)
+        const voiceConfig = await api.getVoiceConfig(sessionId)
         const session = new GeminiLiveSession()
         liveRef.current = session
 
-        await session.connect(liveToken.token, liveToken.model, {
+        await session.connect(
+          liveToken.token,
+          liveToken.model,
+          {
           onStatus: (next) => {
             updateStatus(next)
             if (next === 'connected') {
@@ -174,7 +195,23 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
             const progress = await api.getFormProgress(sessionId)
             return { ...progress, saved_count: Object.keys(fields).length }
           },
-        })
+          onFormSelect: async (dob, voiceLanguage) => {
+            const result = await api.selectForm(sessionId, dob, voiceLanguage)
+            startTransition(() => {
+              onAnswersUpdate(result.session.answers)
+            })
+            await onFormSelected?.(result)
+            const progress = await api.getFormProgress(sessionId)
+            return { ...progress }
+          },
+          },
+          { triage: voiceConfig.form_id === 'triage' },
+          () => {
+            window.setTimeout(() => {
+              void restartVoiceAfterFormSelect()
+            }, 600)
+          },
+        )
       } catch (err) {
         stopRingtone()
         await stopCamera()
@@ -223,7 +260,7 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
           {!error && transcript && <span className="voice-strip-user">{transcript}</span>}
         </div>
 
-        {isActive && (
+        {isActive && formId && formId !== 'triage' && (
           <div className="voice-camera-panel">
             <div className="voice-camera-video-wrap">
               <video ref={videoRef} className="voice-camera-video" playsInline muted />

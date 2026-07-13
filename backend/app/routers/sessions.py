@@ -13,6 +13,8 @@ from app.models import (
     EmailSendResponse,
     FormProgressResponse,
     LiveTokenResponse,
+    SelectFormRequest,
+    SelectFormResponse,
     SessionCreate,
     SessionResponse,
     SessionUpdateAnswers,
@@ -29,10 +31,12 @@ from app.services.form_registry import (
     preferred_voice_language,
     validate_answers,
 )
+from app.services.form_selector import TRIAGE_FORM_ID, resolve_registration_form_id
 from app.services.gemini_live import create_live_ephemeral_token
 from app.services.n8n_email import send_pdf_via_n8n
 from app.services.pdf_generator import generate_filled_pdf
 from app.services.settings_store import get_all_settings
+from app.services.triage_voice import build_triage_system_instruction
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -170,6 +174,8 @@ def submit_session(session_id: str, db: Session = Depends(get_db)):
     row = db.get(FormSession, session_id)
     if not row:
         raise HTTPException(status_code=404, detail="Session not found")
+    if row.form_id == TRIAGE_FORM_ID:
+        raise HTTPException(status_code=400, detail="Complete date-of-birth triage before submitting")
 
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
@@ -261,6 +267,52 @@ def send_session_email(session_id: str, db: Session = Depends(get_db)):
     return EmailSendResponse(ok=True, to=to_addr, subject=subject, message=body)
 
 
+@router.post("/{session_id}/select-form", response_model=SelectFormResponse)
+def select_registration_form(
+    session_id: str,
+    payload: SelectFormRequest,
+    db: Session = Depends(get_db),
+):
+    row = db.get(FormSession, session_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if row.form_id != TRIAGE_FORM_ID:
+        raise HTTPException(status_code=400, detail="Form already selected for this session")
+
+    cfg = get_all_settings(db)
+    try:
+        threshold = int(cfg.get("pediatric_age_threshold") or "18")
+    except ValueError as exc:
+        raise HTTPException(status_code=500, detail="Invalid pediatric_age_threshold setting") from exc
+
+    try:
+        form_id, normalized_dob, age, is_pediatric = resolve_registration_form_id(
+            payload.dob,
+            payload.voice_language,
+            threshold,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    schema = get_schema_or_raise(form_id)
+    answers = normalize_answers(schema, {"dob": normalized_dob})
+    voice_lang = preferred_voice_language(form_id, payload.voice_language)
+
+    row.form_id = form_id
+    row.language = voice_lang
+    row.answers_json = dumps_answers(answers)
+    row.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(row)
+
+    return SelectFormResponse(
+        form_id=form_id,
+        patient_age=age,
+        is_pediatric=is_pediatric,
+        session=_to_response(row),
+    )
+
+
 @router.get("/{session_id}/form-progress", response_model=FormProgressResponse)
 def get_session_form_progress(
     session_id: str,
@@ -288,9 +340,20 @@ def get_voice_config(session_id: str, db: Session = Depends(get_db)):
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
     voice_lang = preferred_voice_language(row.form_id, row.language)
+
+    if row.form_id == TRIAGE_FORM_ID:
+        cfg = get_all_settings(db)
+        try:
+            threshold = int(cfg.get("pediatric_age_threshold") or "18")
+        except ValueError:
+            threshold = 18
+        system_instruction = build_triage_system_instruction(threshold)
+    else:
+        system_instruction = build_voice_system_instruction(schema, voice_lang, answers)
+
     return VoiceConfigResponse(
         form_id=row.form_id,
-        system_instruction=build_voice_system_instruction(schema, voice_lang, answers),
+        system_instruction=system_instruction,
         fields=schema.fields,
         gemini_model=settings.gemini_live_model,
     )
@@ -305,5 +368,18 @@ def create_live_token(session_id: str, db: Session = Depends(get_db)):
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
     voice_lang = preferred_voice_language(row.form_id, row.language)
-    system_instruction = build_voice_system_instruction(schema, voice_lang, answers)
-    return create_live_ephemeral_token(system_instruction)
+
+    if row.form_id == TRIAGE_FORM_ID:
+        cfg = get_all_settings(db)
+        try:
+            threshold = int(cfg.get("pediatric_age_threshold") or "18")
+        except ValueError:
+            threshold = 18
+        system_instruction = build_triage_system_instruction(threshold)
+    else:
+        system_instruction = build_voice_system_instruction(schema, voice_lang, answers)
+
+    return create_live_ephemeral_token(
+        system_instruction,
+        include_form_selection=row.form_id == TRIAGE_FORM_ID,
+    )

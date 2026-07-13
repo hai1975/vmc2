@@ -53,6 +53,7 @@ export interface AppSettings {
   smtp_user: string
   smtp_password: string
   smtp_from: string
+  pediatric_age_threshold: string
 }
 
 export interface LiveToken {
@@ -84,6 +85,13 @@ export interface FormProgress {
   say_next?: string | null
   say_next_en?: string | null
   say_next_vi?: string | null
+}
+
+export interface SelectFormResult {
+  form_id: string
+  patient_age: number
+  is_pediatric: boolean
+  session: FormSession
 }
 
 export interface EmailSendResult {

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
+from app.services.form_selector import ACTIVE_FORM_IDS, TRIAGE_FORM_ID
 
 SKIPPED_VALUE = "__skipped__"
 INTERNAL_ANSWER_KEYS = frozenset({"_signature", "_selfie"})
@@ -68,14 +69,16 @@ def list_pdf_forms() -> list[FormSummary]:
     if not settings.form_dir.exists():
         return forms
 
-    for pdf in sorted(settings.form_dir.glob("*.pdf")):
-        schema = load_schema(_schema_id_from_filename(pdf.name))
+    for form_id in sorted(ACTIVE_FORM_IDS):
+        schema = load_schema(form_id)
+        if not schema:
+            continue
         forms.append(
             FormSummary(
-                id=schema.id if schema else _schema_id_from_filename(pdf.name),
-                filename=pdf.name,
-                title=schema.title if schema else {"vi": pdf.stem, "en": pdf.stem},
-                default=schema.default if schema else pdf.name == "form_en.pdf",
+                id=schema.id,
+                filename=schema.filename,
+                title=schema.title,
+                default=form_id == "adult_en",
             )
         )
     return forms
@@ -316,10 +319,12 @@ def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> 
 
 
 def preferred_voice_language(form_id: str, session_language: str = "en") -> str:
-    if form_id == "form_vn":
+    if form_id.endswith("_vn"):
         return "vi"
-    if form_id == "form_en":
+    if form_id.endswith("_en"):
         return "en"
+    if form_id == TRIAGE_FORM_ID:
+        return session_language if session_language in ("vi", "en") else "en"
     return session_language if session_language in ("vi", "en") else "en"
 
 
