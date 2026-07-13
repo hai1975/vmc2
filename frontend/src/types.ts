@@ -102,6 +102,18 @@ export interface EmailSendResult {
   message: string
 }
 
+export interface ProviderLookupResult {
+  query: string
+  candidates: Array<{
+    name: string
+    address: string
+    phone: string
+    fax: string
+    confidence: string
+  }>
+  message: string
+}
+
 export interface DocumentScanResult {
   detected_document: string
   extracted_fields: Record<string, unknown>

@@ -774,134 +774,262 @@
       }
     },
     {
-      "id": "medical_conditions",
-      "type": "multiselect",
+      "id": "medical_history_patient_name",
+      "type": "text",
       "label": {
-        "en": "Medical Conditions",
-        "vi": "Bệnh đã mắc"
+        "en": "Patient name (medical history)",
+        "vi": "Họ tên bệnh nhân (bệnh lý)"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with any of these? Diabetes, high blood pressure, cholesterol, heart disease, asthma, stroke, kidney or liver disease, seizures, or mental health. Say none if none apply.",
-        "vi": "Bạn đã từng mắc bệnh nào trong các bệnh: tiểu đường, cao huyết áp, mỡ máu, tim, hen, đột quỵ, thận, gan, động kinh, tâm thần? Nói không có nếu không mắc."
+        "en": "Auto-filled from patient name on the medical history page.",
+        "vi": "Tự điền từ họ tên bệnh nhân trên trang bệnh lý."
       },
       "required": false,
       "page": 2,
       "section": "medical_history",
-      "options": [
-        {
-          "value": "diabetes",
-          "label": {
-            "en": "Diabetes",
-            "vi": "Tiểu đường"
-          }
-        },
-        {
-          "value": "high_blood_pressure",
-          "label": {
-            "en": "High Blood Pressure",
-            "vi": "Cao huyết áp"
-          }
-        },
-        {
-          "value": "high_cholesterol",
-          "label": {
-            "en": "High Cholesterol",
-            "vi": "Cao mỡ máu"
-          }
-        },
-        {
-          "value": "heart_disease",
-          "label": {
-            "en": "Heart Disease",
-            "vi": "Bệnh tim"
-          }
-        },
-        {
-          "value": "asthma",
-          "label": {
-            "en": "Asthma",
-            "vi": "Hen suyễn"
-          }
-        },
-        {
-          "value": "stroke",
-          "label": {
-            "en": "Stroke",
-            "vi": "Đột quỵ"
-          }
-        },
-        {
-          "value": "kidney_disease",
-          "label": {
-            "en": "Kidney Disease",
-            "vi": "Bệnh thận"
-          }
-        },
-        {
-          "value": "liver_disease",
-          "label": {
-            "en": "Liver Disease",
-            "vi": "Bệnh gan"
-          }
-        },
-        {
-          "value": "seizures",
-          "label": {
-            "en": "Seizures",
-            "vi": "Động kinh"
-          }
-        },
-        {
-          "value": "mental_health",
-          "label": {
-            "en": "Mental Health Conditions",
-            "vi": "Bệnh lý tâm thần"
-          }
-        }
-      ],
       "validation": {
-        "checkbox_positions": {
-          "diabetes": {
-            "x": 36,
-            "y": 613.0
-          },
-          "high_blood_pressure": {
-            "x": 144,
-            "y": 613.0
-          },
-          "high_cholesterol": {
-            "x": 288,
-            "y": 613.0
-          },
-          "heart_disease": {
-            "x": 432,
-            "y": 613.0
-          },
-          "asthma": {
-            "x": 36,
-            "y": 585.0
-          },
-          "stroke": {
-            "x": 144,
-            "y": 585.0
-          },
-          "kidney_disease": {
-            "x": 288,
-            "y": 585.0
-          },
-          "liver_disease": {
-            "x": 432,
-            "y": 585.0
-          },
-          "seizures": {
-            "x": 36,
-            "y": 558.0
-          },
-          "mental_health": {
-            "x": 36,
-            "y": 531.0
-          }
-        }
+        "x": 80,
+        "y": 671.0,
+        "maxLength": 80
+      }
+    },
+    {
+      "id": "medical_history_dob",
+      "type": "date",
+      "label": {
+        "en": "DOB (medical history)",
+        "vi": "Ngày sinh (bệnh lý)"
+      },
+      "voice_prompt": {
+        "en": "Auto-filled from date of birth on the medical history page.",
+        "vi": "Tự điền từ ngày sinh trên trang bệnh lý."
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 500,
+        "y": 671.0
+      }
+    },
+    {
+      "id": "med_cond_diabetes",
+      "type": "boolean",
+      "label": {
+        "en": "Diabetes",
+        "vi": "Tiểu đường"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with diabetes? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán tiểu đường không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 36,
+        "y": 613.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_high_blood_pressure",
+      "type": "boolean",
+      "label": {
+        "en": "High blood pressure",
+        "vi": "Cao huyết áp"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with high blood pressure? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán cao huyết áp không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 144,
+        "y": 613.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_high_cholesterol",
+      "type": "boolean",
+      "label": {
+        "en": "High cholesterol",
+        "vi": "Cao mỡ máu"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with high cholesterol? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán cao mỡ máu không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 288,
+        "y": 613.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_heart_disease",
+      "type": "boolean",
+      "label": {
+        "en": "Heart disease",
+        "vi": "Bệnh tim"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with heart disease? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán bệnh tim không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 432,
+        "y": 613.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_asthma",
+      "type": "boolean",
+      "label": {
+        "en": "Asthma",
+        "vi": "Hen suyễn"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with asthma? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán hen suyễn không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 36,
+        "y": 585.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_stroke",
+      "type": "boolean",
+      "label": {
+        "en": "Stroke",
+        "vi": "Đột quỵ"
+      },
+      "voice_prompt": {
+        "en": "Have you ever had a stroke? Yes or no.",
+        "vi": "Bạn có từng bị đột quỵ không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 144,
+        "y": 585.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_kidney_disease",
+      "type": "boolean",
+      "label": {
+        "en": "Kidney disease",
+        "vi": "Bệnh thận"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with kidney disease? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán bệnh thận không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 288,
+        "y": 585.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_liver_disease",
+      "type": "boolean",
+      "label": {
+        "en": "Liver disease",
+        "vi": "Bệnh gan"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with liver disease? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán bệnh gan không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 432,
+        "y": 585.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_seizures",
+      "type": "boolean",
+      "label": {
+        "en": "Seizures",
+        "vi": "Động kinh"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with seizures or epilepsy? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán động kinh không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 36,
+        "y": 558.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_cancer",
+      "type": "boolean",
+      "label": {
+        "en": "Cancer",
+        "vi": "Ung thư"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with cancer? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán ung thư không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 200,
+        "y": 558.0,
+        "render_as_check": true
+      }
+    },
+    {
+      "id": "med_cond_mental_health",
+      "type": "boolean",
+      "label": {
+        "en": "Mental health",
+        "vi": "Bệnh lý tâm thần"
+      },
+      "voice_prompt": {
+        "en": "Have you ever been diagnosed with a mental health condition such as depression or anxiety? Yes or no.",
+        "vi": "Bạn có từng được chẩn đoán bệnh lý tâm thần (ví dụ trầm cảm, lo âu) không? Có hay không?"
+      },
+      "required": false,
+      "page": 2,
+      "section": "medical_history",
+      "validation": {
+        "x": 36,
+        "y": 531.0,
+        "render_as_check": true
       }
     },
     {
@@ -912,14 +1040,14 @@
         "vi": "Ung thư (loại)"
       },
       "voice_prompt": {
-        "en": "Have you had cancer? If yes, what type? Say none if not applicable.",
-        "vi": "Bạn có ung thư không? Nếu có, loại gì? Nếu không, nói không có."
+        "en": "What type of cancer? Only if you said yes to cancer. Say none if not applicable.",
+        "vi": "Loại ung thư là gì? Chỉ khi bạn trả lời có ung thư. Nếu không, nói không có."
       },
       "required": false,
       "page": 2,
       "section": "medical_history",
       "validation": {
-        "x": 200,
+        "x": 280,
         "y": 558.0
       }
     },
@@ -1987,7 +2115,7 @@
         "vi": "Xác nhận HIPAA — đọc từng điều khoản trong 7 điều khoản trước khi lưu."
       },
       "required": true,
-      "page": 4,
+      "page": 3,
       "section": "consent",
       "validation": {
         "x": 36,
@@ -2007,7 +2135,7 @@
         "vi": "Tên người được phép truy cập thông tin sức khỏe. Nếu không có, nói không có."
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "validation": {
         "x": 80,
@@ -2026,7 +2154,7 @@
         "vi": "Mối quan hệ với người thứ nhất?"
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "validation": {
         "x": 300,
@@ -2045,7 +2173,7 @@
         "vi": "Số điện thoại người thứ nhất?"
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "validation": {
         "x": 80,
@@ -2064,7 +2192,7 @@
         "vi": "Người thứ nhất có phải liên hệ khẩn cấp không?"
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "options": [
         {
@@ -2107,7 +2235,7 @@
         "vi": "Tên người thứ hai được phép truy cập. Nếu không có, nói không có."
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "validation": {
         "x": 80,
@@ -2126,7 +2254,7 @@
         "vi": "Mối quan hệ với người thứ hai?"
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "validation": {
         "x": 300,
@@ -2145,7 +2273,7 @@
         "vi": "Số điện thoại người thứ hai?"
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "validation": {
         "x": 80,
@@ -2164,7 +2292,7 @@
         "vi": "Người thứ hai có phải liên hệ khẩn cấp không?"
       },
       "required": false,
-      "page": 4,
+      "page": 3,
       "section": "release",
       "options": [
         {
@@ -2207,12 +2335,70 @@
         "vi": "Đồng ý liên lạc điện tử — đọc từng điều khoản trong 2 điều khoản trước khi lưu."
       },
       "required": true,
-      "page": 4,
+      "page": 3,
       "section": "consent",
       "validation": {
         "x": 36,
         "y": 124.0,
         "render_as_check": true
+      }
+    },
+    {
+      "id": "consent_signer_name",
+      "type": "text",
+      "label": {
+        "en": "Patient or representative name",
+        "vi": "Họ tên bệnh nhân/người đại diện"
+      },
+      "voice_prompt": {
+        "en": "Auto-filled — patient or guardian name for consent signature line.",
+        "vi": "Tự điền — họ tên bệnh nhân hoặc người giám hộ trên dòng chữ ký."
+      },
+      "required": false,
+      "page": 3,
+      "section": "consent",
+      "validation": {
+        "x": 80,
+        "y": 144.0,
+        "maxLength": 100
+      }
+    },
+    {
+      "id": "authorization_patient_name",
+      "type": "text",
+      "label": {
+        "en": "Patient name (authorization)",
+        "vi": "Tên bệnh nhân (ủy quyền)"
+      },
+      "voice_prompt": {
+        "en": "Auto-filled from patient name on authorization page.",
+        "vi": "Tự điền từ họ tên bệnh nhân trên trang ủy quyền."
+      },
+      "required": false,
+      "page": 4,
+      "section": "authorization",
+      "validation": {
+        "x": 80,
+        "y": 720.0
+      }
+    },
+    {
+      "id": "authorization_dob",
+      "type": "date",
+      "label": {
+        "en": "DOB (authorization)",
+        "vi": "Ngày sinh (ủy quyền)"
+      },
+      "voice_prompt": {
+        "en": "Auto-filled from date of birth on authorization page.",
+        "vi": "Tự điền từ ngày sinh trên trang ủy quyền."
+      },
+      "required": false,
+      "page": 4,
+      "section": "authorization",
+      "validation": {
+        "x": 360,
+        "y": 720.0
       }
     },
     {
@@ -2223,11 +2409,11 @@
         "vi": "Tên người cho phép"
       },
       "voice_prompt": {
-        "en": "I authorize release of records — what is your full name for this authorization?",
-        "vi": "Tôi cho phép tiết lộ hồ sơ — họ tên đầy đủ của bạn?"
+        "en": "Auto-filled — I authorize release of records (patient full name).",
+        "vi": "Tự điền — Tôi cho phép tiết lộ hồ sơ (họ tên bệnh nhân)."
       },
       "required": true,
-      "page": 5,
+      "page": 4,
       "section": "authorization",
       "validation": {
         "x": 80,
@@ -2242,11 +2428,11 @@
         "vi": "Bác sĩ/Cơ sở"
       },
       "voice_prompt": {
-        "en": "Name of provider or facility to release records from. Say none if releasing to VM Clinic only.",
-        "vi": "Tên bác sĩ hoặc cơ sở cung cấp hồ sơ? Nếu chỉ gửi về VM Clinic, nói không có."
+        "en": "Name of provider or facility to release records from. Say none if VM Clinic only. If unsure, give a partial name or address and I can search.",
+        "vi": "Tên bác sĩ hoặc cơ sở cung cấp hồ sơ? Nếu chỉ gửi về VM Clinic, nói không có. Nếu không chắc, cho tên hoặc địa chỉ một phần để tôi tra cứu."
       },
       "required": false,
-      "page": 5,
+      "page": 4,
       "section": "authorization",
       "validation": {
         "x": 120,
@@ -2265,7 +2451,7 @@
         "vi": "Số điện thoại cơ sở? Nếu không có, nói không có."
       },
       "required": false,
-      "page": 5,
+      "page": 4,
       "section": "authorization",
       "validation": {
         "x": 80,
@@ -2284,7 +2470,7 @@
         "vi": "Số fax cơ sở? Nếu không có, nói không có."
       },
       "required": false,
-      "page": 5,
+      "page": 4,
       "section": "authorization",
       "validation": {
         "x": 380,
@@ -2303,7 +2489,7 @@
         "vi": "Thông tin nào được cung cấp? Toàn bộ hồ sơ, bệnh án, xét nghiệm, X-quang, tiêm chủng, thuốc, hay khác?"
       },
       "required": false,
-      "page": 5,
+      "page": 4,
       "section": "authorization",
       "options": [
         {
@@ -2401,7 +2587,7 @@
         "vi": "Mục đích: tiếp tục điều trị, cá nhân, pháp lý, bảo hiểm, sau nhập viện, hay khác?"
       },
       "required": false,
-      "page": 5,
+      "page": 4,
       "section": "authorization",
       "options": [
         {
@@ -2488,7 +2674,7 @@
         "vi": "Đồng ý tiết lộ hồ sơ — đọc từng điều khoản trong 3 điều khoản trước khi lưu."
       },
       "required": true,
-      "page": 5,
+      "page": 4,
       "section": "authorization",
       "validation": {
         "x": 36,

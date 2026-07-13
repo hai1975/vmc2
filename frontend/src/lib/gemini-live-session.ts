@@ -11,6 +11,19 @@ export interface GeminiLiveCallbacks {
   onFieldUpdate: (fieldId: string, value: unknown) => Promise<Record<string, unknown>>
   onBatchFieldUpdate?: (fields: Record<string, unknown>) => Promise<Record<string, unknown>>
   onFormSelect?: (dob: string, voiceLanguage: string) => Promise<FormSelectProgress>
+  onProviderLookup?: (query: string) => Promise<ProviderLookupResult>
+}
+
+export interface ProviderLookupResult extends Record<string, unknown> {
+  query: string
+  candidates: Array<{
+    name: string
+    address: string
+    phone: string
+    fax: string
+    confidence: string
+  }>
+  message: string
 }
 
 export interface GeminiLiveConnectOptions {
@@ -321,6 +334,21 @@ export class GeminiLiveSession {
                     continue
                   }
 
+                  if (call.name === 'lookup_provider_facility' && callbacks.onProviderLookup) {
+                    const args = (call.args ?? {}) as { query?: string }
+                    const result = await callbacks.onProviderLookup(String(args.query ?? ''))
+                    responses.push({
+                      id: call.id,
+                      name: call.name,
+                      response: {
+                        ok: true,
+                        ...result,
+                        voice_instruction: result.message,
+                      },
+                    })
+                    continue
+                  }
+
                   if (call.name === 'scan_document_fields' && callbacks.onBatchFieldUpdate) {
                     const args = (call.args ?? {}) as { fields_json?: string }
                     let fields: Record<string, unknown> = {}
@@ -370,6 +398,13 @@ export class GeminiLiveSession {
                       text: `FORM SELECTED. Stay in this same live call — do NOT wait for reconnect. Date of birth is ALREADY saved in field "birthday" — NEVER ask date of birth again. Apply registration rules now:\n\n${registrationContext}\n\nThen continue with the next question from say_next.`,
                     })
                   }
+                  const lookupMessage =
+                    typeof last?.message === 'string' ? last.message : ''
+                  if (lookupMessage && functionCalls.some((c) => c.name === 'lookup_provider_facility')) {
+                    this.session.sendRealtimeInput({
+                      text: `Provider lookup result — read to patient in their language, then ask to confirm before saving provider_facility_name: ${lookupMessage}`,
+                    })
+                  }
                   if (sayNextEn || sayNextVi) {
                     const scanHint =
                       savedCount > 0
@@ -388,7 +423,8 @@ export class GeminiLiveSession {
                   if (
                     call.name !== 'update_form_field' &&
                     call.name !== 'scan_document_fields' &&
-                    call.name !== 'select_registration_form'
+                    call.name !== 'select_registration_form' &&
+                    call.name !== 'lookup_provider_facility'
                   ) {
                     return []
                   }

@@ -5,6 +5,17 @@ from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
 from app.services.form_selector import ACTIVE_FORM_IDS, TRIAGE_FORM_ID
 from app.services.consent_voice import apply_consent_voice_hints, build_consent_voice_section
+from app.services.medical_history_voice import (
+    apply_medical_history_cascades,
+    apply_medical_history_voice_hints,
+    build_medical_history_voice_section,
+    migrate_legacy_medical_conditions,
+)
+from app.services.field_prefill import (
+    apply_field_prefill,
+    apply_field_prefill_voice_hints,
+    build_field_prefill_voice_section,
+)
 from app.services.demographic_voice import apply_demographic_voice_hints, build_demographic_voice_section
 from app.services.pharmacy_suggestions import (
     PharmacyEntry,
@@ -345,6 +356,7 @@ def get_form_progress_with_hint(
     session_language: str = "en",
     pharmacy_list: list[PharmacyEntry] | None = None,
 ) -> dict:
+    answers = apply_field_prefill(answers, schema.id)
     progress = get_form_progress(schema, answers)
     progress["voice_instruction"] = build_voice_tool_hint(progress, saved_field_id)
     pharmacy_hint = build_pharmacy_field_hint(
@@ -360,6 +372,10 @@ def get_form_progress_with_hint(
     progress["say_next_vi"] = bilingual["vi"]
     progress = apply_demographic_voice_hints(progress, session_language)
     progress = apply_consent_voice_hints(progress, session_language, schema.id)
+    progress = apply_medical_history_voice_hints(progress, session_language)
+    progress = apply_field_prefill_voice_hints(
+        progress, schema, answers, session_language, schema.id
+    )
     return progress
 
 
@@ -377,6 +393,8 @@ def normalize_answers(schema: FormSchema, answers: dict) -> dict:
         if cleaned in (SKIPPED_VALUE, BLANK_VALUE) or not _is_empty(cleaned):
             normalized[field_id] = cleaned
     merged = apply_skip_cascades(schema, normalized)
+    merged = migrate_legacy_medical_conditions(merged)
+    merged = apply_medical_history_cascades(merged)
     merged.update(internal)
     return merged
 
@@ -481,8 +499,8 @@ def build_voice_system_instruction(
         "- Sections to cover (do not skip): page 1 personal/insurance/demographics/pharmacy/consent;",
         "  page 2 medical history, surgeries, medications, allergies, caretaker, pediatric questions;",
         "  page 3 family history, tobacco/alcohol/drugs, safety, vaccinations, TB, interpretation;",
-        "  page 4 HIPAA acknowledgement, release contacts, electronic communication consent;",
-        "  page 5 medical records authorization and disclosure purpose.",
+        "  page 4 HIPAA acknowledgement, release contacts, electronic communication consent,",
+        "  medical records authorization and disclosure purpose.",
         "- ready_to_submit=true only means required fields are done — you MUST keep asking optional",
         "  fields until missing_optional is empty or the patient declines each one.",
         "- Only tell the patient to click Submit when all_fields_collected is true.",
@@ -503,9 +521,13 @@ def build_voice_system_instruction(
         lines.append("")
     lines.append(build_demographic_voice_section())
     lines.append("")
+    lines.append(build_medical_history_voice_section())
+    lines.append("")
     lines.append(build_consent_voice_section())
     lines.append("")
-    progress = get_form_progress(schema, answers or {})
+    lines.append(build_field_prefill_voice_section())
+    lines.append("")
+    progress = get_form_progress(schema, apply_field_prefill(answers or {}, schema.id))
     if progress["filled_fields"]:
         lines.append("Already collected:")
         for field_id, value in progress["filled_fields"].items():

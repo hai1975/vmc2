@@ -180,6 +180,7 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
             const progress = await api.getFormProgress(sessionId)
             return { ...progress, saved_count: Object.keys(fields).length }
           },
+          onProviderLookup: async (query) => api.lookupProvider(sessionId, query),
           onFormSelect: async (dob, voiceLanguage) => {
             const result = await api.selectForm(sessionId, dob, voiceLanguage)
             startTransition(() => {

@@ -1,4 +1,4 @@
-import type { AppSettings, DocumentScanResult, EmailSendResult, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, SelectFormResult, VoiceConfig } from '../types'
+import type { AppSettings, DocumentScanResult, EmailSendResult, FormProgress, FormSchema, FormSession, FormSummary, LiveToken, ProviderLookupResult, SelectFormResult, VoiceConfig } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? ''
 const DEFAULT_TIMEOUT_MS = 30_000
@@ -154,6 +154,15 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ dob, voice_language: voiceLanguage }),
     }),
+  lookupProvider: (sessionId: string, query: string) =>
+    request<ProviderLookupResult>(
+      `/api/sessions/${sessionId}/lookup-provider`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ query }),
+      },
+      60_000,
+    ),
   getSettings: () => request<AppSettings>('/api/settings'),
   updateSettings: (payload: Partial<AppSettings>) =>
     request<AppSettings>('/api/settings', {

@@ -149,6 +149,16 @@ class DocumentScanResponse(BaseModel):
     session: SessionResponse | None = None
 
 
+class ProviderLookupRequest(BaseModel):
+    query: str = Field(min_length=2, description="Partial doctor/clinic name or address")
+
+
+class ProviderLookupResponse(BaseModel):
+    query: str
+    candidates: list[dict[str, str]]
+    message: str
+
+
 class EmailSendResponse(BaseModel):
     ok: bool = True
     to: str

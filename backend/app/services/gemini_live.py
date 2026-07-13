@@ -63,6 +63,25 @@ def _build_form_tool(include_form_selection: bool = False) -> types.Tool:
                     required=["fields_json"],
                 ),
             ),
+            types.FunctionDeclaration(
+                name="lookup_provider_facility",
+                description=(
+                    "Search for a doctor or clinic when the patient gives a partial name or address "
+                    "for provider_facility_name on the records release authorization section. "
+                    "Returns name, address, phone, fax candidates. Read results to the patient and "
+                    "confirm before saving with update_form_field."
+                ),
+                parameters=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "query": types.Schema(
+                            type=types.Type.STRING,
+                            description="Partial doctor/clinic name, city, or address to search",
+                        ),
+                    },
+                    required=["query"],
+                ),
+            ),
         ]
 
     if include_form_selection:

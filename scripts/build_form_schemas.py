@@ -209,39 +209,83 @@ def page1_fields() -> list[dict]:
 
 
 def page2_fields() -> list[dict]:
-    cond_opts = [
-        {"value": "diabetes", "label": {"en": "Diabetes", "vi": "Tiểu đường"}},
-        {"value": "high_blood_pressure", "label": {"en": "High Blood Pressure", "vi": "Cao huyết áp"}},
-        {"value": "high_cholesterol", "label": {"en": "High Cholesterol", "vi": "Cao mỡ máu"}},
-        {"value": "heart_disease", "label": {"en": "Heart Disease", "vi": "Bệnh tim"}},
-        {"value": "asthma", "label": {"en": "Asthma", "vi": "Hen suyễn"}},
-        {"value": "stroke", "label": {"en": "Stroke", "vi": "Đột quỵ"}},
-        {"value": "kidney_disease", "label": {"en": "Kidney Disease", "vi": "Bệnh thận"}},
-        {"value": "liver_disease", "label": {"en": "Liver Disease", "vi": "Bệnh gan"}},
-        {"value": "seizures", "label": {"en": "Seizures", "vi": "Động kinh"}},
-        {"value": "mental_health", "label": {"en": "Mental Health Conditions", "vi": "Bệnh lý tâm thần"}},
+    cond_checkboxes = {
+        "diabetes": cb(179, 36),
+        "high_blood_pressure": cb(179, 144),
+        "high_cholesterol": cb(179, 288),
+        "heart_disease": cb(179, 432),
+        "asthma": cb(207, 36),
+        "stroke": cb(207, 144),
+        "kidney_disease": cb(207, 288),
+        "liver_disease": cb(207, 432),
+        "seizures": cb(234, 36),
+        "cancer": cb(234, 200),
+        "mental_health": cb(261, 36),
+    }
+    conditions = [
+        ("diabetes", "Diabetes", "Tiểu đường",
+         "Have you ever been diagnosed with diabetes? Yes or no.",
+         "Bạn có từng được chẩn đoán tiểu đường không? Có hay không?"),
+        ("high_blood_pressure", "High blood pressure", "Cao huyết áp",
+         "Have you ever been diagnosed with high blood pressure? Yes or no.",
+         "Bạn có từng được chẩn đoán cao huyết áp không? Có hay không?"),
+        ("high_cholesterol", "High cholesterol", "Cao mỡ máu",
+         "Have you ever been diagnosed with high cholesterol? Yes or no.",
+         "Bạn có từng được chẩn đoán cao mỡ máu không? Có hay không?"),
+        ("heart_disease", "Heart disease", "Bệnh tim",
+         "Have you ever been diagnosed with heart disease? Yes or no.",
+         "Bạn có từng được chẩn đoán bệnh tim không? Có hay không?"),
+        ("asthma", "Asthma", "Hen suyễn",
+         "Have you ever been diagnosed with asthma? Yes or no.",
+         "Bạn có từng được chẩn đoán hen suyễn không? Có hay không?"),
+        ("stroke", "Stroke", "Đột quỵ",
+         "Have you ever had a stroke? Yes or no.",
+         "Bạn có từng bị đột quỵ không? Có hay không?"),
+        ("kidney_disease", "Kidney disease", "Bệnh thận",
+         "Have you ever been diagnosed with kidney disease? Yes or no.",
+         "Bạn có từng được chẩn đoán bệnh thận không? Có hay không?"),
+        ("liver_disease", "Liver disease", "Bệnh gan",
+         "Have you ever been diagnosed with liver disease? Yes or no.",
+         "Bạn có từng được chẩn đoán bệnh gan không? Có hay không?"),
+        ("seizures", "Seizures", "Động kinh",
+         "Have you ever been diagnosed with seizures or epilepsy? Yes or no.",
+         "Bạn có từng được chẩn đoán động kinh không? Có hay không?"),
+        ("cancer", "Cancer", "Ung thư",
+         "Have you ever been diagnosed with cancer? Yes or no.",
+         "Bạn có từng được chẩn đoán ung thư không? Có hay không?"),
+        ("mental_health", "Mental health", "Bệnh lý tâm thần",
+         "Have you ever been diagnosed with a mental health condition such as depression or anxiety? Yes or no.",
+         "Bạn có từng được chẩn đoán bệnh lý tâm thần (ví dụ trầm cảm, lo âu) không? Có hay không?"),
     ]
-    return [
-        field("medical_conditions", "multiselect", "Medical Conditions", "Bệnh đã mắc",
-              "Have you ever been diagnosed with any of these? Diabetes, high blood pressure, cholesterol, heart disease, asthma, stroke, kidney or liver disease, seizures, or mental health. Say none if none apply.",
-              "Bạn đã từng mắc bệnh nào trong các bệnh: tiểu đường, cao huyết áp, mỡ máu, tim, hen, đột quỵ, thận, gan, động kinh, tâm thần? Nói không có nếu không mắc.",
-              2, "medical_history", False, cond_opts, validation={
-                  "checkbox_positions": {
-                      "diabetes": cb(179, 36), "high_blood_pressure": cb(179, 144),
-                      "high_cholesterol": cb(179, 288), "heart_disease": cb(179, 432),
-                      "asthma": cb(207, 36), "stroke": cb(207, 144),
-                      "kidney_disease": cb(207, 288), "liver_disease": cb(207, 432),
-                      "seizures": cb(234, 36), "mental_health": cb(261, 36),
-                  }
-              }),
+    fields = [
+        field("medical_history_patient_name", "text", "Patient name (medical history)", "Họ tên bệnh nhân (bệnh lý)",
+              "Auto-filled from patient name on the medical history page.",
+              "Tự điền từ họ tên bệnh nhân trên trang bệnh lý.",
+              2, "medical_history", False, validation=txt(121, 80, maxLength=80)),
+        field("medical_history_dob", "date", "DOB (medical history)", "Ngày sinh (bệnh lý)",
+              "Auto-filled from date of birth on the medical history page.",
+              "Tự điền từ ngày sinh trên trang bệnh lý.",
+              2, "medical_history", False, validation=txt(121, 500)),
+    ]
+    for value, label_en, label_vi, ask_en, ask_vi in conditions:
+        fields.append(
+            field(
+                f"med_cond_{value}", "boolean", label_en, label_vi, ask_en, ask_vi,
+                2, "medical_history", False,
+                validation={**cond_checkboxes[value], "render_as_check": True},
+            )
+        )
+    fields.extend([
         field("cancer_type", "text", "Cancer (type)", "Ung thư (loại)",
-              "Have you had cancer? If yes, what type? Say none if not applicable.",
-              "Bạn có ung thư không? Nếu có, loại gì? Nếu không, nói không có.",
-              2, "medical_history", False, validation=txt(234, 200)),
+              "What type of cancer? Only if you said yes to cancer. Say none if not applicable.",
+              "Loại ung thư là gì? Chỉ khi bạn trả lời có ung thư. Nếu không, nói không có.",
+              2, "medical_history", False, validation=txt(234, 280)),
         field("other_medical_conditions", "text", "Other conditions", "Bệnh khác",
               "Any other medical conditions not listed? Say none if not applicable.",
               "Bệnh khác không có trong danh sách? Nếu không, nói không có.",
               2, "medical_history", False, validation=txt(234, 340)),
+    ])
+    fields.extend([
         field("surgeries", "textarea", "Surgeries", "Phẫu thuật",
               "Please list any surgeries you have had and the year. Say none if none.",
               "Liệt kê các ca phẫu thuật và năm. Nếu không có, nói không có.",
@@ -302,7 +346,8 @@ def page2_fields() -> list[dict]:
               2, "pediatric", False, YES_NO, validation={
                   "checkbox_positions": {"yes": cb(698, 432), "no": cb(698, 504)}
               }),
-    ]
+    ])
+    return fields
 
 
 def page3_fields() -> list[dict]:
@@ -443,47 +488,51 @@ def page4_fields() -> list[dict]:
         field("hipaa_acknowledgement", "boolean", "HIPAA Acknowledgement", "Xác nhận HIPAA",
               "HIPAA acknowledgement — read all 7 terms one by one before saving.",
               "Xác nhận HIPAA — đọc từng điều khoản trong 7 điều khoản trước khi lưu.",
-              4, "consent", True, validation={**cb(500, 36), "render_as_check": True}),
+              3, "consent", True, validation={**cb(500, 36), "render_as_check": True}),
         field("release_contact_1_name", "text", "Release contact 1 name", "Người được cấp quyền 1",
               "Name of person authorized to access your health information. Say none if not applicable.",
               "Tên người được phép truy cập thông tin sức khỏe. Nếu không có, nói không có.",
-              4, "release", False, validation=txt(588, 80)),
+              3, "release", False, validation=txt(588, 80)),
         field("release_contact_1_relationship", "text", "Release contact 1 relationship", "Quan hệ (người 1)",
               "Relationship of the first authorized person.",
               "Mối quan hệ với người thứ nhất?",
-              4, "release", False, validation=txt(588, 300)),
+              3, "release", False, validation=txt(588, 300)),
         field("release_contact_1_phone", "phone", "Release contact 1 phone", "SĐT người 1",
               "Phone number for the first authorized person.",
               "Số điện thoại người thứ nhất?",
-              4, "release", False, validation=txt(603, 80)),
+              3, "release", False, validation=txt(603, 80)),
         field("release_contact_1_emergency", "select", "Emergency contact 1", "Liên hệ khẩn cấp 1",
               "Is the first person an emergency contact? Yes or no.",
               "Người thứ nhất có phải liên hệ khẩn cấp không?",
-              4, "release", False, YES_NO, validation={
+              3, "release", False, YES_NO, validation={
                   "checkbox_positions": {"yes": cb(603, 360), "no": cb(603, 432)}
               }),
         field("release_contact_2_name", "text", "Release contact 2 name", "Người được cấp quyền 2",
               "Name of a second person authorized to access your health information. Say none if not applicable.",
               "Tên người thứ hai được phép truy cập. Nếu không có, nói không có.",
-              4, "release", False, validation=txt(617, 80)),
+              3, "release", False, validation=txt(617, 80)),
         field("release_contact_2_relationship", "text", "Release contact 2 relationship", "Quan hệ (người 2)",
               "Relationship of the second authorized person.",
               "Mối quan hệ với người thứ hai?",
-              4, "release", False, validation=txt(617, 300)),
+              3, "release", False, validation=txt(617, 300)),
         field("release_contact_2_phone", "phone", "Release contact 2 phone", "SĐT người 2",
               "Phone number for the second authorized person.",
               "Số điện thoại người thứ hai?",
-              4, "release", False, validation=txt(632, 80)),
+              3, "release", False, validation=txt(632, 80)),
         field("release_contact_2_emergency", "select", "Emergency contact 2", "Liên hệ khẩn cấp 2",
               "Is the second person an emergency contact? Yes or no.",
               "Người thứ hai có phải liên hệ khẩn cấp không?",
-              4, "release", False, YES_NO, validation={
+              3, "release", False, YES_NO, validation={
                   "checkbox_positions": {"yes": cb(632, 360), "no": cb(632, 432)}
               }),
         field("electronic_communication_consent", "boolean", "Electronic Communication", "Đồng ý liên lạc điện tử",
               "Electronic communication consent — read both terms one by one before saving.",
               "Đồng ý liên lạc điện tử — đọc từng điều khoản trong 2 điều khoản trước khi lưu.",
-              4, "consent", True, validation={**cb(668, 36), "render_as_check": True}),
+              3, "consent", True, validation={**cb(668, 36), "render_as_check": True}),
+        field("consent_signer_name", "text", "Patient or representative name", "Họ tên bệnh nhân/người đại diện",
+              "Auto-filled — patient or guardian name for consent signature line.",
+              "Tự điền — họ tên bệnh nhân hoặc người giám hộ trên dòng chữ ký.",
+              3, "consent", False, validation=txt(648, 80, maxLength=100)),
     ]
 
 
@@ -506,26 +555,36 @@ def page5_fields() -> list[dict]:
         {"value": "other", "label": {"en": "Other", "vi": "Khác"}},
     ]
     return [
+        field("authorization_patient_name", "text", "Patient name (authorization)", "Tên bệnh nhân (ủy quyền)",
+              "Auto-filled from patient name on authorization page.",
+              "Tự điền từ họ tên bệnh nhân trên trang ủy quyền.",
+              4, "authorization", False, validation=txt(72, 80)),
+        field("authorization_dob", "date", "DOB (authorization)", "Ngày sinh (ủy quyền)",
+              "Auto-filled from date of birth on authorization page.",
+              "Tự điền từ ngày sinh trên trang ủy quyền.",
+              4, "authorization", False, validation=txt(72, 360)),
         field("release_authorization_name", "text", "Authorized person name", "Tên người cho phép",
-              "I authorize release of records — what is your full name for this authorization?",
-              "Tôi cho phép tiết lộ hồ sơ — họ tên đầy đủ của bạn?",
-              5, "authorization", True, validation=txt(135, 80)),
+              "Auto-filled — I authorize release of records (patient full name).",
+              "Tự điền — Tôi cho phép tiết lộ hồ sơ (họ tên bệnh nhân).",
+              4, "authorization", True, validation=txt(135, 80)),
         field("provider_facility_name", "text", "Provider/Facility", "Bác sĩ/Cơ sở",
-              "Name of provider or facility to release records from. Say none if releasing to VM Clinic only.",
-              "Tên bác sĩ hoặc cơ sở cung cấp hồ sơ? Nếu chỉ gửi về VM Clinic, nói không có.",
-              5, "authorization", False, validation=txt(169, 120)),
+              "Name of provider or facility to release records from. Say none if VM Clinic only. "
+              "If unsure, give a partial name or address and I can search.",
+              "Tên bác sĩ hoặc cơ sở cung cấp hồ sơ? Nếu chỉ gửi về VM Clinic, nói không có. "
+              "Nếu không chắc, cho tên hoặc địa chỉ một phần để tôi tra cứu.",
+              4, "authorization", False, validation=txt(169, 120)),
         field("provider_phone", "phone", "Provider phone", "SĐT cơ sở",
               "Provider phone number. Say none if not applicable.",
               "Số điện thoại cơ sở? Nếu không có, nói không có.",
-              5, "authorization", False, validation=txt(194, 80)),
+              4, "authorization", False, validation=txt(194, 80)),
         field("provider_fax", "text", "Provider fax", "Fax cơ sở",
               "Provider fax number. Say none if not applicable.",
               "Số fax cơ sở? Nếu không có, nói không có.",
-              5, "authorization", False, validation=txt(194, 380)),
+              4, "authorization", False, validation=txt(194, 380)),
         field("records_to_release", "multiselect", "Records to release", "Hồ sơ cần cung cấp",
               "What information should be released? Complete record, office notes, lab, radiology, immunization, medication, or other.",
               "Thông tin nào được cung cấp? Toàn bộ hồ sơ, bệnh án, xét nghiệm, X-quang, tiêm chủng, thuốc, hay khác?",
-              5, "authorization", False, records_opts, validation={
+              4, "authorization", False, records_opts, validation={
                   "checkbox_positions": {
                       "complete_record": cb(327, 36), "office_notes": cb(327, 216),
                       "lab_reports": cb(327, 360), "radiology": cb(355, 36),
@@ -536,7 +595,7 @@ def page5_fields() -> list[dict]:
         field("disclosure_purpose", "multiselect", "Purpose of disclosure", "Mục đích tiết lộ",
               "Purpose of disclosure: continuation of care, personal use, legal, insurance, post-hospital, or other.",
               "Mục đích: tiếp tục điều trị, cá nhân, pháp lý, bảo hiểm, sau nhập viện, hay khác?",
-              5, "authorization", False, purpose_opts, validation={
+              4, "authorization", False, purpose_opts, validation={
                   "checkbox_positions": {
                       "continuation_of_care": cb(410, 36), "personal_use": cb(410, 216),
                       "legal": cb(410, 360), "insurance": cb(437, 36),
@@ -546,7 +605,7 @@ def page5_fields() -> list[dict]:
         field("release_consent_acknowledgement", "boolean", "Release consent", "Đồng ý tiết lộ hồ sơ",
               "Release authorization consent — read all 3 terms one by one before saving.",
               "Đồng ý tiết lộ hồ sơ — đọc từng điều khoản trong 3 điều khoản trước khi lưu.",
-              5, "authorization", True, validation={**cb(497, 36), "render_as_check": True}),
+              4, "authorization", True, validation={**cb(497, 36), "render_as_check": True}),
     ]
 
 

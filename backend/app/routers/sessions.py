@@ -13,6 +13,8 @@ from app.models import (
     EmailSendResponse,
     FormProgressResponse,
     LiveTokenResponse,
+    ProviderLookupRequest,
+    ProviderLookupResponse,
     SelectFormRequest,
     SelectFormResponse,
     SessionCreate,
@@ -20,6 +22,7 @@ from app.models import (
     SessionUpdateAnswers,
     VoiceConfigResponse,
 )
+from app.services.field_prefill import apply_field_prefill
 from app.services.document_scan import extract_fields_from_document_image, merge_extracted_into_answers
 from app.services.email_service import send_pdf_email
 from app.services.email_templates import build_pdf_email_body, build_pdf_email_subject
@@ -40,6 +43,7 @@ from app.services.gemini_live import create_live_ephemeral_token
 from app.services.n8n_email import send_pdf_via_n8n
 from app.services.pdf_generator import generate_filled_pdf
 from app.services.pharmacy_suggestions import parse_pharmacy_list
+from app.services.provider_lookup import lookup_provider_facility
 from app.services.settings_store import get_all_settings
 from app.services.triage_voice import build_triage_system_instruction
 
@@ -119,6 +123,7 @@ def update_answers(
         current = payload.answers
 
     schema = get_schema_or_raise(row.form_id)
+    current = apply_field_prefill(current, row.form_id)
     current = normalize_answers(schema, current)
 
     row.answers_json = dumps_answers(current)
@@ -151,6 +156,8 @@ def scan_document(
     if payload.merge and extracted:
         current = loads_answers(row.answers_json)
         merged = merge_extracted_into_answers(schema, current, extracted)
+        merged = apply_field_prefill(merged, row.form_id)
+        merged = normalize_answers(schema, merged)
         row.answers_json = dumps_answers(merged)
         row.updated_at = datetime.now(timezone.utc)
         db.commit()
@@ -188,7 +195,7 @@ def submit_session(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Complete date-of-birth triage before submitting")
 
     schema = get_schema_or_raise(row.form_id)
-    answers = loads_answers(row.answers_json)
+    answers = apply_field_prefill(loads_answers(row.answers_json), row.form_id)
     errors = validate_answers(schema, answers)
     if errors:
         raise HTTPException(status_code=422, detail={"errors": errors})
@@ -223,7 +230,7 @@ def download_pdf(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Session not found")
 
     schema = get_schema_or_raise(row.form_id)
-    answers = loads_answers(row.answers_json)
+    answers = apply_field_prefill(loads_answers(row.answers_json), row.form_id)
 
     path = settings.output_pdf_dir / f"{session_id}_{row.form_id}.pdf"
     try:
@@ -260,7 +267,7 @@ def send_session_email(session_id: str, db: Session = Depends(get_db)):
         )
 
     schema = get_schema_or_raise(row.form_id)
-    answers = loads_answers(row.answers_json)
+    answers = apply_field_prefill(loads_answers(row.answers_json), row.form_id)
 
     try:
         pdf_path = generate_filled_pdf(row.form_id, schema, answers, row.id, row.language)
@@ -305,7 +312,10 @@ def select_registration_form(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     schema = get_schema_or_raise(form_id)
-    answers = normalize_answers(schema, initial_answers_from_triage_dob(schema, normalized_dob))
+    answers = apply_field_prefill(
+        normalize_answers(schema, initial_answers_from_triage_dob(schema, normalized_dob)),
+        form_id,
+    )
     voice_lang = preferred_voice_language(form_id, payload.voice_language)
 
     row.form_id = form_id
@@ -341,6 +351,36 @@ def get_session_form_progress(
         schema, answers, saved_field, voice_lang, pharmacies
     )
     return FormProgressResponse(**progress)
+
+
+@router.post("/{session_id}/lookup-provider", response_model=ProviderLookupResponse)
+def lookup_provider(
+    session_id: str,
+    payload: ProviderLookupRequest,
+    db: Session = Depends(get_db),
+):
+    row = db.get(FormSession, session_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if row.form_id == TRIAGE_FORM_ID:
+        raise HTTPException(status_code=400, detail="Complete form selection before provider lookup")
+
+    result = lookup_provider_facility(payload.query)
+    candidates: list[dict[str, str]] = []
+    if result.get("name"):
+        candidates.append({
+            "name": result["name"],
+            "address": result.get("address", ""),
+            "phone": result.get("phone", ""),
+            "fax": result.get("fax", ""),
+            "confidence": result.get("confidence", "low"),
+        })
+    message = result.get("note") or (
+        "Could not verify a match — ask the patient for more detail."
+        if not candidates
+        else "Read this match to the patient and confirm before saving provider_facility_name."
+    )
+    return ProviderLookupResponse(query=payload.query, candidates=candidates, message=message)
 
 
 @router.get("/{session_id}/voice-config", response_model=VoiceConfigResponse)
