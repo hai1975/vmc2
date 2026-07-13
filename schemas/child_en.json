@@ -378,8 +378,8 @@
         "vi": "Chủng tộc"
       },
       "voice_prompt": {
-        "en": "What is your race? You may select multiple: Asian, White, African American, Native American, Pacific Islander, or other.",
-        "vi": "Chủng tộc của bạn? Có thể chọn nhiều: Châu Á, Da trắng, Người Mỹ gốc Phi, và các lựa chọn khác."
+        "en": "What is your race — Asian, White, or something else?",
+        "vi": "Chủng tộc của bạn là Châu Á, Da trắng hay gì khác?"
       },
       "required": false,
       "page": 1,
@@ -484,8 +484,8 @@
         "vi": "Dân tộc"
       },
       "voice_prompt": {
-        "en": "What is your ethnicity? Hispanic or Latino, Not Hispanic or Latino, or Unknown?",
-        "vi": "Dân tộc: Gốc Tây Ban Nha/La-tinh, không gốc Tây Ban Nha, hay không rõ?"
+        "en": "What is your ethnicity — Hispanic or Latino, Not Hispanic or Latino, or something else?",
+        "vi": "Dân tộc của bạn là Gốc Tây Ban Nha/La-tinh, Không gốc Tây Ban Nha, hay gì khác?"
       },
       "required": false,
       "page": 1,
@@ -538,8 +538,8 @@
         "vi": "Giới tính"
       },
       "voice_prompt": {
-        "en": "What is your gender identity? Male, Female, prefer not to say, Other, FTM, MTF, or Genderqueer?",
-        "vi": "Giới tính của bạn? Nam, Nữ, không tiết lộ, Khác, FTM, MTF, hay Genderqueer?"
+        "en": "What is your gender identity — Male, Female, or something else?",
+        "vi": "Giới tính của bạn là Nam, Nữ hay gì khác?"
       },
       "required": false,
       "page": 1,
@@ -636,8 +636,8 @@
         "vi": "Xu hướng tình dục"
       },
       "voice_prompt": {
-        "en": "What is your sexual orientation? Gay or lesbian, straight, bisexual, don't know, prefer not to say, or other?",
-        "vi": "Xu hướng tình dục? Đồng tính, dị tính, song tính, không biết, không tiết lộ, hay khác?"
+        "en": "What is your sexual orientation — straight, gay or lesbian, or something else?",
+        "vi": "Xu hướng tình dục của bạn là Dị tính, Đồng tính hay gì khác?"
       },
       "required": false,
       "page": 1,

@@ -155,8 +155,8 @@ def page1_fields() -> list[dict]:
                   }
               }),
         field("race", "multiselect", "Race", "Chủng tộc",
-              "What is your race? You may select multiple: Asian, White, African American, Native American, Pacific Islander, or other.",
-              "Chủng tộc của bạn? Có thể chọn nhiều: Châu Á, Da trắng, Người Mỹ gốc Phi, và các lựa chọn khác.",
+              "What is your race — Asian, White, or something else?",
+              "Chủng tộc của bạn là Châu Á, Da trắng hay gì khác?",
               1, "demographics", False, race_opts, validation={
                   "checkbox_positions": {
                       "asian": cb(285, 108), "white": cb(285, 216), "african_american": cb(285, 324),
@@ -168,16 +168,16 @@ def page1_fields() -> list[dict]:
               "Nếu chọn chủng tộc khác, xin ghi rõ. Nếu không, nói không có.",
               1, "demographics", False, validation=txt(301, 400)),
         field("ethnicity", "select", "Ethnicity", "Dân tộc",
-              "What is your ethnicity? Hispanic or Latino, Not Hispanic or Latino, or Unknown?",
-              "Dân tộc: Gốc Tây Ban Nha/La-tinh, không gốc Tây Ban Nha, hay không rõ?",
+              "What is your ethnicity — Hispanic or Latino, Not Hispanic or Latino, or something else?",
+              "Dân tộc của bạn là Gốc Tây Ban Nha/La-tinh, Không gốc Tây Ban Nha, hay gì khác?",
               1, "demographics", False, eth_opts, validation={
                   "checkbox_positions": {
                       "hispanic": cb(347, 108), "not_hispanic": cb(347, 288), "unknown": cb(347, 504),
                   }
               }),
         field("gender_identity", "select", "Gender Identity", "Giới tính",
-              "What is your gender identity? Male, Female, prefer not to say, Other, FTM, MTF, or Genderqueer?",
-              "Giới tính của bạn? Nam, Nữ, không tiết lộ, Khác, FTM, MTF, hay Genderqueer?",
+              "What is your gender identity — Male, Female, or something else?",
+              "Giới tính của bạn là Nam, Nữ hay gì khác?",
               1, "demographics", False, gender_opts, validation={
                   "checkbox_positions": {
                       "male": cb(377, 108), "female": cb(377, 180), "not_disclose": cb(377, 252),
@@ -185,8 +185,8 @@ def page1_fields() -> list[dict]:
                   }
               }),
         field("sexual_orientation", "select", "Sexual Orientation", "Xu hướng tình dục",
-              "What is your sexual orientation? Gay or lesbian, straight, bisexual, don't know, prefer not to say, or other?",
-              "Xu hướng tình dục? Đồng tính, dị tính, song tính, không biết, không tiết lộ, hay khác?",
+              "What is your sexual orientation — straight, gay or lesbian, or something else?",
+              "Xu hướng tình dục của bạn là Dị tính, Đồng tính hay gì khác?",
               1, "demographics", False, orient_opts, validation={
                   "checkbox_positions": {
                       "gay_lesbian": cb(454, 144), "straight": cb(454, 432), "bisexual": cb(470, 36),

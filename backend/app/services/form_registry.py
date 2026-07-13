@@ -4,6 +4,7 @@ from pathlib import Path
 from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
 from app.services.form_selector import ACTIVE_FORM_IDS, TRIAGE_FORM_ID
+from app.services.demographic_voice import apply_demographic_voice_hints, build_demographic_voice_section
 from app.services.pharmacy_suggestions import (
     PharmacyEntry,
     build_pharmacy_field_hint,
@@ -356,6 +357,7 @@ def get_form_progress_with_hint(
     progress["say_next"] = build_say_next(progress, session_language)
     progress["say_next_en"] = bilingual["en"]
     progress["say_next_vi"] = bilingual["vi"]
+    progress = apply_demographic_voice_hints(progress, session_language)
     return progress
 
 
@@ -456,6 +458,8 @@ def build_voice_system_instruction(
         "- DECLINING / NONE ANSWERS (critical for optional fields):",
         '  • If the patient says none / không có / skip for an OPTIONAL field,',
         '    call update_form_field(field_id, "__skipped__") without extra confirmation if intent is clear.',
+        '  • For optional fields that should stay empty on the PDF (e.g. no pharmacy phone on file),',
+        '    use value __blank__ — do NOT ask the patient.',
         "  • Declining IS an answer — you MUST still call update_form_field. Never just move on without saving.",
         "  • __skipped__ writes Không có (vi) or None (en) on the PDF and counts as done.",
         "  • For insurance 'no insurance' use value uninsured (NOT __skipped__).",
@@ -495,6 +499,8 @@ def build_voice_system_instruction(
     if pharmacy_list:
         lines.append(build_pharmacy_voice_section(pharmacy_list))
         lines.append("")
+    lines.append(build_demographic_voice_section())
+    lines.append("")
     progress = get_form_progress(schema, answers or {})
     if progress["filled_fields"]:
         lines.append("Already collected:")
