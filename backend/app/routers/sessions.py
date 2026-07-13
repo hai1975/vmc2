@@ -31,7 +31,11 @@ from app.services.form_registry import (
     preferred_voice_language,
     validate_answers,
 )
-from app.services.form_selector import TRIAGE_FORM_ID, resolve_registration_form_id
+from app.services.form_selector import (
+    TRIAGE_FORM_ID,
+    initial_answers_from_triage_dob,
+    resolve_registration_form_id,
+)
 from app.services.gemini_live import create_live_ephemeral_token
 from app.services.n8n_email import send_pdf_via_n8n
 from app.services.pdf_generator import generate_filled_pdf
@@ -295,7 +299,7 @@ def select_registration_form(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     schema = get_schema_or_raise(form_id)
-    answers = normalize_answers(schema, {"dob": normalized_dob})
+    answers = normalize_answers(schema, initial_answers_from_triage_dob(schema, normalized_dob))
     voice_lang = preferred_voice_language(form_id, payload.voice_language)
 
     row.form_id = form_id

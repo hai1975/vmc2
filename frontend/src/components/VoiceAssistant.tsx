@@ -45,7 +45,6 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
     const ringRef = useRef<ConnectionRingtone | null>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
     const videoStreamerRef = useRef<VideoFrameStreamer | null>(null)
-    const restartPendingRef = useRef(false)
 
     const updateStatus = (next: GeminiLiveStatus) => {
       setStatus(next)
@@ -125,20 +124,6 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
       void ringRef.current?.stop()
     }
 
-    const restartVoiceAfterFormSelect = async () => {
-      if (restartPendingRef.current) return
-      restartPendingRef.current = true
-      try {
-        await liveRef.current?.disconnect()
-        await stopCamera()
-        liveRef.current = null
-        updateStatus('idle')
-        await startVoice()
-      } finally {
-        restartPendingRef.current = false
-      }
-    }
-
     const startVoice = async () => {
       if (!sessionId) return
       setError('')
@@ -201,16 +186,17 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
               onAnswersUpdate(result.session.answers)
             })
             await onFormSelected?.(result)
-            const progress = await api.getFormProgress(sessionId)
-            return { ...progress }
+            const [progress, voiceConfig] = await Promise.all([
+              api.getFormProgress(sessionId, 'birthday'),
+              api.getVoiceConfig(sessionId),
+            ])
+            return {
+              ...progress,
+              registration_context: voiceConfig.system_instruction,
+            }
           },
           },
           { triage: voiceConfig.form_id === 'triage' },
-          () => {
-            window.setTimeout(() => {
-              void restartVoiceAfterFormSelect()
-            }, 600)
-          },
         )
       } catch (err) {
         stopRingtone()

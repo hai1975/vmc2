@@ -10,11 +10,15 @@ export interface GeminiLiveCallbacks {
   onError: (message: string) => void
   onFieldUpdate: (fieldId: string, value: unknown) => Promise<Record<string, unknown>>
   onBatchFieldUpdate?: (fields: Record<string, unknown>) => Promise<Record<string, unknown>>
-  onFormSelect?: (dob: string, voiceLanguage: string) => Promise<Record<string, unknown>>
+  onFormSelect?: (dob: string, voiceLanguage: string) => Promise<FormSelectProgress>
 }
 
 export interface GeminiLiveConnectOptions {
   triage?: boolean
+}
+
+export interface FormSelectProgress extends Record<string, unknown> {
+  registration_context?: string
 }
 
 function parseToolValue(raw: string): unknown {
@@ -53,7 +57,6 @@ export class GeminiLiveSession {
   private openingTimeout: ReturnType<typeof setTimeout> | null = null
   private toolCallPending = false
   private triageMode = false
-  private requestVoiceRestart: (() => void) | null = null
 
   private canUseTools(): boolean {
     return !this.closed && this.ready && this.session !== null
@@ -156,14 +159,12 @@ export class GeminiLiveSession {
     model: string,
     callbacks: GeminiLiveCallbacks,
     options?: GeminiLiveConnectOptions,
-    onRestart?: () => void,
   ): Promise<void> {
     await this.disconnect()
 
     this.closed = false
     this.ready = false
     this.triageMode = Boolean(options?.triage)
-    this.requestVoiceRestart = onRestart ?? null
     this.toolCallPending = false
     this.openingPending = false
     this.openingDone = false
@@ -254,7 +255,8 @@ export class GeminiLiveSession {
               const responses: Array<{ id: string; name: string; response: Record<string, unknown> }> = []
 
               try {
-                let restartAfterFormSelect = false
+                let formSelected = false
+                let registrationContext = ''
                 for (const call of functionCalls) {
                   if (!call.id) continue
 
@@ -264,6 +266,11 @@ export class GeminiLiveSession {
                       String(args.dob ?? ''),
                       String(args.voice_language ?? 'en'),
                     )
+                    if (typeof progress.registration_context === 'string') {
+                      registrationContext = progress.registration_context
+                    }
+                    this.triageMode = false
+                    formSelected = true
                     responses.push({
                       id: call.id,
                       name: call.name,
@@ -276,7 +283,6 @@ export class GeminiLiveSession {
                         ...progress,
                       },
                     })
-                    restartAfterFormSelect = true
                     continue
                   }
 
@@ -359,6 +365,11 @@ export class GeminiLiveSession {
                         : ''
                   const sayNextVi = typeof last?.say_next_vi === 'string' ? last.say_next_vi : ''
                   const savedCount = typeof last?.saved_count === 'number' ? last.saved_count : 0
+                  if (formSelected && registrationContext) {
+                    this.session.sendRealtimeInput({
+                      text: `FORM SELECTED. Stay in this same live call — do NOT wait for reconnect. Date of birth is ALREADY saved in field "birthday" — NEVER ask date of birth again. Apply registration rules now:\n\n${registrationContext}\n\nThen continue with the next question from say_next.`,
+                    })
+                  }
                   if (sayNextEn || sayNextVi) {
                     const scanHint =
                       savedCount > 0
@@ -369,9 +380,6 @@ export class GeminiLiveSession {
                     })
                   }
 
-                  if (restartAfterFormSelect) {
-                    this.requestVoiceRestart?.()
-                  }
                 }
               } catch (error) {
                 const detail = error instanceof Error ? error.message : 'Tool call failed'

@@ -2,6 +2,8 @@ from datetime import date, datetime
 
 from fastapi import HTTPException
 
+from app.models import FormSchema
+
 ACTIVE_FORM_IDS = frozenset({"adult_en", "adult_vn", "child_en", "child_vn"})
 TRIAGE_FORM_ID = "triage"
 
@@ -38,6 +40,20 @@ def calculate_age(dob: date, today: date | None = None) -> int:
 def normalize_voice_language(value: str) -> str:
     lang = str(value or "").strip().lower()
     return "vi" if lang.startswith("vi") else "en"
+
+
+def dob_field_id_for_schema(schema: FormSchema) -> str:
+    """Registration forms use `birthday`; triage schema uses `dob`."""
+    field_ids = {field.id for field in schema.fields}
+    if "birthday" in field_ids:
+        return "birthday"
+    if "dob" in field_ids:
+        return "dob"
+    raise HTTPException(status_code=500, detail="Schema has no date-of-birth field")
+
+
+def initial_answers_from_triage_dob(schema: FormSchema, normalized_dob: str) -> dict:
+    return {dob_field_id_for_schema(schema): normalized_dob}
 
 
 def resolve_registration_form_id(

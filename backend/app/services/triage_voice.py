@@ -13,9 +13,10 @@ This is TRIAGE mode — the correct registration form is NOT chosen yet.
 4. When you clearly have DOB, call select_registration_form IMMEDIATELY (before other fields).
    • dob: normalized date string (MM/DD/YYYY or YYYY-MM-DD)
    • voice_language: "vi" or "en" as detected above
-5. After the tool returns, speak say_next naturally and continue registration on the selected form.
-6. Do NOT call update_form_field before select_registration_form completes.
-7. Do NOT ask name, phone, insurance, or any other field before form selection.
+5. After the tool returns, birthday is ALREADY saved on the form — do NOT ask date of birth again.
+6. Speak say_next naturally and continue registration in the SAME live call — do NOT pause or wait for reconnect.
+7. Do NOT call update_form_field before select_registration_form completes.
+8. Do NOT ask name, phone, insurance, or any other field before form selection.
 
 === FORM SELECTION RULES ===
 • Age < {pediatric_threshold} years → pediatric form (child)
