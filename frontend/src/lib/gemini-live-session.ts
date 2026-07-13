@@ -1,4 +1,5 @@
 import { GoogleGenAI, type LiveServerMessage, type Session } from '@google/genai'
+import type { ProviderLookupResult } from '../types'
 import { MicrophoneStreamer, PcmPlayer } from './audio-pcm'
 
 export type GeminiLiveStatus = 'idle' | 'connecting' | 'connected' | 'listening' | 'speaking' | 'error'
@@ -12,18 +13,6 @@ export interface GeminiLiveCallbacks {
   onBatchFieldUpdate?: (fields: Record<string, unknown>) => Promise<Record<string, unknown>>
   onFormSelect?: (dob: string, voiceLanguage: string) => Promise<FormSelectProgress>
   onProviderLookup?: (query: string) => Promise<ProviderLookupResult>
-}
-
-export interface ProviderLookupResult extends Record<string, unknown> {
-  query: string
-  candidates: Array<{
-    name: string
-    address: string
-    phone: string
-    fax: string
-    confidence: string
-  }>
-  message: string
 }
 
 export interface GeminiLiveConnectOptions {

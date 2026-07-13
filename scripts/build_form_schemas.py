@@ -71,7 +71,7 @@ TB_RESULT = [
 ]
 
 
-def page1_fields() -> list[dict]:
+def page1_fields(*, pediatric: bool = False) -> list[dict]:
     ins_opts = [
         {"value": "medi_cal", "label": {"en": "Medi-Cal", "vi": "Medi-Cal"}},
         {"value": "ppo", "label": {"en": "PPO", "vi": "PPO"}},
@@ -108,33 +108,40 @@ def page1_fields() -> list[dict]:
         {"value": "not_disclose", "label": {"en": "Choose not to disclose", "vi": "Chọn không tiết lộ"}},
         {"value": "other", "label": {"en": "Other", "vi": "Khác"}},
     ]
-    return [
+    fields = [
         field("patient_name", "text", "Patient Name", "Họ và tên bệnh nhân",
-              "What is your full legal name?", "Xin cho biết họ và tên đầy đủ của bạn?",
+              "What is your full legal name?" if not pediatric else "What is the patient's full legal name?",
+              "Xin cho biết họ và tên đầy đủ của bạn?" if not pediatric else "Xin cho biết họ và tên đầy đủ của bệnh nhân?",
               1, "personal", True, validation=txt(118, 175, maxLength=100)),
         field("birthday", "date", "Birthday", "Ngày sinh",
-              "What is your date of birth?", "Ngày sinh của bạn là ngày nào?",
+              "What is your date of birth?" if not pediatric else "What is the patient's date of birth?",
+              "Ngày sinh của bạn là ngày nào?" if not pediatric else "Ngày sinh của bệnh nhân là ngày nào?",
               1, "personal", True, validation=txt(140, 100)),
         field("ssn", "ssn", "SSN", "Số SSN",
               "What is your Social Security Number? Say none if you don't have one.",
               "Số SSN của bạn là gì? Nếu không có, nói không có.",
               1, "personal", False, validation=txt(140, 410)),
-        field("guardian_1_name", "text", "Legal Guardian 1", "Người giám hộ 1",
-              "Who is your first legal guardian? Say none if not applicable.",
-              "Tên người giám hộ hợp pháp thứ nhất? Nếu không có, nói không có.",
-              1, "personal", False, validation=txt(162, 255)),
-        field("guardian_1_relationship", "text", "Relationship (Guardian 1)", "Mối quan hệ (giám hộ 1)",
-              "What is your relationship to the first guardian?",
-              "Mối quan hệ với người giám hộ thứ nhất?",
-              1, "personal", False, validation=txt(162, 470)),
-        field("guardian_2_name", "text", "Legal Guardian 2", "Người giám hộ 2",
-              "Who is your second legal guardian? Say none if not applicable.",
-              "Tên người giám hộ hợp pháp thứ hai? Nếu không có, nói không có.",
-              1, "personal", False, validation=txt(186, 255)),
-        field("guardian_2_relationship", "text", "Relationship (Guardian 2)", "Mối quan hệ (giám hộ 2)",
-              "What is your relationship to the second guardian?",
-              "Mối quan hệ với người giám hộ thứ hai?",
-              1, "personal", False, validation=txt(186, 470)),
+    ]
+    if pediatric:
+        fields.extend([
+            field("guardian_1_name", "text", "Legal Guardian 1", "Người giám hộ 1",
+                  "Who is the patient's first legal guardian?",
+                  "Ai là người giám hộ hợp pháp thứ nhất của bệnh nhân?",
+                  1, "personal", False, validation=txt(162, 255)),
+            field("guardian_1_relationship", "text", "Relationship (Guardian 1)", "Mối quan hệ (giám hộ 1)",
+                  "What is the guardian's relationship to the patient?",
+                  "Mối quan hệ của người giám hộ với bệnh nhân?",
+                  1, "personal", False, validation=txt(162, 470)),
+            field("guardian_2_name", "text", "Legal Guardian 2", "Người giám hộ 2",
+                  "Who is the patient's second legal guardian? Say none if not applicable.",
+                  "Ai là người giám hộ hợp pháp thứ hai của bệnh nhân? Nếu không có, nói không có.",
+                  1, "personal", False, validation=txt(186, 255)),
+            field("guardian_2_relationship", "text", "Relationship (Guardian 2)", "Mối quan hệ (giám hộ 2)",
+                  "What is the second guardian's relationship to the patient?",
+                  "Mối quan hệ của người giám hộ thứ hai với bệnh nhân?",
+                  1, "personal", False, validation=txt(186, 470)),
+        ])
+    fields.extend([
         field("home_address", "textarea", "Home Address", "Địa chỉ nhà",
               "What is your home address?", "Địa chỉ nhà của bạn là gì?",
               1, "personal", True, validation=line(198, 130)),
@@ -205,10 +212,11 @@ def page1_fields() -> list[dict]:
               "Treatment consent — read all 7 terms one by one before saving.",
               "Đồng ý điều trị — đọc từng điều khoản trong 7 điều khoản trước khi lưu.",
               1, "consent", True, validation={**cb(526, 36), "render_as_check": True}),
-    ]
+    ])
+    return fields
 
 
-def page2_fields() -> list[dict]:
+def page2_fields(*, pediatric: bool = False) -> list[dict]:
     cond_checkboxes = {
         "diabetes": cb(179, 36),
         "high_blood_pressure": cb(179, 144),
@@ -320,13 +328,16 @@ def page2_fields() -> list[dict]:
               "Any environmental allergies? Say none if none.",
               "Dị ứng môi trường? Nếu không có, nói không có.",
               2, "allergies", False, validation=txt(486, 300)),
+    ])
+    if pediatric:
+        fields.extend([
         field("main_caretaker", "text", "Main caretaker", "Người chăm sóc chính",
-              "Who is your main caretaker? Say none if not applicable.",
-              "Người chăm sóc chính của bạn? Nếu không có, nói không có.",
+              "Who is the patient's main caretaker? Say none if not applicable.",
+              "Ai là người chăm sóc chính của bệnh nhân? Nếu không có, nói không có.",
               2, "social", False, validation=txt(525, 120)),
         field("caretaker_relationship", "text", "Caretaker relationship", "Mối quan hệ người chăm sóc",
-              "What is your relationship to the caretaker?",
-              "Mối quan hệ với người chăm sóc?",
+              "What is the caretaker's relationship to the patient?",
+              "Mối quan hệ của người chăm sóc với bệnh nhân?",
               2, "social", False, validation=txt(525, 400)),
         field("pregnancy_complications", "textarea", "Pregnancy complications", "Biến chứng thai kỳ",
               "Any medications or complications during pregnancy? Say none or not applicable.",
@@ -346,11 +357,11 @@ def page2_fields() -> list[dict]:
               2, "pediatric", False, YES_NO, validation={
                   "checkbox_positions": {"yes": cb(698, 432), "no": cb(698, 504)}
               }),
-    ])
+        ])
     return fields
 
 
-def page3_fields() -> list[dict]:
+def page3_fields(*, pediatric: bool = False) -> list[dict]:
     fam_opts = [
         {"value": "diabetes", "label": {"en": "Diabetes", "vi": "Tiểu đường"}},
         {"value": "cancer", "label": {"en": "Cancer", "vi": "Ung thư"}},
@@ -377,7 +388,7 @@ def page3_fields() -> list[dict]:
         {"value": "post_hospital", "label": {"en": "Post ER/Hospital follow-up", "vi": "Theo dõi sau nhập viện"}},
         {"value": "other", "label": {"en": "Other", "vi": "Khác"}},
     ]
-    return [
+    fields = [
         field("family_history", "multiselect", "Family History", "Tiền sử gia đình",
               "Has anyone in your immediate family had diabetes, cancer, heart disease, high blood pressure, stroke, or mental illness? Say none if none.",
               "Gia đình có ai mắc tiểu đường, ung thư, tim, cao huyết áp, đột quỵ, tâm thần? Nói không có nếu không.",
@@ -428,12 +439,17 @@ def page3_fields() -> list[dict]:
               "If yes, please list recreational drugs used. Say none if not applicable.",
               "Nếu có, liệt kê. Nếu không, nói không có.",
               3, "social_history", False, validation=txt(306, 360)),
+    ]
+    if pediatric:
+        fields.append(
         field("parent_drug_alcohol", "select", "Parent drug/alcohol use", "Cha mẹ dùng chất",
               "Do either parent or guardian use illicit drugs or drink excessively? Yes or no.",
               "Cha mẹ hoặc người giám hộ có dùng ma túy hoặc uống quá mức không?",
               3, "social_history", False, YES_NO, validation={
                   "checkbox_positions": {"yes": cb(335, 432), "no": cb(335, 504)}
               }),
+        )
+    fields.extend([
         field("feel_safe_home", "select", "Feel safe at home", "An toàn nơi ở",
               "Do you feel safe where you live? Yes or no.",
               "Bạn có cảm thấy an toàn nơi mình sống không?",
@@ -480,7 +496,8 @@ def page3_fields() -> list[dict]:
               "If interpretation is needed, which language? Say none if not applicable.",
               "Nếu cần thông dịch, ngôn ngữ nào?",
               3, "social_history", False, validation=txt(671, 120)),
-    ]
+    ])
+    return fields
 
 
 def page4_fields() -> list[dict]:
@@ -626,8 +643,14 @@ SECTIONS = [
 ]
 
 
-def all_fields() -> list[dict]:
-    return page1_fields() + page2_fields() + page3_fields() + page4_fields() + page5_fields()
+def all_fields(*, pediatric: bool = False) -> list[dict]:
+    return (
+        page1_fields(pediatric=pediatric)
+        + page2_fields(pediatric=pediatric)
+        + page3_fields(pediatric=pediatric)
+        + page4_fields()
+        + page5_fields()
+    )
 
 
 def build_schema(
@@ -651,7 +674,8 @@ def build_schema(
 
 def main() -> None:
     SCHEMA_DIR.mkdir(parents=True, exist_ok=True)
-    shared_fields = all_fields()
+    adult_fields = all_fields(pediatric=False)
+    child_fields = all_fields(pediatric=True)
     schemas = [
         build_schema(
             "triage",
@@ -679,7 +703,7 @@ def main() -> None:
             "Adult Registration (English)",
             "Đăng ký người lớn (Tiếng Anh)",
             default=False,
-            fields=shared_fields,
+            fields=adult_fields,
         ),
         build_schema(
             "adult_vn",
@@ -687,7 +711,7 @@ def main() -> None:
             "Adult Registration (Vietnamese)",
             "Đăng ký người lớn (Tiếng Việt)",
             default=False,
-            fields=shared_fields,
+            fields=adult_fields,
         ),
         build_schema(
             "child_en",
@@ -695,7 +719,7 @@ def main() -> None:
             "Pediatric Registration (English)",
             "Đăng ký trẻ em (Tiếng Anh)",
             default=False,
-            fields=shared_fields,
+            fields=child_fields,
         ),
         build_schema(
             "child_vn",
@@ -703,7 +727,7 @@ def main() -> None:
             "Pediatric Registration (Vietnamese)",
             "Đăng ký trẻ em (Tiếng Việt)",
             default=False,
-            fields=shared_fields,
+            fields=child_fields,
         ),
     ]
     for schema in schemas:

@@ -122,8 +122,8 @@
         "vi": "Họ và tên bệnh nhân"
       },
       "voice_prompt": {
-        "en": "What is your full legal name?",
-        "vi": "Xin cho biết họ và tên đầy đủ của bạn?"
+        "en": "What is the patient's full legal name?",
+        "vi": "Xin cho biết họ và tên đầy đủ của bệnh nhân?"
       },
       "required": true,
       "page": 1,
@@ -142,8 +142,8 @@
         "vi": "Ngày sinh"
       },
       "voice_prompt": {
-        "en": "What is your date of birth?",
-        "vi": "Ngày sinh của bạn là ngày nào?"
+        "en": "What is the patient's date of birth?",
+        "vi": "Ngày sinh của bệnh nhân là ngày nào?"
       },
       "required": true,
       "page": 1,
@@ -180,8 +180,8 @@
         "vi": "Người giám hộ 1"
       },
       "voice_prompt": {
-        "en": "Who is your first legal guardian? Say none if not applicable.",
-        "vi": "Tên người giám hộ hợp pháp thứ nhất? Nếu không có, nói không có."
+        "en": "Who is the patient's first legal guardian?",
+        "vi": "Ai là người giám hộ hợp pháp thứ nhất của bệnh nhân?"
       },
       "required": false,
       "page": 1,
@@ -199,8 +199,8 @@
         "vi": "Mối quan hệ (giám hộ 1)"
       },
       "voice_prompt": {
-        "en": "What is your relationship to the first guardian?",
-        "vi": "Mối quan hệ với người giám hộ thứ nhất?"
+        "en": "What is the guardian's relationship to the patient?",
+        "vi": "Mối quan hệ của người giám hộ với bệnh nhân?"
       },
       "required": false,
       "page": 1,
@@ -218,8 +218,8 @@
         "vi": "Người giám hộ 2"
       },
       "voice_prompt": {
-        "en": "Who is your second legal guardian? Say none if not applicable.",
-        "vi": "Tên người giám hộ hợp pháp thứ hai? Nếu không có, nói không có."
+        "en": "Who is the patient's second legal guardian? Say none if not applicable.",
+        "vi": "Ai là người giám hộ hợp pháp thứ hai của bệnh nhân? Nếu không có, nói không có."
       },
       "required": false,
       "page": 1,
@@ -237,8 +237,8 @@
         "vi": "Mối quan hệ (giám hộ 2)"
       },
       "voice_prompt": {
-        "en": "What is your relationship to the second guardian?",
-        "vi": "Mối quan hệ với người giám hộ thứ hai?"
+        "en": "What is the second guardian's relationship to the patient?",
+        "vi": "Mối quan hệ của người giám hộ thứ hai với bệnh nhân?"
       },
       "required": false,
       "page": 1,
@@ -1255,8 +1255,8 @@
         "vi": "Người chăm sóc chính"
       },
       "voice_prompt": {
-        "en": "Who is your main caretaker? Say none if not applicable.",
-        "vi": "Người chăm sóc chính của bạn? Nếu không có, nói không có."
+        "en": "Who is the patient's main caretaker? Say none if not applicable.",
+        "vi": "Ai là người chăm sóc chính của bệnh nhân? Nếu không có, nói không có."
       },
       "required": false,
       "page": 2,
@@ -1274,8 +1274,8 @@
         "vi": "Mối quan hệ người chăm sóc"
       },
       "voice_prompt": {
-        "en": "What is your relationship to the caretaker?",
-        "vi": "Mối quan hệ với người chăm sóc?"
+        "en": "What is the caretaker's relationship to the patient?",
+        "vi": "Mối quan hệ của người chăm sóc với bệnh nhân?"
       },
       "required": false,
       "page": 2,

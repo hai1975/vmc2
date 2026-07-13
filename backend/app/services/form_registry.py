@@ -11,6 +11,7 @@ from app.services.medical_history_voice import (
     build_medical_history_voice_section,
     migrate_legacy_medical_conditions,
 )
+from app.services.form_variant import build_form_variant_voice_section
 from app.services.field_prefill import (
     apply_field_prefill,
     apply_field_prefill_voice_hints,
@@ -514,6 +515,8 @@ def build_voice_system_instruction(
         "- Do NOT wait for the patient to speak, cough, or make any sound before you talk.",
         "",
         f"Form: {schema.title.get(lang, schema.title.get('en', schema.id))}",
+        "",
+        build_form_variant_voice_section(schema.id),
         "",
     ]
     if pharmacy_list:
