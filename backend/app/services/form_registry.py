@@ -4,6 +4,7 @@ from pathlib import Path
 from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
 from app.services.form_selector import ACTIVE_FORM_IDS, TRIAGE_FORM_ID
+from app.services.consent_voice import apply_consent_voice_hints, build_consent_voice_section
 from app.services.demographic_voice import apply_demographic_voice_hints, build_demographic_voice_section
 from app.services.pharmacy_suggestions import (
     PharmacyEntry,
@@ -358,6 +359,7 @@ def get_form_progress_with_hint(
     progress["say_next_en"] = bilingual["en"]
     progress["say_next_vi"] = bilingual["vi"]
     progress = apply_demographic_voice_hints(progress, session_language)
+    progress = apply_consent_voice_hints(progress, session_language, schema.id)
     return progress
 
 
@@ -500,6 +502,8 @@ def build_voice_system_instruction(
         lines.append(build_pharmacy_voice_section(pharmacy_list))
         lines.append("")
     lines.append(build_demographic_voice_section())
+    lines.append("")
+    lines.append(build_consent_voice_section())
     lines.append("")
     progress = get_form_progress(schema, answers or {})
     if progress["filled_fields"]:

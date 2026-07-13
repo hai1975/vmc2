@@ -761,8 +761,8 @@
         "vi": "Đồng ý điều trị"
       },
       "voice_prompt": {
-        "en": "Do you consent to VM Clinic evaluating and treating you?",
-        "vi": "Bạn có đồng ý cho VM Clinic đánh giá và điều trị không?"
+        "en": "Treatment consent — read all 7 terms one by one before saving.",
+        "vi": "Đồng ý điều trị — đọc từng điều khoản trong 7 điều khoản trước khi lưu."
       },
       "required": true,
       "page": 1,
@@ -1983,8 +1983,8 @@
         "vi": "Xác nhận HIPAA"
       },
       "voice_prompt": {
-        "en": "Do you acknowledge receiving the Notice of Privacy Practices?",
-        "vi": "Bạn xác nhận đã nhận Thông báo Quyền riêng tư chưa?"
+        "en": "HIPAA acknowledgement — read all 7 terms one by one before saving.",
+        "vi": "Xác nhận HIPAA — đọc từng điều khoản trong 7 điều khoản trước khi lưu."
       },
       "required": true,
       "page": 4,
@@ -2203,8 +2203,8 @@
         "vi": "Đồng ý liên lạc điện tử"
       },
       "voice_prompt": {
-        "en": "Do you consent to VM Clinic communicating via phone, text, and email?",
-        "vi": "Bạn đồng ý VM Clinic liên lạc qua điện thoại, tin nhắn và email không?"
+        "en": "Electronic communication consent — read both terms one by one before saving.",
+        "vi": "Đồng ý liên lạc điện tử — đọc từng điều khoản trong 2 điều khoản trước khi lưu."
       },
       "required": true,
       "page": 4,
@@ -2484,8 +2484,8 @@
         "vi": "Đồng ý tiết lộ hồ sơ"
       },
       "voice_prompt": {
-        "en": "Do you authorize the release of your medical information as described?",
-        "vi": "Bạn có đồng ý cho phép tiết lộ thông tin y tế như mô tả không?"
+        "en": "Release authorization consent — read all 3 terms one by one before saving.",
+        "vi": "Đồng ý tiết lộ hồ sơ — đọc từng điều khoản trong 3 điều khoản trước khi lưu."
       },
       "required": true,
       "page": 5,

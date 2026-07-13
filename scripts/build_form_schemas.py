@@ -202,8 +202,8 @@ def page1_fields() -> list[dict]:
               "Số điện thoại nhà thuốc? Nếu không có, nói không có.",
               1, "pharmacy", False, validation=line(486, 430)),
         field("treatment_consent", "boolean", "Treatment Consent", "Đồng ý điều trị",
-              "Do you consent to VM Clinic evaluating and treating you?",
-              "Bạn có đồng ý cho VM Clinic đánh giá và điều trị không?",
+              "Treatment consent — read all 7 terms one by one before saving.",
+              "Đồng ý điều trị — đọc từng điều khoản trong 7 điều khoản trước khi lưu.",
               1, "consent", True, validation={**cb(526, 36), "render_as_check": True}),
     ]
 
@@ -441,8 +441,8 @@ def page3_fields() -> list[dict]:
 def page4_fields() -> list[dict]:
     return [
         field("hipaa_acknowledgement", "boolean", "HIPAA Acknowledgement", "Xác nhận HIPAA",
-              "Do you acknowledge receiving the Notice of Privacy Practices?",
-              "Bạn xác nhận đã nhận Thông báo Quyền riêng tư chưa?",
+              "HIPAA acknowledgement — read all 7 terms one by one before saving.",
+              "Xác nhận HIPAA — đọc từng điều khoản trong 7 điều khoản trước khi lưu.",
               4, "consent", True, validation={**cb(500, 36), "render_as_check": True}),
         field("release_contact_1_name", "text", "Release contact 1 name", "Người được cấp quyền 1",
               "Name of person authorized to access your health information. Say none if not applicable.",
@@ -481,8 +481,8 @@ def page4_fields() -> list[dict]:
                   "checkbox_positions": {"yes": cb(632, 360), "no": cb(632, 432)}
               }),
         field("electronic_communication_consent", "boolean", "Electronic Communication", "Đồng ý liên lạc điện tử",
-              "Do you consent to VM Clinic communicating via phone, text, and email?",
-              "Bạn đồng ý VM Clinic liên lạc qua điện thoại, tin nhắn và email không?",
+              "Electronic communication consent — read both terms one by one before saving.",
+              "Đồng ý liên lạc điện tử — đọc từng điều khoản trong 2 điều khoản trước khi lưu.",
               4, "consent", True, validation={**cb(668, 36), "render_as_check": True}),
     ]
 
@@ -544,8 +544,8 @@ def page5_fields() -> list[dict]:
                   }
               }),
         field("release_consent_acknowledgement", "boolean", "Release consent", "Đồng ý tiết lộ hồ sơ",
-              "Do you authorize the release of your medical information as described?",
-              "Bạn có đồng ý cho phép tiết lộ thông tin y tế như mô tả không?",
+              "Release authorization consent — read all 3 terms one by one before saving.",
+              "Đồng ý tiết lộ hồ sơ — đọc từng điều khoản trong 3 điều khoản trước khi lưu.",
               5, "authorization", True, validation={**cb(497, 36), "render_as_check": True}),
     ]
 
