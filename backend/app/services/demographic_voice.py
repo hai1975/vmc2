@@ -44,42 +44,48 @@ DEMOGRAPHIC_TWO_TIER: dict[str, DemographicVoiceConfig] = {
     },
     "ethnicity": {
         "primary_ask_en": (
-            "What is your ethnicity — Hispanic or Latino, Not Hispanic or Latino, or something else?"
+            "What is your ethnicity — Hispanic or Latino, Not Hispanic or Latino, "
+            "Unknown, or something else?"
         ),
         "primary_ask_vi": (
-            "Dân tộc của bạn là Gốc Tây Ban Nha/La-tinh, Không gốc Tây Ban Nha, hay gì khác?"
+            "Dân tộc của bạn là Gốc Tây Ban Nha/La-tinh, Không gốc Tây Ban Nha, "
+            "Không rõ, hay gì khác?"
         ),
-        "secondary_ask_en": "Would that be Unknown, or something else?",
-        "secondary_ask_vi": "Là Không rõ, hay mục khác?",
-        "primary_values": frozenset({"hispanic", "not_hispanic"}),
+        "secondary_ask_en": "If something else, please specify or choose the closest option.",
+        "secondary_ask_vi": "Nếu là mục khác, xin nói rõ hoặc chọn mục gần nhất.",
+        "primary_values": frozenset({"hispanic", "not_hispanic", "unknown"}),
     },
     "gender_identity": {
-        "primary_ask_en": "What is your gender identity — Male, Female, or something else?",
-        "primary_ask_vi": "Giới tính của bạn là Nam, Nữ hay gì khác?",
+        "primary_ask_en": (
+            "What is your gender identity — Male, Female, prefer not to disclose, or something else?"
+        ),
+        "primary_ask_vi": (
+            "Giới tính của bạn là Nam, Nữ, Không tiết lộ, hay gì khác?"
+        ),
         "secondary_ask_en": (
-            "Please choose: prefer not to disclose, FTM/transgender male, "
-            "MTF/transgender female, genderqueer, or other."
+            "Please choose: FTM/transgender male, MTF/transgender female, genderqueer, or other."
         ),
         "secondary_ask_vi": (
-            "Xin chọn: Không tiết lộ, Chuyển giới nam (FTM), Chuyển giới nữ (MTF), "
+            "Xin chọn: Chuyển giới nam (FTM), Chuyển giới nữ (MTF), "
             "Phi nhị phân giới, hay Khác."
         ),
-        "primary_values": frozenset({"male", "female"}),
+        "primary_values": frozenset({"male", "female", "not_disclose"}),
     },
     "sexual_orientation": {
         "primary_ask_en": (
-            "What is your sexual orientation — straight, gay or lesbian, or something else?"
+            "What is your sexual orientation — straight, gay or lesbian, "
+            "prefer not to disclose, or something else?"
         ),
         "primary_ask_vi": (
-            "Xu hướng tình dục của bạn là Dị tính, Đồng tính hay gì khác?"
+            "Xu hướng tình dục của bạn là Dị tính, Đồng tính, Không tiết lộ, hay gì khác?"
         ),
         "secondary_ask_en": (
-            "Please choose: bisexual, don't know, prefer not to disclose, or other."
+            "Please choose: bisexual, don't know, or other."
         ),
         "secondary_ask_vi": (
-            "Xin chọn: Song tính, Không biết, Không tiết lộ, hay Khác."
+            "Xin chọn: Song tính, Không biết, hay Khác."
         ),
-        "primary_values": frozenset({"straight", "gay_lesbian"}),
+        "primary_values": frozenset({"straight", "gay_lesbian", "not_disclose"}),
     },
     "marital_status": {
         "primary_ask_en": "What is your marital status — single, married, or something else?",
@@ -114,9 +120,10 @@ def build_demographic_voice_section() -> str:
     lines = [
         "=== DEMOGRAPHIC QUESTIONS (two-tier — do NOT list all options first) ===",
         "For race, ethnicity, gender_identity, sexual_orientation, marital_status, employment_status:",
-        "• STEP 1: Ask ONLY the primary question (2 main choices + or something else/khác).",
-        "• If the patient clearly matches a primary option, save immediately with update_form_field.",
-        "• STEP 2: ONLY if they say other/khác/something else/gì khác OR none of the two main fit,",
+        "• STEP 1: Ask ONLY the primary question (2 main choices + prefer not to disclose/không tiết lộ "
+        "when applicable + or something else/khác).",
+        "• If the patient clearly matches a primary option (including not_disclose), save immediately.",
+        "• STEP 2: ONLY if they say other/khác/something else/gì khác OR none of the primary options fit,",
         "  then read the secondary options from voice_instruction — never upfront.",
         "• Do NOT dump the full checkbox list on the first ask.",
         "• For race (multiselect): Asian+White can be saved together; use secondary only for other races.",

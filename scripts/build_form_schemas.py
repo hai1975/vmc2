@@ -168,16 +168,16 @@ def page1_fields() -> list[dict]:
               "Nếu chọn chủng tộc khác, xin ghi rõ. Nếu không, nói không có.",
               1, "demographics", False, validation=txt(301, 400)),
         field("ethnicity", "select", "Ethnicity", "Dân tộc",
-              "What is your ethnicity — Hispanic or Latino, Not Hispanic or Latino, or something else?",
-              "Dân tộc của bạn là Gốc Tây Ban Nha/La-tinh, Không gốc Tây Ban Nha, hay gì khác?",
+              "What is your ethnicity — Hispanic or Latino, Not Hispanic or Latino, Unknown, or something else?",
+              "Dân tộc của bạn là Gốc Tây Ban Nha/La-tinh, Không gốc Tây Ban Nha, Không rõ, hay gì khác?",
               1, "demographics", False, eth_opts, validation={
                   "checkbox_positions": {
                       "hispanic": cb(347, 108), "not_hispanic": cb(347, 288), "unknown": cb(347, 504),
                   }
               }),
         field("gender_identity", "select", "Gender Identity", "Giới tính",
-              "What is your gender identity — Male, Female, or something else?",
-              "Giới tính của bạn là Nam, Nữ hay gì khác?",
+              "What is your gender identity — Male, Female, prefer not to disclose, or something else?",
+              "Giới tính của bạn là Nam, Nữ, Không tiết lộ, hay gì khác?",
               1, "demographics", False, gender_opts, validation={
                   "checkbox_positions": {
                       "male": cb(377, 108), "female": cb(377, 180), "not_disclose": cb(377, 252),
@@ -185,8 +185,8 @@ def page1_fields() -> list[dict]:
                   }
               }),
         field("sexual_orientation", "select", "Sexual Orientation", "Xu hướng tình dục",
-              "What is your sexual orientation — straight, gay or lesbian, or something else?",
-              "Xu hướng tình dục của bạn là Dị tính, Đồng tính hay gì khác?",
+              "What is your sexual orientation — straight, gay or lesbian, prefer not to disclose, or something else?",
+              "Xu hướng tình dục của bạn là Dị tính, Đồng tính, Không tiết lộ, hay gì khác?",
               1, "demographics", False, orient_opts, validation={
                   "checkbox_positions": {
                       "gay_lesbian": cb(454, 144), "straight": cb(454, 432), "bisexual": cb(470, 36),
