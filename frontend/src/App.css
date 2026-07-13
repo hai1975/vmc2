@@ -972,7 +972,9 @@
 
 .settings-form input[type='text'],
 .settings-form input[type='email'],
-.settings-form input[type='password'] {
+.settings-form input[type='password'],
+.settings-form input[type='number'],
+.settings-form textarea {
   border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 0.45rem 0.55rem;

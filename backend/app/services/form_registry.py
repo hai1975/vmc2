@@ -4,6 +4,11 @@ from pathlib import Path
 from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
 from app.services.form_selector import ACTIVE_FORM_IDS, TRIAGE_FORM_ID
+from app.services.pharmacy_suggestions import (
+    PharmacyEntry,
+    build_pharmacy_field_hint,
+    build_pharmacy_voice_section,
+)
 
 SKIPPED_VALUE = "__skipped__"
 INTERNAL_ANSWER_KEYS = frozenset({"_signature", "_selfie"})
@@ -333,9 +338,17 @@ def get_form_progress_with_hint(
     answers: dict,
     saved_field_id: str | None = None,
     session_language: str = "en",
+    pharmacy_list: list[PharmacyEntry] | None = None,
 ) -> dict:
     progress = get_form_progress(schema, answers)
     progress["voice_instruction"] = build_voice_tool_hint(progress, saved_field_id)
+    pharmacy_hint = build_pharmacy_field_hint(
+        pharmacy_list or [],
+        progress.get("next_field_id"),
+        session_language,
+    )
+    if pharmacy_hint:
+        progress["voice_instruction"] = f"{progress['voice_instruction']} {pharmacy_hint}"
     bilingual = build_say_next_bilingual(progress)
     progress["say_next"] = build_say_next(progress, session_language)
     progress["say_next_en"] = bilingual["en"]
@@ -365,6 +378,7 @@ def build_voice_system_instruction(
     schema: FormSchema,
     language: str = "en",
     answers: dict | None = None,
+    pharmacy_list: list[PharmacyEntry] | None = None,
 ) -> str:
     lang = language if language in ("vi", "en") else "en"
     lines = [
@@ -475,6 +489,9 @@ def build_voice_system_instruction(
         f"Form: {schema.title.get(lang, schema.title.get('en', schema.id))}",
         "",
     ]
+    if pharmacy_list:
+        lines.append(build_pharmacy_voice_section(pharmacy_list))
+        lines.append("")
     progress = get_form_progress(schema, answers or {})
     if progress["filled_fields"]:
         lines.append("Already collected:")

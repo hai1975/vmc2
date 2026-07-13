@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 
 from app.database import AppSetting
 
+from app.services.pharmacy_suggestions import default_pharmacy_list_json
+
 SETTING_KEYS = (
     "email_enabled",
     "email_to",
@@ -11,6 +13,7 @@ SETTING_KEYS = (
     "smtp_password",
     "smtp_from",
     "pediatric_age_threshold",
+    "pharmacy_list",
 )
 
 DEFAULTS: dict[str, str] = {
@@ -22,6 +25,7 @@ DEFAULTS: dict[str, str] = {
     "smtp_password": "",
     "smtp_from": "",
     "pediatric_age_threshold": "18",
+    "pharmacy_list": default_pharmacy_list_json(),
 }
 
 

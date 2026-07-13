@@ -108,6 +108,7 @@ class AppSettingsResponse(BaseModel):
     smtp_password: str = ""
     smtp_from: str = ""
     pediatric_age_threshold: str = "18"
+    pharmacy_list: str = ""
 
 
 class AppSettingsUpdate(BaseModel):
@@ -119,6 +120,7 @@ class AppSettingsUpdate(BaseModel):
     smtp_password: str | None = None
     smtp_from: str | None = None
     pediatric_age_threshold: str | None = None
+    pharmacy_list: str | None = None
 
 
 class SelectFormRequest(BaseModel):

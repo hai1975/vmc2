@@ -39,10 +39,16 @@ from app.services.form_selector import (
 from app.services.gemini_live import create_live_ephemeral_token
 from app.services.n8n_email import send_pdf_via_n8n
 from app.services.pdf_generator import generate_filled_pdf
+from app.services.pharmacy_suggestions import parse_pharmacy_list
 from app.services.settings_store import get_all_settings
 from app.services.triage_voice import build_triage_system_instruction
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
+
+
+def _pharmacy_list_from_settings(db: Session):
+    cfg = get_all_settings(db)
+    return parse_pharmacy_list(cfg.get("pharmacy_list"))
 
 
 def _to_response(
@@ -329,8 +335,10 @@ def get_session_form_progress(
 
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
+    voice_lang = preferred_voice_language(row.form_id, row.language)
+    pharmacies = _pharmacy_list_from_settings(db)
     progress = get_form_progress_with_hint(
-        schema, answers, saved_field, preferred_voice_language(row.form_id, row.language)
+        schema, answers, saved_field, voice_lang, pharmacies
     )
     return FormProgressResponse(**progress)
 
@@ -353,7 +361,10 @@ def get_voice_config(session_id: str, db: Session = Depends(get_db)):
             threshold = 18
         system_instruction = build_triage_system_instruction(threshold)
     else:
-        system_instruction = build_voice_system_instruction(schema, voice_lang, answers)
+        pharmacies = _pharmacy_list_from_settings(db)
+        system_instruction = build_voice_system_instruction(
+            schema, voice_lang, answers, pharmacies
+        )
 
     return VoiceConfigResponse(
         form_id=row.form_id,
@@ -381,7 +392,10 @@ def create_live_token(session_id: str, db: Session = Depends(get_db)):
             threshold = 18
         system_instruction = build_triage_system_instruction(threshold)
     else:
-        system_instruction = build_voice_system_instruction(schema, voice_lang, answers)
+        pharmacies = _pharmacy_list_from_settings(db)
+        system_instruction = build_voice_system_instruction(
+            schema, voice_lang, answers, pharmacies
+        )
 
     return create_live_ephemeral_token(
         system_instruction,

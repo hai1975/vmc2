@@ -8,9 +8,51 @@ interface SettingsModalProps {
   onClose: () => void
 }
 
+interface PharmacyEntry {
+  name: string
+  address: string
+}
+
+const DEFAULT_PHARMACY_LINES = [
+  'Lavina pharmacy | 8251 Westminster Blvd, Ste 100. Westminster CA 92683',
+  'Professional pharmacy | 7631 Westminster Blvd, Ste D. Westminster CA 92683',
+  'Q pharmacy | 8401 Westminster Blvd. Westminster CA 92683',
+  'Walgreen pharmacy | 8052 Westminster Blvd Westminster CA 9283',
+  'Hong pharmacy | 8883 Westminster Blvd Garden Grove CA 92844',
+].join('\n')
+
+function pharmaciesToText(raw: string): string {
+  const text = raw.trim()
+  if (!text) return DEFAULT_PHARMACY_LINES
+  try {
+    const parsed = JSON.parse(text) as PharmacyEntry[]
+    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PHARMACY_LINES
+    return parsed
+      .filter((item) => item?.name && item?.address)
+      .map((item) => `${item.name} | ${item.address}`)
+      .join('\n')
+  } catch {
+    return text
+  }
+}
+
+function textToPharmacyJson(text: string): string {
+  const entries: PharmacyEntry[] = []
+  for (const line of text.split('\n')) {
+    const cleaned = line.replace(/^\s*\d+\s*[/.)-]\s*/, '').trim()
+    if (!cleaned) continue
+    const separator = cleaned.includes('|') ? '|' : cleaned.includes(':') ? ':' : null
+    if (!separator) continue
+    const [name, address] = cleaned.split(separator).map((part) => part.trim())
+    if (name && address) entries.push({ name, address })
+  }
+  return JSON.stringify(entries)
+}
+
 export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
   const [emailTo, setEmailTo] = useState('')
   const [pediatricAgeThreshold, setPediatricAgeThreshold] = useState('18')
+  const [pharmacyListText, setPharmacyListText] = useState(DEFAULT_PHARMACY_LINES)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -24,6 +66,7 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
       .then((settings) => {
         setEmailTo(settings.email_to)
         setPediatricAgeThreshold(settings.pediatric_age_threshold || '18')
+        setPharmacyListText(pharmaciesToText(settings.pharmacy_list || ''))
       })
       .catch((err: Error) => setError(err.message))
   }, [open])
@@ -37,9 +80,11 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
       const updated = await api.updateSettings({
         email_to: emailTo.trim(),
         pediatric_age_threshold: pediatricAgeThreshold.trim() || '18',
+        pharmacy_list: textToPharmacyJson(pharmacyListText),
       })
       setEmailTo(updated.email_to)
       setPediatricAgeThreshold(updated.pediatric_age_threshold || '18')
+      setPharmacyListText(pharmaciesToText(updated.pharmacy_list || ''))
       setMessage(language === 'vi' ? 'Đã lưu cài đặt.' : 'Settings saved.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed')
@@ -94,6 +139,22 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
             {t(
               'Mặc định 18. Bot hỏi ngày sinh trước để chọn form người lớn hoặc trẻ em.',
               'Default 18. The bot asks date of birth first to pick adult or pediatric form.',
+            )}
+          </p>
+
+          <label>
+            {t('Danh sách nhà thuốc gợi ý', 'Suggested pharmacy list')}
+            <textarea
+              rows={7}
+              value={pharmacyListText}
+              onChange={(e) => setPharmacyListText(e.target.value)}
+              placeholder={DEFAULT_PHARMACY_LINES}
+            />
+          </label>
+          <p className="settings-hint">
+            {t(
+              'Mỗi dòng: Tên nhà thuốc | Địa chỉ. Khi bệnh nhân không biết/chưa có nhà thuốc, bot gợi ý dòng đầu; không đồng ý thì gợi ý thêm 1–2 dòng tiếp theo.',
+              'One per line: Pharmacy name | Address. If the patient has no pharmacy, the bot suggests the first line, then 1–2 more if they decline.',
             )}
           </p>
         </div>
