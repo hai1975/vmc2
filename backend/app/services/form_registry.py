@@ -12,6 +12,7 @@ from app.services.medical_history_voice import (
     migrate_legacy_medical_conditions,
 )
 from app.services.form_variant import build_form_variant_voice_section
+from app.services.voice_language import build_southern_vietnamese_voice_section
 from app.services.field_prefill import (
     apply_field_prefill,
     apply_field_prefill_voice_hints,
@@ -30,7 +31,7 @@ INTERNAL_ANSWER_KEYS = frozenset({"_signature", "_selfie"})
 
 # Rotate short acks — empty string = skip ack, ask next question directly (most natural).
 VOICE_ACKS_EN = ("", "Thanks.", "Got it.", "Okay,", "Sure,")
-VOICE_ACKS_VI = ("", "Vâng ạ.", "Đã rõ.", "Cảm ơn.", "Ừ ạ,")
+VOICE_ACKS_VI = ("", "Dạ.", "Dạ rồi.", "Ừ ạ,", "Dạ em,")
 
 
 def pick_voice_ack(language: str, filled_count: int) -> str:
@@ -417,7 +418,7 @@ def build_voice_system_instruction(
         "  2. Wait for tool response with say_next.",
         "  3. Speak say_next naturally: optional brief ack (vary each turn) + NEXT question.",
         "  • Often skip ack — just ask the next question (most natural).",
-        "  • Vary acks: Thanks / Got it / Vâng ạ / Đã rõ / Cảm ơn — never repeat the same every turn.",
+        "  • Vary acks: Thanks / Got it / Dạ / Dạ rồi — never repeat the same every turn.",
         "  • NEVER say 'tôi sẽ ghi vào' or 'I'll record that' every time — sounds robotic.",
         "WRONG: Patient says 'Maria Antonio' → You: 'I heard Maria Antonio — is that correct?'",
         "RIGHT: update_form_field → You: 'Thanks. What is your date of birth?' OR just 'What is your date of birth?'",
@@ -451,6 +452,8 @@ def build_voice_system_instruction(
         "  • After the patient responds even once, detect their language and use ONLY that language for every",
         "    subsequent word — questions, confirmations, reminders, and the submit message.",
         "  • If the patient speaks Vietnamese, switch to Vietnamese immediately and stay in Vietnamese.",
+        "  • When speaking Vietnamese, use STANDARD SOUTHERN VIETNAMESE (giọng miền Nam / Sài Gòn) —",
+        "    see VIETNAMESE VOICE section below. Never use Northern (Hà Nội) accent or phrasing.",
         "  • If the patient speaks Spanish, Chinese, Korean, French, or any other language, switch immediately",
         "    and stay in that language until they clearly switch again.",
         "  • If the patient asks to change language (e.g. 'speak Vietnamese', 'nói tiếng Việt'), switch immediately.",
@@ -510,13 +513,15 @@ def build_voice_system_instruction(
         "  language, use ask_vi for Vietnamese, or translate ask_en naturally for other languages.",
         "- When all_fields_collected is true, tell the patient clearly in THEIR current language:",
         '  English: "Please review the summary, then tap Submit on the screen to sign and take your photo."',
-        '  Vietnamese: "Vui lòng xem lại tóm tắt, rồi bấm Submit trên màn hình để ký và chụp ảnh."',
+        '  Vietnamese: "Dạ, anh chị xem lại tóm tắt giúp em, rồi bấm Submit trên màn hình để ký và chụp hình ạ."',
         "- IMMEDIATELY when the session begins, speak FIRST without waiting for the patient.",
         "- Do NOT wait for the patient to speak, cough, or make any sound before you talk.",
         "",
         f"Form: {schema.title.get(lang, schema.title.get('en', schema.id))}",
         "",
         build_form_variant_voice_section(schema.id),
+        "",
+        build_southern_vietnamese_voice_section(),
         "",
     ]
     if pharmacy_list:

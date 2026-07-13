@@ -384,14 +384,14 @@ export class GeminiLiveSession {
                   const savedCount = typeof last?.saved_count === 'number' ? last.saved_count : 0
                   if (formSelected && registrationContext) {
                     this.session.sendRealtimeInput({
-                      text: `FORM SELECTED. Stay in this same live call — do NOT wait for reconnect. Date of birth is ALREADY saved in field "birthday" — NEVER ask date of birth again. Apply registration rules now:\n\n${registrationContext}\n\nThen continue with the next question from say_next.`,
+                      text: `FORM SELECTED. Stay in this same live call — do NOT wait for reconnect. Date of birth is ALREADY saved in field "birthday" — NEVER ask date of birth again. If Vietnamese: speak with Southern miền Nam accent (dạ, ạ, anh/chị). Apply registration rules now:\n\n${registrationContext}\n\nThen continue with the next question from say_next.`,
                     })
                   }
                   const lookupMessage =
                     typeof last?.message === 'string' ? last.message : ''
                   if (lookupMessage && functionCalls.some((c) => c.name === 'lookup_provider_facility')) {
                     this.session.sendRealtimeInput({
-                      text: `Provider lookup result — read to patient in their language, then ask to confirm before saving provider_facility_name: ${lookupMessage}`,
+                      text: `Provider lookup result — read to patient in their language (Vietnamese = giọng miền Nam), then ask to confirm before saving provider_facility_name: ${lookupMessage}`,
                     })
                   }
                   if (sayNextEn || sayNextVi) {
@@ -400,7 +400,7 @@ export class GeminiLiveSession {
                         ? `Document scan saved ${savedCount} field(s). Briefly tell patient what you read, then continue. `
                         : ''
                     this.session.sendRealtimeInput({
-                      text: `${scanHint}Speak naturally in patient's language — follow say_next (varied ack OK, or no ack). English: "${sayNextEn}". Vietnamese: "${sayNextVi}". Never say "tôi sẽ ghi vào" every time. No per-field confirmation.`,
+                      text: `${scanHint}Speak naturally in patient's language — follow say_next (varied ack OK, or no ack). English: "${sayNextEn}". Vietnamese (Southern miền Nam accent, dạ/ạ, anh/chị): "${sayNextVi}". Never say "tôi sẽ ghi vào" every time. No per-field confirmation.`,
                     })
                   }
 
