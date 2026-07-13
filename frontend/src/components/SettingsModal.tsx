@@ -11,6 +11,7 @@ interface SettingsModalProps {
 interface PharmacyEntry {
   name: string
   address: string
+  phone?: string
 }
 
 const DEFAULT_PHARMACY_LINES = [
@@ -21,6 +22,11 @@ const DEFAULT_PHARMACY_LINES = [
   'Hong pharmacy | 8883 Westminster Blvd Garden Grove CA 92844',
 ].join('\n')
 
+function formatPharmacyLine(entry: PharmacyEntry): string {
+  const phone = entry.phone?.trim()
+  return phone ? `${entry.name} | ${entry.address} | ${phone}` : `${entry.name} | ${entry.address}`
+}
+
 function pharmaciesToText(raw: string): string {
   const text = raw.trim()
   if (!text) return DEFAULT_PHARMACY_LINES
@@ -29,7 +35,7 @@ function pharmaciesToText(raw: string): string {
     if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_PHARMACY_LINES
     return parsed
       .filter((item) => item?.name && item?.address)
-      .map((item) => `${item.name} | ${item.address}`)
+      .map((item) => formatPharmacyLine(item))
       .join('\n')
   } catch {
     return text
@@ -41,10 +47,19 @@ function textToPharmacyJson(text: string): string {
   for (const line of text.split('\n')) {
     const cleaned = line.replace(/^\s*\d+\s*[/.)-]\s*/, '').trim()
     if (!cleaned) continue
-    const separator = cleaned.includes('|') ? '|' : cleaned.includes(':') ? ':' : null
-    if (!separator) continue
-    const [name, address] = cleaned.split(separator).map((part) => part.trim())
-    if (name && address) entries.push({ name, address })
+    if (cleaned.includes('|')) {
+      const parts = cleaned.split('|').map((part) => part.trim())
+      if (parts.length >= 2 && parts[0] && parts[1]) {
+        const entry: PharmacyEntry = { name: parts[0], address: parts[1] }
+        if (parts[2]) entry.phone = parts[2]
+        entries.push(entry)
+      }
+      continue
+    }
+    if (cleaned.includes(':')) {
+      const [name, address] = cleaned.split(':').map((part) => part.trim())
+      if (name && address) entries.push({ name, address })
+    }
   }
   return JSON.stringify(entries)
 }
@@ -153,8 +168,8 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
           </label>
           <p className="settings-hint">
             {t(
-              'Mỗi dòng: Tên nhà thuốc | Địa chỉ. Khi bệnh nhân không biết/chưa có nhà thuốc, bot gợi ý dòng đầu; không đồng ý thì gợi ý thêm 1–2 dòng tiếp theo.',
-              'One per line: Pharmacy name | Address. If the patient has no pharmacy, the bot suggests the first line, then 1–2 more if they decline.',
+              'Mỗi dòng: Tên | Địa chỉ | SĐT (SĐT tùy chọn). Bot tự điền SĐT khi gợi ý nhà thuốc; không có SĐT thì để trống trên PDF.',
+              'One per line: Name | Address | Phone (phone optional). Bot auto-fills phone when suggesting; leaves PDF blank if no phone.',
             )}
           </p>
         </div>

@@ -10,7 +10,7 @@ from reportlab.pdfgen import canvas
 
 from app.config import settings
 from app.models import FormSchema
-from app.services.form_registry import normalize_field_value, SKIPPED_VALUE, skipped_pdf_label
+from app.services.form_registry import BLANK_VALUE, normalize_field_value, SKIPPED_VALUE, skipped_pdf_label
 
 FONT_REGULAR = "VMC-Regular"
 FONT_BOLD = "VMC-Bold"
@@ -116,7 +116,7 @@ def _resolve_overlay_marks(field, value, language: str = "en") -> list[tuple[str
     meta = field.validation or {}
     marks: list[tuple[str, float, float, str]] = []
     value = normalize_field_value(field, value)
-    if value is None or value == "" or value == []:
+    if value is None or value == "" or value == [] or value == BLANK_VALUE:
         return marks
 
     if value == SKIPPED_VALUE:

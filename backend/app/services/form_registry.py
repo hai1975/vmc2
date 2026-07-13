@@ -11,6 +11,7 @@ from app.services.pharmacy_suggestions import (
 )
 
 SKIPPED_VALUE = "__skipped__"
+BLANK_VALUE = "__blank__"
 INTERNAL_ANSWER_KEYS = frozenset({"_signature", "_selfie"})
 
 # Rotate short acks — empty string = skip ack, ask next question directly (most natural).
@@ -105,7 +106,7 @@ def get_schema_or_raise(form_id: str) -> FormSchema:
 
 
 def _is_empty(value: object | None) -> bool:
-    if value == SKIPPED_VALUE:
+    if value in (SKIPPED_VALUE, BLANK_VALUE):
         return False
     return value is None or value == "" or value == []
 
@@ -130,6 +131,8 @@ def apply_skip_cascades(schema: FormSchema, answers: dict) -> dict:
 
 
 def normalize_field_value(field: FormField, value: object) -> object | None:
+    if str(value).strip() == BLANK_VALUE:
+        return BLANK_VALUE
     if _is_empty(value):
         return None
 
@@ -367,7 +370,7 @@ def normalize_answers(schema: FormSchema, answers: dict) -> dict:
         if not field:
             continue
         cleaned = normalize_field_value(field, value)
-        if cleaned == SKIPPED_VALUE or not _is_empty(cleaned):
+        if cleaned in (SKIPPED_VALUE, BLANK_VALUE) or not _is_empty(cleaned):
             normalized[field_id] = cleaned
     merged = apply_skip_cascades(schema, normalized)
     merged.update(internal)

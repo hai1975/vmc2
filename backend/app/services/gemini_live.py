@@ -23,6 +23,7 @@ def _build_form_tool(include_form_selection: bool = False) -> types.Tool:
                     '(e.g. "John", true, ["asian"], "medi_cal"). '
                     "For insurance use field_id=insurance with value uninsured|medi_cal|ppo|hmo. "
                     "For optional fields declined/none/không có, use value __skipped__. "
+                    "For optional fields that should stay empty on the PDF, use __blank__. "
                     "The response includes say_next, voice_instruction, next_field_id, filled_count."
                 ),
                 parameters=types.Schema(
