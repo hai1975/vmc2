@@ -5,9 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.config import settings
-from app.database import init_db
+from app.database import SessionLocal, init_db
 from app.routers import forms, mc, sessions
 from app.routers import settings as settings_router
+from app.services.settings_store import seed_missing_settings
 
 
 class StripMountPathMiddleware:
@@ -29,6 +30,11 @@ class StripMountPathMiddleware:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()
+    db = SessionLocal()
+    try:
+        seed_missing_settings(db)
+    finally:
+        db.close()
     yield
 
 

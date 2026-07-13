@@ -992,3 +992,14 @@
   color: #6b7280;
   line-height: 1.45;
 }
+
+.settings-shared-note {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.82rem;
+  color: #1e40af;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  line-height: 1.45;
+}

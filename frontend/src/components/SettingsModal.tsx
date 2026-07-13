@@ -120,6 +120,13 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
           </button>
         </header>
 
+        <p className="settings-shared-note">
+          {t(
+            'Cài đặt lưu trên server — mọi người dùng (mọi máy/trình duyệt) dùng chung sau khi bấm Lưu.',
+            'Settings are saved on the server — all users share the same values after you click Save.',
+          )}
+        </p>
+
         {error && <div className="alert error">{error}</div>}
         {message && <div className="alert success">{message}</div>}
 

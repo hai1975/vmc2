@@ -51,3 +51,14 @@ def update_settings(db: Session, payload: dict[str, str]) -> dict[str, str]:
             db.add(AppSetting(key=key, value=value))
     db.commit()
     return get_all_settings(db)
+
+
+def seed_missing_settings(db: Session) -> None:
+    """Persist code defaults for keys not yet in DB — shared by all users via API."""
+    changed = False
+    for key, value in DEFAULTS.items():
+        if db.get(AppSetting, key) is None:
+            db.add(AppSetting(key=key, value=value))
+            changed = True
+    if changed:
+        db.commit()
