@@ -11,24 +11,29 @@ class PharmacyEntry(TypedDict):
 
 DEFAULT_PHARMACIES: list[PharmacyEntry] = [
     {
-        "name": "Lavina pharmacy",
-        "address": "8251 Westminster Blvd, Ste 100. Westminster CA 92683",
+        "name": "Lavina Pharmacy",
+        "address": "8251 Westminster Blvd, Ste 100, Westminster, CA 92683",
+        "phone": "+1 714-379-1179",
     },
     {
-        "name": "Professional pharmacy",
-        "address": "7631 Westminster Blvd, Ste D. Westminster CA 92683",
+        "name": "Professional Pharmacy",
+        "address": "7631 Westminster Blvd, Ste D, Westminster, CA 92683",
+        "phone": "+1 714-893-2464",
     },
     {
-        "name": "Q pharmacy",
-        "address": "8401 Westminster Blvd. Westminster CA 92683",
+        "name": "Q Pharmacy",
+        "address": "8401 Westminster Blvd, Westminster, CA 92683",
+        "phone": "+1 714-373-3023",
     },
     {
-        "name": "Walgreen pharmacy",
-        "address": "8052 Westminster Blvd Westminster CA 9283",
+        "name": "Walgreens Pharmacy",
+        "address": "8052 Westminster Blvd, Westminster, CA 92683",
+        "phone": "+1 714-896-9589",
     },
     {
-        "name": "Hong pharmacy",
-        "address": "8883 Westminster Blvd Garden Grove CA 92844",
+        "name": "Hong Pharmacy",
+        "address": "8883 Westminster Blvd, Garden Grove, CA 92844",
+        "phone": "+1 714-890-0331",
     },
 ]
 

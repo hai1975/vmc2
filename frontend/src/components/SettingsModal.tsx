@@ -15,11 +15,11 @@ interface PharmacyEntry {
 }
 
 const DEFAULT_PHARMACY_LINES = [
-  'Lavina pharmacy | 8251 Westminster Blvd, Ste 100. Westminster CA 92683',
-  'Professional pharmacy | 7631 Westminster Blvd, Ste D. Westminster CA 92683',
-  'Q pharmacy | 8401 Westminster Blvd. Westminster CA 92683',
-  'Walgreen pharmacy | 8052 Westminster Blvd Westminster CA 9283',
-  'Hong pharmacy | 8883 Westminster Blvd Garden Grove CA 92844',
+  'Lavina Pharmacy | 8251 Westminster Blvd, Ste 100, Westminster, CA 92683 | +1 714-379-1179',
+  'Professional Pharmacy | 7631 Westminster Blvd, Ste D, Westminster, CA 92683 | +1 714-893-2464',
+  'Q Pharmacy | 8401 Westminster Blvd, Westminster, CA 92683 | +1 714-373-3023',
+  'Walgreens Pharmacy | 8052 Westminster Blvd, Westminster, CA 92683 | +1 714-896-9589',
+  'Hong Pharmacy | 8883 Westminster Blvd, Garden Grove, CA 92844 | +1 714-890-0331',
 ].join('\n')
 
 function formatPharmacyLine(entry: PharmacyEntry): string {
