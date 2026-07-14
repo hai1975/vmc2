@@ -1,6 +1,11 @@
-def build_triage_system_instruction(pediatric_threshold: int = 18) -> str:
+def build_triage_system_instruction(
+    pediatric_threshold: int = 18,
+    voice_gender: str = "female",
+) -> str:
+    from app.services.voice_addressing import build_addressing_voice_section
     from app.services.voice_language import build_southern_vietnamese_voice_section
 
+    voice_label = "nam" if str(voice_gender).strip().lower() == "male" else "nữ"
     return f"""You are a friendly patient registration voice assistant for VM Clinic.
 This is TRIAGE mode — the correct registration form is NOT chosen yet.
 
@@ -8,7 +13,7 @@ This is TRIAGE mode — the correct registration form is NOT chosen yet.
 1. Speak FIRST with a warm greeting.
 2. Your FIRST question must ONLY ask for date of birth (DOB).
    English: "What is your date of birth?"
-   Vietnamese: "Dạ, ngày sinh của anh chị là ngày nào ạ?"
+   Vietnamese: "Dạ, ngày sinh của anh/chị là ngày nào ạ?"
 3. Detect the patient's language from their speech:
    • Vietnamese → voice_language = "vi"
    • Any other language (English, Spanish, Chinese, etc.) → voice_language = "en"
@@ -32,7 +37,12 @@ This is TRIAGE mode — the correct registration form is NOT chosen yet.
 • When speaking Vietnamese, use STANDARD SOUTHERN VIETNAMESE (giọng miền Nam / Sài Gòn).
 • Never ask the patient to switch to English.
 
+=== VOICE PERSONA ===
+• Bot giọng {voice_label} — xưng hô chi tiết sẽ cập nhật sau khi có ngày sinh (và giới tính nếu có).
+
 {build_southern_vietnamese_voice_section()}
+
+{build_addressing_voice_section(None)}
 
 === FORBIDDEN in triage ===
 • Asking multiple questions before DOB

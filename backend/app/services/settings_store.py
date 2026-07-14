@@ -14,6 +14,7 @@ SETTING_KEYS = (
     "smtp_from",
     "pediatric_age_threshold",
     "pharmacy_list",
+    "voice_gender",
 )
 
 DEFAULTS: dict[str, str] = {
@@ -26,6 +27,7 @@ DEFAULTS: dict[str, str] = {
     "smtp_from": "",
     "pediatric_age_threshold": "18",
     "pharmacy_list": default_pharmacy_list_json(),
+    "voice_gender": "female",
 }
 
 

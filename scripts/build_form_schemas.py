@@ -28,6 +28,86 @@ def line(label_top: float, x: float, drop: float = 12.0, **extra) -> dict:
     return txt(label_top + drop, x, **extra)
 
 
+def _page1_personal_coords(*, pediatric: bool) -> dict[str, dict]:
+    """Fit-calibrated overlay positions for page-1 personal fields."""
+    if pediatric:
+        return {
+            "patient_name": txt(135, 175, maxLength=100),
+            "birthday": txt(155, 100),
+            "ssn": txt(155, 410),
+            "guardian_1_name": txt(176, 255),
+            "guardian_1_relationship": txt(176, 470),
+            "guardian_2_name": txt(197, 255),
+            "guardian_2_relationship": txt(197, 470),
+            "home_address": txt(218, 130),
+            "phone": txt(238, 145),
+            "email": txt(238, 330),
+        }
+    return {
+        "patient_name": txt(133, 175, maxLength=100),
+        "birthday": txt(153, 100),
+        "ssn": txt(153, 410),
+        "home_address": txt(174, 130),
+        "phone": txt(195, 145),
+        "email": txt(195, 375),
+    }
+
+
+def _page1_checkbox_layout(*, pediatric: bool) -> dict[str, dict]:
+    """Checkbox rows differ on child form (extra guardian rows push content down)."""
+    if pediatric:
+        return {
+            "insurance": {
+                "medi_cal": cb(230, 108), "ppo": cb(230, 216),
+                "hmo": cb(230, 324), "uninsured": cb(230, 432),
+            },
+            "race": {
+                "asian": cb(260, 108), "white": cb(260, 216), "african_american": cb(260, 324),
+                "native_american": cb(276, 108), "pacific_islander": cb(292, 108), "other": cb(276, 360),
+            },
+            "ethnicity": {
+                "hispanic": cb(322, 108), "not_hispanic": cb(322, 288), "unknown": cb(322, 504),
+            },
+            "gender_identity": {
+                "male": cb(352, 108), "female": cb(352, 180), "not_disclose": cb(352, 252),
+                "other": cb(352, 396), "ftm": cb(368, 36), "mtf": cb(383, 36), "genderqueer": cb(399, 36),
+            },
+            "sexual_orientation": {
+                "gay_lesbian": cb(429, 144), "straight": cb(429, 432), "bisexual": cb(445, 36),
+                "unknown": cb(445, 144), "not_disclose": cb(445, 252), "other": cb(445, 432),
+            },
+            "pharmacy_name": line(461, 180),
+            "pharmacy_phone": line(461, 430),
+            "treatment_consent": cb(501, 36),
+            "race_other_specify": txt(276, 400),
+        }
+    return {
+        "insurance": {
+            "medi_cal": cb(190, 108), "ppo": cb(190, 216),
+            "hmo": cb(190, 324), "uninsured": cb(190, 432),
+        },
+        "race": {
+            "asian": cb(206, 108), "white": cb(206, 216), "african_american": cb(206, 324),
+            "native_american": cb(222, 108), "pacific_islander": cb(238, 108), "other": cb(222, 360),
+        },
+        "ethnicity": {
+            "hispanic": cb(268, 108), "not_hispanic": cb(268, 288), "unknown": cb(268, 504),
+        },
+        "gender_identity": {
+            "male": cb(285, 108), "female": cb(285, 180), "not_disclose": cb(285, 252),
+            "other": cb(285, 396), "ftm": cb(301, 36), "mtf": cb(316, 36), "genderqueer": cb(332, 36),
+        },
+        "sexual_orientation": {
+            "gay_lesbian": cb(362, 144), "straight": cb(362, 432), "bisexual": cb(378, 36),
+            "unknown": cb(378, 144), "not_disclose": cb(378, 252), "other": cb(378, 432),
+        },
+        "pharmacy_name": line(469, 180),
+        "pharmacy_phone": line(469, 430),
+        "treatment_consent": cb(509, 36),
+        "race_other_specify": txt(222, 400),
+    }
+
+
 def field(
     fid: str,
     ftype: str,
@@ -108,110 +188,98 @@ def page1_fields(*, pediatric: bool = False) -> list[dict]:
         {"value": "not_disclose", "label": {"en": "Choose not to disclose", "vi": "Chọn không tiết lộ"}},
         {"value": "other", "label": {"en": "Other", "vi": "Khác"}},
     ]
+    p1 = _page1_personal_coords(pediatric=pediatric)
+    p1cb = _page1_checkbox_layout(pediatric=pediatric)
     fields = [
         field("patient_name", "text", "Patient Name", "Họ và tên bệnh nhân",
               "What is your full legal name?" if not pediatric else "What is the patient's full legal name?",
               "Xin cho biết họ và tên đầy đủ của bạn?" if not pediatric else "Xin cho biết họ và tên đầy đủ của bệnh nhân?",
-              1, "personal", True, validation=txt(118, 175, maxLength=100)),
+              1, "personal", True, validation=p1["patient_name"]),
         field("birthday", "date", "Birthday", "Ngày sinh",
               "What is your date of birth?" if not pediatric else "What is the patient's date of birth?",
               "Ngày sinh của bạn là ngày nào?" if not pediatric else "Ngày sinh của bệnh nhân là ngày nào?",
-              1, "personal", True, validation=txt(140, 100)),
+              1, "personal", True, validation=p1["birthday"]),
         field("ssn", "ssn", "SSN", "Số SSN",
               "What is your Social Security Number? Say none if you don't have one.",
               "Số SSN của bạn là gì? Nếu không có, nói không có.",
-              1, "personal", False, validation=txt(140, 410)),
+              1, "personal", False, validation=p1["ssn"]),
     ]
     if pediatric:
         fields.extend([
             field("guardian_1_name", "text", "Legal Guardian 1", "Người giám hộ 1",
                   "Who is the patient's first legal guardian?",
                   "Ai là người giám hộ hợp pháp thứ nhất của bệnh nhân?",
-                  1, "personal", False, validation=txt(162, 255)),
+                  1, "personal", False, validation=p1["guardian_1_name"]),
             field("guardian_1_relationship", "text", "Relationship (Guardian 1)", "Mối quan hệ (giám hộ 1)",
                   "What is the guardian's relationship to the patient?",
                   "Mối quan hệ của người giám hộ với bệnh nhân?",
-                  1, "personal", False, validation=txt(162, 470)),
+                  1, "personal", False, validation=p1["guardian_1_relationship"]),
             field("guardian_2_name", "text", "Legal Guardian 2", "Người giám hộ 2",
                   "Who is the patient's second legal guardian? Say none if not applicable.",
                   "Ai là người giám hộ hợp pháp thứ hai của bệnh nhân? Nếu không có, nói không có.",
-                  1, "personal", False, validation=txt(186, 255)),
+                  1, "personal", False, validation=p1["guardian_2_name"]),
             field("guardian_2_relationship", "text", "Relationship (Guardian 2)", "Mối quan hệ (giám hộ 2)",
                   "What is the second guardian's relationship to the patient?",
                   "Mối quan hệ của người giám hộ thứ hai với bệnh nhân?",
-                  1, "personal", False, validation=txt(186, 470)),
+                  1, "personal", False, validation=p1["guardian_2_relationship"]),
         ])
     fields.extend([
         field("home_address", "textarea", "Home Address", "Địa chỉ nhà",
               "What is your home address?", "Địa chỉ nhà của bạn là gì?",
-              1, "personal", True, validation=line(198, 130)),
+              1, "personal", True, validation=p1["home_address"]),
         field("phone", "phone", "Phone Number", "Số điện thoại",
               "What is your phone number?", "Số điện thoại liên lạc của bạn là gì?",
-              1, "personal", True, validation=line(220, 145)),
+              1, "personal", True, validation=p1["phone"]),
         field("email", "email", "Email", "Email",
               "What is your email address? Say none if you don't have one.",
               "Địa chỉ email của bạn? Nếu không có, nói không có.",
-              1, "personal", False, validation=line(220, 375)),
+              1, "personal", False, validation=p1["email"]),
         field("insurance", "select", "Insurance", "Bảo hiểm",
               "What insurance do you have? Medi-Cal, PPO, HMO, or uninsured?",
               "Bạn có loại bảo hiểm nào? Medi-Cal, PPO, HMO, hay không có bảo hiểm?",
               1, "insurance", True, ins_opts, validation={
-                  "checkbox_positions": {
-                      "medi_cal": cb(255, 108), "ppo": cb(255, 216),
-                      "hmo": cb(255, 324), "uninsured": cb(255, 432),
-                  }
+                  "checkbox_positions": p1cb["insurance"]
               }),
         field("race", "multiselect", "Race", "Chủng tộc",
               "What is your race — Asian, White, or something else?",
               "Chủng tộc của bạn là Châu Á, Da trắng hay gì khác?",
               1, "demographics", False, race_opts, validation={
-                  "checkbox_positions": {
-                      "asian": cb(285, 108), "white": cb(285, 216), "african_american": cb(285, 324),
-                      "native_american": cb(301, 108), "pacific_islander": cb(317, 108), "other": cb(301, 360),
-                  }
+                  "checkbox_positions": p1cb["race"]
               }),
         field("race_other_specify", "text", "Other race (specify)", "Chủng tộc khác (ghi rõ)",
               "If you selected other race, please specify. Say none if not applicable.",
               "Nếu chọn chủng tộc khác, xin ghi rõ. Nếu không, nói không có.",
-              1, "demographics", False, validation=txt(301, 400)),
+              1, "demographics", False, validation=p1cb["race_other_specify"]),
         field("ethnicity", "select", "Ethnicity", "Dân tộc",
               "What is your ethnicity — Hispanic or Latino, Not Hispanic or Latino, Unknown, or something else?",
               "Dân tộc của bạn là Gốc Tây Ban Nha/La-tinh, Không gốc Tây Ban Nha, Không rõ, hay gì khác?",
               1, "demographics", False, eth_opts, validation={
-                  "checkbox_positions": {
-                      "hispanic": cb(347, 108), "not_hispanic": cb(347, 288), "unknown": cb(347, 504),
-                  }
+                  "checkbox_positions": p1cb["ethnicity"]
               }),
         field("gender_identity", "select", "Gender Identity", "Giới tính",
               "What is your gender identity — Male, Female, prefer not to disclose, or something else?",
               "Giới tính của bạn là Nam, Nữ, Không tiết lộ, hay gì khác?",
               1, "demographics", False, gender_opts, validation={
-                  "checkbox_positions": {
-                      "male": cb(377, 108), "female": cb(377, 180), "not_disclose": cb(377, 252),
-                      "other": cb(377, 396), "ftm": cb(393, 36), "mtf": cb(408, 36), "genderqueer": cb(424, 36),
-                  }
+                  "checkbox_positions": p1cb["gender_identity"]
               }),
         field("sexual_orientation", "select", "Sexual Orientation", "Xu hướng tình dục",
               "What is your sexual orientation — straight, gay or lesbian, prefer not to disclose, or something else?",
               "Xu hướng tình dục của bạn là Dị tính, Đồng tính, Không tiết lộ, hay gì khác?",
               1, "demographics", False, orient_opts, validation={
-                  "checkbox_positions": {
-                      "gay_lesbian": cb(454, 144), "straight": cb(454, 432), "bisexual": cb(470, 36),
-                      "unknown": cb(470, 144), "not_disclose": cb(470, 252), "other": cb(470, 432),
-                  }
+                  "checkbox_positions": p1cb["sexual_orientation"]
               }),
         field("pharmacy_name", "text", "Preferred Pharmacy", "Nhà thuốc ưa thích",
               "What is your preferred pharmacy name? Say none if you don't have one.",
               "Nhà thuốc ưa thích tên gì? Nếu không có, nói không có.",
-              1, "pharmacy", False, validation=line(486, 180)),
+              1, "pharmacy", False, validation=p1cb["pharmacy_name"]),
         field("pharmacy_phone", "phone", "Pharmacy Phone", "SĐT nhà thuốc",
               "What is the pharmacy phone number? Say none if you don't have one.",
               "Số điện thoại nhà thuốc? Nếu không có, nói không có.",
-              1, "pharmacy", False, validation=line(486, 430)),
+              1, "pharmacy", False, validation=p1cb["pharmacy_phone"]),
         field("treatment_consent", "boolean", "Treatment Consent", "Đồng ý điều trị",
               "Treatment consent — read all 7 terms one by one before saving.",
               "Đồng ý điều trị — đọc từng điều khoản trong 7 điều khoản trước khi lưu.",
-              1, "consent", True, validation={**cb(526, 36), "render_as_check": True}),
+              1, "consent", True, validation={**p1cb["treatment_consent"], "render_as_check": True}),
     ])
     return fields
 

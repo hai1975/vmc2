@@ -55,6 +55,7 @@ export interface AppSettings {
   smtp_from: string
   pediatric_age_threshold: string
   pharmacy_list: string
+  voice_gender: string
 }
 
 export interface LiveToken {

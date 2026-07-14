@@ -13,6 +13,11 @@ from app.services.medical_history_voice import (
 )
 from app.services.form_variant import build_form_variant_voice_section
 from app.services.voice_language import build_southern_vietnamese_voice_section
+from app.services.voice_addressing import (
+    apply_addressing_voice_hints,
+    build_addressing_voice_section,
+    resolve_addressing,
+)
 from app.services.field_prefill import (
     apply_field_prefill,
     apply_field_prefill_voice_hints,
@@ -357,6 +362,7 @@ def get_form_progress_with_hint(
     saved_field_id: str | None = None,
     session_language: str = "en",
     pharmacy_list: list[PharmacyEntry] | None = None,
+    voice_gender: str | None = "female",
 ) -> dict:
     answers = apply_field_prefill(answers, schema.id)
     progress = get_form_progress(schema, answers)
@@ -377,6 +383,14 @@ def get_form_progress_with_hint(
     progress = apply_medical_history_voice_hints(progress, session_language)
     progress = apply_field_prefill_voice_hints(
         progress, schema, answers, session_language, schema.id
+    )
+    progress = apply_addressing_voice_hints(
+        progress,
+        schema,
+        answers,
+        voice_gender,
+        session_language,
+        join_ack_and_question=join_ack_and_question,
     )
     return progress
 
@@ -406,6 +420,7 @@ def build_voice_system_instruction(
     language: str = "en",
     answers: dict | None = None,
     pharmacy_list: list[PharmacyEntry] | None = None,
+    voice_gender: str | None = "female",
 ) -> str:
     lang = language if language in ("vi", "en") else "en"
     lines = [
@@ -514,6 +529,7 @@ def build_voice_system_instruction(
         "- When all_fields_collected is true, tell the patient clearly in THEIR current language:",
         '  English: "Please review the summary, then tap Submit on the screen to sign and take your photo."',
         '  Vietnamese: "Dạ, anh chị xem lại tóm tắt giúp em, rồi bấm Submit trên màn hình để ký và chụp hình ạ."',
+        "  (Use correct xưng hô from ADDRESSING section once DOB/age is known.)",
         "- IMMEDIATELY when the session begins, speak FIRST without waiting for the patient.",
         "- Do NOT wait for the patient to speak, cough, or make any sound before you talk.",
         "",
@@ -522,6 +538,10 @@ def build_voice_system_instruction(
         build_form_variant_voice_section(schema.id),
         "",
         build_southern_vietnamese_voice_section(),
+        "",
+        build_addressing_voice_section(
+            resolve_addressing(answers or {}, schema.id, voice_gender)
+        ),
         "",
     ]
     if pharmacy_list:

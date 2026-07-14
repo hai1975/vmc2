@@ -55,6 +55,12 @@ def _pharmacy_list_from_settings(db: Session):
     return parse_pharmacy_list(cfg.get("pharmacy_list"))
 
 
+def _voice_gender_from_settings(db: Session) -> str:
+    cfg = get_all_settings(db)
+    gender = str(cfg.get("voice_gender") or "female").strip().lower()
+    return "male" if gender == "male" else "female"
+
+
 def _to_response(
     row: FormSession,
     email_sent: bool | None = None,
@@ -347,8 +353,9 @@ def get_session_form_progress(
     answers = loads_answers(row.answers_json)
     voice_lang = preferred_voice_language(row.form_id, row.language)
     pharmacies = _pharmacy_list_from_settings(db)
+    voice_gender = _voice_gender_from_settings(db)
     progress = get_form_progress_with_hint(
-        schema, answers, saved_field, voice_lang, pharmacies
+        schema, answers, saved_field, voice_lang, pharmacies, voice_gender
     )
     return FormProgressResponse(**progress)
 
@@ -392,6 +399,7 @@ def get_voice_config(session_id: str, db: Session = Depends(get_db)):
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
     voice_lang = preferred_voice_language(row.form_id, row.language)
+    voice_gender = _voice_gender_from_settings(db)
 
     if row.form_id == TRIAGE_FORM_ID:
         cfg = get_all_settings(db)
@@ -399,11 +407,11 @@ def get_voice_config(session_id: str, db: Session = Depends(get_db)):
             threshold = int(cfg.get("pediatric_age_threshold") or "18")
         except ValueError:
             threshold = 18
-        system_instruction = build_triage_system_instruction(threshold)
+        system_instruction = build_triage_system_instruction(threshold, voice_gender)
     else:
         pharmacies = _pharmacy_list_from_settings(db)
         system_instruction = build_voice_system_instruction(
-            schema, voice_lang, answers, pharmacies
+            schema, voice_lang, answers, pharmacies, voice_gender
         )
 
     return VoiceConfigResponse(
@@ -423,6 +431,7 @@ def create_live_token(session_id: str, db: Session = Depends(get_db)):
     schema = get_schema_or_raise(row.form_id)
     answers = loads_answers(row.answers_json)
     voice_lang = preferred_voice_language(row.form_id, row.language)
+    voice_gender = _voice_gender_from_settings(db)
 
     if row.form_id == TRIAGE_FORM_ID:
         cfg = get_all_settings(db)
@@ -430,14 +439,15 @@ def create_live_token(session_id: str, db: Session = Depends(get_db)):
             threshold = int(cfg.get("pediatric_age_threshold") or "18")
         except ValueError:
             threshold = 18
-        system_instruction = build_triage_system_instruction(threshold)
+        system_instruction = build_triage_system_instruction(threshold, voice_gender)
     else:
         pharmacies = _pharmacy_list_from_settings(db)
         system_instruction = build_voice_system_instruction(
-            schema, voice_lang, answers, pharmacies
+            schema, voice_lang, answers, pharmacies, voice_gender
         )
 
     return create_live_ephemeral_token(
         system_instruction,
         include_form_selection=row.form_id == TRIAGE_FORM_ID,
+        voice_gender=voice_gender,
     )

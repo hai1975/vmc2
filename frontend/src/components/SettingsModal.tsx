@@ -67,6 +67,7 @@ function textToPharmacyJson(text: string): string {
 export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
   const [emailTo, setEmailTo] = useState('')
   const [pediatricAgeThreshold, setPediatricAgeThreshold] = useState('18')
+  const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female')
   const [pharmacyListText, setPharmacyListText] = useState(DEFAULT_PHARMACY_LINES)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -81,6 +82,7 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
       .then((settings) => {
         setEmailTo(settings.email_to)
         setPediatricAgeThreshold(settings.pediatric_age_threshold || '18')
+        setVoiceGender(settings.voice_gender === 'male' ? 'male' : 'female')
         setPharmacyListText(pharmaciesToText(settings.pharmacy_list || ''))
       })
       .catch((err: Error) => setError(err.message))
@@ -95,10 +97,12 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
       const updated = await api.updateSettings({
         email_to: emailTo.trim(),
         pediatric_age_threshold: pediatricAgeThreshold.trim() || '18',
+        voice_gender: voiceGender,
         pharmacy_list: textToPharmacyJson(pharmacyListText),
       })
       setEmailTo(updated.email_to)
       setPediatricAgeThreshold(updated.pediatric_age_threshold || '18')
+      setVoiceGender(updated.voice_gender === 'male' ? 'male' : 'female')
       setPharmacyListText(pharmaciesToText(updated.pharmacy_list || ''))
       setMessage(language === 'vi' ? 'Đã lưu cài đặt.' : 'Settings saved.')
     } catch (err) {
@@ -161,6 +165,20 @@ export function SettingsModal({ language, open, onClose }: SettingsModalProps) {
             {t(
               'Mặc định 18. Bot hỏi ngày sinh trước để chọn form người lớn hoặc trẻ em.',
               'Default 18. The bot asks date of birth first to pick adult or pediatric form.',
+            )}
+          </p>
+
+          <label>
+            {t('Giọng voicebot', 'Voicebot voice')}
+            <select value={voiceGender} onChange={(e) => setVoiceGender(e.target.value as 'female' | 'male')}>
+              <option value="female">{t('Nữ (Aoede)', 'Female (Aoede)')}</option>
+              <option value="male">{t('Nam (Fenrir)', 'Male (Fenrir)')}</option>
+            </select>
+          </label>
+          <p className="settings-hint">
+            {t(
+              'Ảnh hưởng giọng đọc và xưng hô tiếng Việt (em/anh/chị/cô/chú/bác theo tuổi bệnh nhân).',
+              'Affects spoken voice and Vietnamese addressing (em/anh/chi/co/chu/bac by patient age).',
             )}
           </p>
 

@@ -116,6 +116,7 @@ def _build_form_tool(include_form_selection: bool = False) -> types.Tool:
 def create_live_ephemeral_token(
     system_instruction: str,
     include_form_selection: bool = False,
+    voice_gender: str = "female",
 ) -> dict:
     if not settings.gemini_api_key:
         raise HTTPException(
@@ -126,6 +127,7 @@ def create_live_ephemeral_token(
     now = datetime.now(timezone.utc)
     model = settings.gemini_live_model
 
+    voice_name = "Fenrir" if str(voice_gender).strip().lower() == "male" else "Aoede"
     live_config = {
         "response_modalities": ["AUDIO"],
         "system_instruction": system_instruction,
@@ -133,7 +135,7 @@ def create_live_ephemeral_token(
         "media_resolution": types.MediaResolution.MEDIA_RESOLUTION_MEDIUM,
         "speech_config": {
             "voice_config": {
-                "prebuilt_voice_config": {"voice_name": "Aoede"},
+                "prebuilt_voice_config": {"voice_name": voice_name},
             }
         },
         "tools": [_build_form_tool(include_form_selection)],

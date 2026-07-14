@@ -130,7 +130,7 @@
       "section": "personal",
       "validation": {
         "x": 175,
-        "y": 674.0,
+        "y": 657.0,
         "maxLength": 100
       }
     },
@@ -150,7 +150,7 @@
       "section": "personal",
       "validation": {
         "x": 100,
-        "y": 652.0
+        "y": 637.0
       }
     },
     {
@@ -169,7 +169,7 @@
       "section": "personal",
       "validation": {
         "x": 410,
-        "y": 652.0
+        "y": 637.0
       }
     },
     {
@@ -188,7 +188,7 @@
       "section": "personal",
       "validation": {
         "x": 255,
-        "y": 630.0
+        "y": 616.0
       }
     },
     {
@@ -207,7 +207,7 @@
       "section": "personal",
       "validation": {
         "x": 470,
-        "y": 630.0
+        "y": 616.0
       }
     },
     {
@@ -226,7 +226,7 @@
       "section": "personal",
       "validation": {
         "x": 255,
-        "y": 606.0
+        "y": 595.0
       }
     },
     {
@@ -245,7 +245,7 @@
       "section": "personal",
       "validation": {
         "x": 470,
-        "y": 606.0
+        "y": 595.0
       }
     },
     {
@@ -264,7 +264,7 @@
       "section": "personal",
       "validation": {
         "x": 130,
-        "y": 582.0
+        "y": 574.0
       }
     },
     {
@@ -283,7 +283,7 @@
       "section": "personal",
       "validation": {
         "x": 145,
-        "y": 560.0
+        "y": 554.0
       }
     },
     {
@@ -301,8 +301,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 375,
-        "y": 560.0
+        "x": 330,
+        "y": 554.0
       }
     },
     {
@@ -353,19 +353,19 @@
         "checkbox_positions": {
           "medi_cal": {
             "x": 108,
-            "y": 537.0
+            "y": 562.0
           },
           "ppo": {
             "x": 216,
-            "y": 537.0
+            "y": 562.0
           },
           "hmo": {
             "x": 324,
-            "y": 537.0
+            "y": 562.0
           },
           "uninsured": {
             "x": 432,
-            "y": 537.0
+            "y": 562.0
           }
         }
       }
@@ -432,27 +432,27 @@
         "checkbox_positions": {
           "asian": {
             "x": 108,
-            "y": 507.0
+            "y": 532.0
           },
           "white": {
             "x": 216,
-            "y": 507.0
+            "y": 532.0
           },
           "african_american": {
             "x": 324,
-            "y": 507.0
+            "y": 532.0
           },
           "native_american": {
             "x": 108,
-            "y": 491.0
+            "y": 516.0
           },
           "pacific_islander": {
             "x": 108,
-            "y": 475.0
+            "y": 500.0
           },
           "other": {
             "x": 360,
-            "y": 491.0
+            "y": 516.0
           }
         }
       }
@@ -473,7 +473,7 @@
       "section": "demographics",
       "validation": {
         "x": 400,
-        "y": 491.0
+        "y": 516.0
       }
     },
     {
@@ -517,15 +517,15 @@
         "checkbox_positions": {
           "hispanic": {
             "x": 108,
-            "y": 445.0
+            "y": 470.0
           },
           "not_hispanic": {
             "x": 288,
-            "y": 445.0
+            "y": 470.0
           },
           "unknown": {
             "x": 504,
-            "y": 445.0
+            "y": 470.0
           }
         }
       }
@@ -599,31 +599,31 @@
         "checkbox_positions": {
           "male": {
             "x": 108,
-            "y": 415.0
+            "y": 440.0
           },
           "female": {
             "x": 180,
-            "y": 415.0
+            "y": 440.0
           },
           "not_disclose": {
             "x": 252,
-            "y": 415.0
+            "y": 440.0
           },
           "other": {
             "x": 396,
-            "y": 415.0
+            "y": 440.0
           },
           "ftm": {
             "x": 36,
-            "y": 399.0
+            "y": 424.0
           },
           "mtf": {
             "x": 36,
-            "y": 384.0
+            "y": 409.0
           },
           "genderqueer": {
             "x": 36,
-            "y": 368.0
+            "y": 393.0
           }
         }
       }
@@ -690,27 +690,27 @@
         "checkbox_positions": {
           "gay_lesbian": {
             "x": 144,
-            "y": 338.0
+            "y": 363.0
           },
           "straight": {
             "x": 432,
-            "y": 338.0
+            "y": 363.0
           },
           "bisexual": {
             "x": 36,
-            "y": 322.0
+            "y": 347.0
           },
           "unknown": {
             "x": 144,
-            "y": 322.0
+            "y": 347.0
           },
           "not_disclose": {
             "x": 252,
-            "y": 322.0
+            "y": 347.0
           },
           "other": {
             "x": 432,
-            "y": 322.0
+            "y": 347.0
           }
         }
       }
@@ -731,7 +731,7 @@
       "section": "pharmacy",
       "validation": {
         "x": 180,
-        "y": 294.0
+        "y": 319.0
       }
     },
     {
@@ -750,7 +750,7 @@
       "section": "pharmacy",
       "validation": {
         "x": 430,
-        "y": 294.0
+        "y": 319.0
       }
     },
     {
@@ -769,7 +769,7 @@
       "section": "consent",
       "validation": {
         "x": 36,
-        "y": 266.0,
+        "y": 291.0,
         "render_as_check": true
       }
     },
