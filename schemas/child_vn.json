@@ -129,8 +129,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 175,
-        "y": 657.0,
+        "x": 200,
+        "y": 671.0,
         "maxLength": 100
       }
     },
@@ -149,8 +149,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 100,
-        "y": 637.0
+        "x": 120,
+        "y": 649.0
       }
     },
     {
@@ -168,8 +168,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 410,
-        "y": 637.0
+        "x": 430,
+        "y": 649.0
       }
     },
     {
@@ -188,7 +188,7 @@
       "section": "personal",
       "validation": {
         "x": 255,
-        "y": 616.0
+        "y": 627.0
       }
     },
     {
@@ -207,7 +207,7 @@
       "section": "personal",
       "validation": {
         "x": 470,
-        "y": 616.0
+        "y": 627.0
       }
     },
     {
@@ -226,7 +226,7 @@
       "section": "personal",
       "validation": {
         "x": 255,
-        "y": 595.0
+        "y": 603.0
       }
     },
     {
@@ -245,7 +245,7 @@
       "section": "personal",
       "validation": {
         "x": 470,
-        "y": 595.0
+        "y": 603.0
       }
     },
     {
@@ -263,8 +263,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 130,
-        "y": 574.0
+        "x": 120,
+        "y": 580.0
       }
     },
     {
@@ -282,8 +282,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 145,
-        "y": 554.0
+        "x": 160,
+        "y": 558.0
       }
     },
     {
@@ -301,8 +301,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 330,
-        "y": 554.0
+        "x": 340,
+        "y": 558.0
       }
     },
     {
@@ -788,8 +788,8 @@
       "page": 2,
       "section": "medical_history",
       "validation": {
-        "x": 80,
-        "y": 671.0,
+        "x": 125,
+        "y": 661.0,
         "maxLength": 80
       }
     },
@@ -808,8 +808,8 @@
       "page": 2,
       "section": "medical_history",
       "validation": {
-        "x": 500,
-        "y": 671.0
+        "x": 480,
+        "y": 661.0
       }
     },
     {
@@ -2335,13 +2335,9 @@
         "vi": "Đồng ý liên lạc điện tử — đọc từng điều khoản trong 2 điều khoản trước khi lưu."
       },
       "required": true,
-      "page": 3,
+      "page": 4,
       "section": "consent",
-      "validation": {
-        "x": 36,
-        "y": 124.0,
-        "render_as_check": true
-      }
+      "validation": {}
     },
     {
       "id": "consent_signer_name",
@@ -2355,11 +2351,11 @@
         "vi": "Tự điền — họ tên bệnh nhân hoặc người giám hộ trên dòng chữ ký."
       },
       "required": false,
-      "page": 3,
+      "page": 4,
       "section": "consent",
       "validation": {
-        "x": 80,
-        "y": 144.0,
+        "x": 295,
+        "y": 95.0,
         "maxLength": 100
       }
     },

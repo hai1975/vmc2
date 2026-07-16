@@ -130,7 +130,7 @@
       "section": "personal",
       "validation": {
         "x": 175,
-        "y": 659.0,
+        "y": 670.5,
         "maxLength": 100
       }
     },
@@ -149,8 +149,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 100,
-        "y": 639.0
+        "x": 110,
+        "y": 646.5
       }
     },
     {
@@ -168,8 +168,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 410,
-        "y": 639.0
+        "x": 360,
+        "y": 646.5
       }
     },
     {
@@ -188,7 +188,7 @@
       "section": "personal",
       "validation": {
         "x": 130,
-        "y": 618.0
+        "y": 624.5
       }
     },
     {
@@ -207,7 +207,7 @@
       "section": "personal",
       "validation": {
         "x": 145,
-        "y": 597.0
+        "y": 602.5
       }
     },
     {
@@ -225,8 +225,8 @@
       "page": 1,
       "section": "personal",
       "validation": {
-        "x": 375,
-        "y": 597.0
+        "x": 440,
+        "y": 602.5
       }
     },
     {
@@ -712,8 +712,8 @@
       "page": 2,
       "section": "medical_history",
       "validation": {
-        "x": 80,
-        "y": 671.0,
+        "x": 125,
+        "y": 670.0,
         "maxLength": 80
       }
     },
@@ -732,8 +732,8 @@
       "page": 2,
       "section": "medical_history",
       "validation": {
-        "x": 500,
-        "y": 671.0
+        "x": 480,
+        "y": 670.0
       }
     },
     {
@@ -2080,11 +2080,7 @@
       "required": true,
       "page": 3,
       "section": "consent",
-      "validation": {
-        "x": 36,
-        "y": 124.0,
-        "render_as_check": true
-      }
+      "validation": {}
     },
     {
       "id": "consent_signer_name",
@@ -2101,8 +2097,8 @@
       "page": 3,
       "section": "consent",
       "validation": {
-        "x": 80,
-        "y": 144.0,
+        "x": 220,
+        "y": 85.0,
         "maxLength": 100
       }
     },
