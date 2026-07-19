@@ -223,9 +223,17 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
                 fieldId,
                 sectionPageForApi(),
               )
-              // Do NOT auto-jump pages here — that overrides patient requests (e.g. "go to page 4")
-              // and often sends them back to the first incomplete section (page 1).
-              // The bot must call navigate_form_page explicitly.
+              // When this section is done, move UI to the next incomplete section (forward only).
+              // Patient-requested jumps still go through navigate_form_page.
+              if (
+                progress.section_complete &&
+                progress.suggest_next_page &&
+                onNavigatePage &&
+                !progress.all_fields_collected &&
+                progress.suggest_next_page > pageRef.current
+              ) {
+                onNavigatePage('goto', progress.suggest_next_page)
+              }
               return { ...progress }
             },
             onBatchFieldUpdate: async (fields) => {
@@ -245,7 +253,14 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
               if (!onNavigatePage) {
                 return { ok: false, page: pageRef.current, total_pages: 0 }
               }
-              return onNavigatePage(action, page)
+              const result = onNavigatePage(action, page)
+              // Keep pageRef in sync so reconnect effect sees the new section.
+              // Do NOT set pageRef before App state updates in a way that skips reconnect:
+              // only bump when React currentPage will change — effect compares after render.
+              if (result.ok && result.page !== pageRef.current) {
+                // Leave pageRef as-is until useEffect([currentPage]) runs reconnect.
+              }
+              return result
             },
           onFormSelect: async (dob, voiceLanguage) => {
             const result = await api.selectForm(sessionId, dob, voiceLanguage)
@@ -255,6 +270,14 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
             setBotMessage('')
             await onFormSelected?.(result)
             pageRef.current = 1
+            // Reconnect into the registration form session (page 1 tools + instructions).
+            // Staying on the triage Live token leaves navigate_form_page broken (0 pages).
+            window.setTimeout(() => {
+              if (!voiceActiveRef.current) return
+              if (reconnectingRef.current) return
+              reconnectingRef.current = true
+              void startVoice({ quiet: true })
+            }, 400)
             const [progress, nextVoiceConfig] = await Promise.all([
               api.getFormProgress(sessionId, 'birthday', 1),
               api.getVoiceConfig(sessionId, 1),
@@ -262,6 +285,7 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
             return {
               ...progress,
               registration_context: nextVoiceConfig.system_instruction,
+              reconnect_soon: true,
             }
           },
           },

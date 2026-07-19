@@ -65,6 +65,8 @@ function App() {
 
   const activeFormId = session?.form_id
   const formReady = Boolean(activeFormId && activeFormId !== TRIAGE_FORM_ID)
+  const activeFormIdRef = useRef(activeFormId)
+  activeFormIdRef.current = activeFormId
 
   const activeFieldId = useMemo(() => {
     if (!schema || !formReady) return null
@@ -257,9 +259,13 @@ function App() {
 
   const handleNavigatePage = useCallback(
     (action: 'next' | 'back' | 'goto', page?: number) => {
-      const total = pageCountForForm(activeFormId)
+      // Use ref — voice session may have started in triage and keeps a stale callback.
+      const formId = activeFormIdRef.current
+      const total = pageCountForForm(formId)
       const current = formPageRef.current
-      if (total <= 0) return { ok: false, page: current, total_pages: total }
+      if (total <= 0) {
+        return { ok: false, page: current, total_pages: total }
+      }
 
       let next = current
       if (action === 'next') next = Math.min(current + 1, total)
@@ -273,7 +279,7 @@ function App() {
       setFormPageSafe(next)
       return { ok: true, page: next, total_pages: total }
     },
-    [activeFormId, setFormPageSafe],
+    [setFormPageSafe],
   )
 
   const handleVoiceStatusChange = useCallback((status: GeminiLiveStatus) => {

@@ -66,12 +66,13 @@ def _build_form_tool(include_form_selection: bool = False) -> types.Tool:
             types.FunctionDeclaration(
                 name="navigate_form_page",
                 description=(
-                    "Switch form SECTION/page. Answers for the current section are already saved. "
-                    "CRITICAL: When the patient names a page (e.g. 'page 4', 'trang 4', 'phần ủy quyền'), "
-                    "ALWAYS use action=goto with page set to that INTEGER (4). "
-                    "Never send them to page 1 if they asked for another page. "
-                    "Also call when section_complete and they agree to the suggested next page. "
-                    "action=next|back|goto. For goto, page is required (1-based integer)."
+                    "Switch the on-screen form to another SECTION/page immediately. "
+                    "ALWAYS call this when the patient asks for a page number or section "
+                    "(e.g. page 2, trang 4, phần ủy quyền, medical history). "
+                    "Do NOT refuse. Do NOT say you must finish the current page first. "
+                    "Unanswered fields remain saved; patient can return later. "
+                    "Also call when moving to the next section after section_complete. "
+                    "action=next|back|goto. For goto, page is required (1-based INTEGER, e.g. 4)."
                 ),
                 parameters=types.Schema(
                     type=types.Type.OBJECT,

@@ -478,15 +478,13 @@ export class GeminiLiveSession {
                   if (formSelected && registrationContext) {
                     this.session.sendRealtimeInput({
                       text:
-                        'FORM SELECTED. Stay in this same live call.\n' +
-                        'CRITICAL: Do NOT greet again. Do NOT say "VM Clinic is listening" or ' +
-                        '"I can help you register" again — that greeting already happened.\n' +
-                        'Date of birth is ALREADY saved in field "birthday" — NEVER ask DOB again.\n' +
-                        'If Vietnamese: Southern miền Nam accent (dạ, ạ, anh/chị).\n' +
-                        'Speak ONLY the next field question from say_next (usually patient name). ' +
-                        'No welcome, no re-intro.\n\n' +
+                        'FORM SELECTED. Date of birth is ALREADY saved — NEVER ask DOB again.\n' +
+                        'CRITICAL: Do NOT greet again.\n' +
+                        'A short reconnect will start for section 1 of the registration form.\n' +
+                        'After reconnect, ask ONLY the next field from say_next (usually patient name).\n' +
+                        'When the patient asks for another page (2/3/4), ALWAYS call navigate_form_page — never refuse.\n\n' +
                         `Registration rules for this section:\n\n${registrationContext}\n\n` +
-                        'NOW speak say_next only.',
+                        'If still in this call before reconnect: speak say_next only.',
                     })
                   }
                   const lookupMessage =
