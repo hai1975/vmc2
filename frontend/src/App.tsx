@@ -1,17 +1,27 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api, BOOT_TIMEOUT_MS } from './api/client'
-import { AnswersPanel } from './components/AnswersPanel'
-import { ContentTabs } from './components/ContentTabs'
 import { DocumentScanModal } from './components/DocumentScanModal'
+import { FormPanel } from './components/FormPanel'
 import { Header } from './components/Header'
 import { LoadingSplash } from './components/LoadingSplash'
-import { PdfPreview } from './components/PdfPreview'
 import { SettingsModal } from './components/SettingsModal'
 import { SubmitModal } from './components/SubmitModal'
 import type { VoiceAssistantHandle } from './components/VoiceAssistant'
+import { isAnswerEmpty, pageCountForForm } from './lib/form-layout'
 import type { GeminiLiveStatus } from './lib/gemini-live-session'
 import type { FormSchema, FormSession, FormSummary, Language, SelectFormResult } from './types'
 import './App.css'
+
+const VOICE_SKIP_FIELDS = new Set([
+  'provider_facility_name',
+  'provider_phone',
+  'provider_fax',
+])
+
+function isFieldOpen(value: unknown): boolean {
+  if (value === '__blank__' || value === '__skipped__') return false
+  return isAnswerEmpty(value)
+}
 
 const VoiceAssistant = lazy(() =>
   import('./components/VoiceAssistant').then((module) => ({ default: module.VoiceAssistant })),
@@ -49,10 +59,31 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [emailing, setEmailing] = useState(false)
+  const [formPage, setFormPage] = useState(1)
+  const formPageRef = useRef(1)
   const voiceRef = useRef<VoiceAssistantHandle>(null)
 
   const activeFormId = session?.form_id
   const formReady = Boolean(activeFormId && activeFormId !== TRIAGE_FORM_ID)
+
+  const activeFieldId = useMemo(() => {
+    if (!schema || !formReady) return null
+    for (const field of schema.fields) {
+      if (VOICE_SKIP_FIELDS.has(field.id)) continue
+      if (field.page !== formPage) continue
+      if (isFieldOpen(session?.answers?.[field.id])) return field.id
+    }
+    return null
+  }, [schema, formReady, session?.answers, formPage])
+
+  const setFormPageSafe = useCallback((page: number) => {
+    formPageRef.current = page
+    setFormPage(page)
+  }, [])
+
+  useEffect(() => {
+    setFormPageSafe(1)
+  }, [activeFormId, setFormPageSafe])
 
   useEffect(() => {
     let cancelled = false
@@ -134,9 +165,28 @@ function App() {
 
   const handleSave = async () => {
     if (!session) return
-    const saved = await api.saveSession(session.id)
-    setSession(saved)
-    setMessage(language === 'vi' ? 'Đã lưu bản nháp.' : 'Draft saved.')
+    if (!formReady) {
+      setError(
+        language === 'vi'
+          ? 'Chọn form (cho ngày sinh) trước khi lưu PDF.'
+          : 'Select a form (give date of birth) before saving PDF.',
+      )
+      return
+    }
+    setError('')
+    try {
+      const saved = await api.saveSession(session.id)
+      setSession(saved)
+      const filename = `${saved.form_id}_${saved.id.slice(0, 8)}.pdf`
+      await api.downloadPdf(saved.id, filename)
+      setMessage(
+        language === 'vi'
+          ? 'Đã lưu và tải PDF (mẫu VM Clinic + dữ liệu đã điền).'
+          : 'Saved and downloaded PDF (VM Clinic template + filled data).',
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : language === 'vi' ? 'Lưu PDF thất bại' : 'Save PDF failed')
+    }
   }
 
   const handleSubmitClick = () => {
@@ -204,6 +254,27 @@ function App() {
       setEmailing(false)
     }
   }
+
+  const handleNavigatePage = useCallback(
+    (action: 'next' | 'back' | 'goto', page?: number) => {
+      const total = pageCountForForm(activeFormId)
+      const current = formPageRef.current
+      if (total <= 0) return { ok: false, page: current, total_pages: total }
+
+      let next = current
+      if (action === 'next') next = Math.min(current + 1, total)
+      else if (action === 'back') next = Math.max(current - 1, 1)
+      else if (action === 'goto') {
+        if (typeof page !== 'number' || !Number.isFinite(page)) {
+          return { ok: false, page: current, total_pages: total }
+        }
+        next = Math.min(Math.max(Math.round(page), 1), total)
+      }
+      setFormPageSafe(next)
+      return { ok: true, page: next, total_pages: total }
+    },
+    [activeFormId, setFormPageSafe],
+  )
 
   const handleVoiceStatusChange = useCallback((status: GeminiLiveStatus) => {
     const active =
@@ -356,33 +427,24 @@ function App() {
             sessionId={session.id}
             formId={session.form_id}
             language={language}
+            currentPage={formPage}
             onAnswersUpdate={(answers) => setSession((s) => (s ? { ...s, answers } : s))}
             onFormSelected={(result) => void handleFormSelected(result)}
+            onNavigatePage={handleNavigatePage}
             onStatusChange={handleVoiceStatusChange}
           />
         </Suspense>
       )}
 
-      <ContentTabs
+      <FormPanel
+        schema={schema}
+        formId={activeFormId}
+        answers={session?.answers ?? {}}
         language={language}
-        pdfPanel={
-          <PdfPreview
-            embedded
-            sessionId={session?.id ?? null}
-            formId={activeFormId}
-            answers={session?.answers ?? {}}
-            language={language}
-          />
-        }
-        answersPanel={
-          <AnswersPanel
-            embedded
-            schema={schema}
-            answers={session?.answers ?? {}}
-            language={language}
-            onFieldChange={handleFieldChange}
-          />
-        }
+        activeFieldId={activeFieldId}
+        currentPage={formPage}
+        onPageChange={setFormPageSafe}
+        onFieldChange={handleFieldChange}
       />
       <SubmitModal
         language={language}

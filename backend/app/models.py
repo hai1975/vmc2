@@ -66,19 +66,6 @@ class SessionResponse(BaseModel):
     email_error: str | None = None
 
 
-class VoiceConfigResponse(BaseModel):
-    form_id: str
-    system_instruction: str
-    fields: list[FormField]
-    gemini_model: str = "gemini-2.5-flash-native-audio-preview-12-2025"
-
-
-class LiveTokenResponse(BaseModel):
-    token: str
-    model: str
-    expires_at: str
-
-
 class FormProgressResponse(BaseModel):
     filled_fields: dict[str, object]
     missing_required: list[str]
@@ -93,10 +80,32 @@ class FormProgressResponse(BaseModel):
     next_field_ask_en: str | None = None
     next_field_ask_vi: str | None = None
     next_field_allowed_values: list[str] | None = None
+    next_field_page: int | None = None
+    total_pages: int | None = None
+    section_page: int | None = None
+    section_complete: bool = False
+    suggest_next_page: int | None = None
+    section_title_en: str | None = None
+    section_title_vi: str | None = None
+    global_remaining_count: int | None = None
     voice_instruction: str | None = None
     say_next: str | None = None
     say_next_en: str | None = None
     say_next_vi: str | None = None
+
+
+class VoiceConfigResponse(BaseModel):
+    form_id: str
+    system_instruction: str
+    fields: list[FormField]
+    gemini_model: str = "gemini-2.5-flash-native-audio-preview-12-2025"
+    section_page: int | None = None
+
+
+class LiveTokenResponse(BaseModel):
+    token: str
+    model: str
+    expires_at: str
 
 
 class AppSettingsResponse(BaseModel):

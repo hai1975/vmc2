@@ -43,8 +43,13 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = DEFAULT_
     },
     timeoutMs,
   )
+  const raw = await res.text()
   if (!res.ok) {
-    const raw = await res.text()
+    if (!raw.trim()) {
+      throw new Error(
+        `API unavailable (${res.status}). Is the backend running on port 8000? Click Retry.`,
+      )
+    }
     try {
       const parsed = JSON.parse(raw) as { detail?: string | { errors?: string[] } }
       if (typeof parsed.detail === 'string') {
@@ -54,13 +59,20 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = DEFAULT_
         throw new Error(parsed.detail.errors.join(', '))
       }
     } catch (error) {
-      if (error instanceof Error && error.message !== raw) {
+      if (error instanceof Error && error.message !== raw && !error.message.includes('JSON')) {
         throw error
       }
     }
     throw new Error(raw || `Request failed: ${res.status}`)
   }
-  return res.json() as Promise<T>
+  if (!raw.trim()) {
+    throw new Error('API returned an empty response. Click Retry.')
+  }
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    throw new Error('API returned invalid JSON. Is the backend running? Click Retry.')
+  }
 }
 
 /** Ping API early to reduce Render cold-start wait before real requests. */
@@ -83,8 +95,11 @@ export const api = {
       timeoutMs,
     ),
   getSession: (sessionId: string) => request<FormSession>(`/api/sessions/${sessionId}`),
-  getFormProgress: (sessionId: string, savedFieldId?: string) => {
-    const query = savedFieldId ? `?saved_field=${encodeURIComponent(savedFieldId)}` : ''
+  getFormProgress: (sessionId: string, savedFieldId?: string, page?: number) => {
+    const params = new URLSearchParams()
+    if (savedFieldId) params.set('saved_field', savedFieldId)
+    if (page != null) params.set('page', String(page))
+    const query = params.toString() ? `?${params}` : ''
     return request<FormProgress>(`/api/sessions/${sessionId}/form-progress${query}`)
   },
   updateAnswers: (sessionId: string, answers: Record<string, unknown>) =>
@@ -96,10 +111,15 @@ export const api = {
     request<FormSession>(`/api/sessions/${sessionId}/save`, { method: 'POST' }),
   submitSession: (sessionId: string) =>
     request<FormSession>(`/api/sessions/${sessionId}/submit`, { method: 'POST' }),
-  getVoiceConfig: (sessionId: string) =>
-    request<VoiceConfig>(`/api/sessions/${sessionId}/voice-config`),
-  createLiveToken: (sessionId: string) =>
-    request<LiveToken>(`/api/sessions/${sessionId}/live-token`, { method: 'POST' }),
+  getVoiceConfig: (sessionId: string, page?: number) =>
+    request<VoiceConfig>(
+      `/api/sessions/${sessionId}/voice-config${page != null ? `?page=${page}` : ''}`,
+    ),
+  createLiveToken: (sessionId: string, page?: number) =>
+    request<LiveToken>(
+      `/api/sessions/${sessionId}/live-token${page != null ? `?page=${page}` : ''}`,
+      { method: 'POST' },
+    ),
   scanDocument: (sessionId: string, image: string, docType = 'auto', merge = true) =>
     request<DocumentScanResult>(
       `/api/sessions/${sessionId}/scan-document`,

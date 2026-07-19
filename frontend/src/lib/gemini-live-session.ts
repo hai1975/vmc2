@@ -13,6 +13,10 @@ export interface GeminiLiveCallbacks {
   onBatchFieldUpdate?: (fields: Record<string, unknown>) => Promise<Record<string, unknown>>
   onFormSelect?: (dob: string, voiceLanguage: string) => Promise<FormSelectProgress>
   onProviderLookup?: (query: string) => Promise<ProviderLookupResult>
+  onNavigatePage?: (
+    action: 'next' | 'back' | 'goto',
+    page?: number,
+  ) => Promise<{ ok: boolean; page: number; total_pages: number }> | { ok: boolean; page: number; total_pages: number }
 }
 
 export interface GeminiLiveConnectOptions {
@@ -31,6 +35,25 @@ function parseToolValue(raw: string): unknown {
   }
 }
 
+/** Gemini Live often returns tool args as strings — coerce page numbers safely. */
+function parsePageNumber(raw: unknown): number | undefined {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return Math.round(raw)
+  if (typeof raw === 'string' && raw.trim()) {
+    const n = Number.parseFloat(raw.trim().replace(/^goto[_\s-]*/i, ''))
+    if (Number.isFinite(n)) return Math.round(n)
+  }
+  return undefined
+}
+
+function parseNavigateAction(raw: unknown): 'next' | 'back' | 'goto' {
+  const text = String(raw ?? 'next').toLowerCase().trim()
+  if (text === 'back' || text === 'prev' || text === 'previous') return 'back'
+  if (text === 'goto' || text === 'go' || text === 'jump' || text.startsWith('goto')) return 'goto'
+  // Model sometimes passes the page number as the "action"
+  if (/^\d+$/.test(text)) return 'goto'
+  return 'next'
+}
+
 function extractInlineAudio(message: LiveServerMessage): string | null {
   const parts = message.serverContent?.modelTurn?.parts
   if (!parts) return null
@@ -43,6 +66,18 @@ function extractInlineAudio(message: LiveServerMessage): string | null {
     }
   }
   return null
+}
+
+function isModelRefusalText(text: string): boolean {
+  const t = text.toLowerCase()
+  return (
+    t.includes("just a language model") ||
+    t.includes("can't help with that") ||
+    t.includes("cannot help with that") ||
+    t.includes("i'm unable to help") ||
+    t.includes("i am unable to help") ||
+    t.includes("as an ai language model")
+  )
 }
 
 export class GeminiLiveSession {
@@ -131,8 +166,16 @@ export class GeminiLiveSession {
     this.openingPending = true
 
     const openingText = this.triageMode
-      ? 'Session connected. TRIAGE MODE. Greet warmly. Your FIRST question must ONLY be date of birth. Detect language (vi=Vietnamese, en=anything else). When you have DOB, call select_registration_form. START SPEAKING NOW.'
-      : 'Session connected. Patient may enable webcam to show ID/passport/license/insurance; use scan_document_fields when they ask you to read it. Save with update_form_field first. After each answer: vary brief ack or skip ack, then next question. Never repeat the same ack every turn. Never say is that correct per field. START SPEAKING NOW in English: greet, mention they can enable the camera to show documents, then ask first field.'
+      ? (
+          'Session ready. You are the VM Clinic registration assistant — this task is allowed. ' +
+          'Speak EXACTLY: "VM Clinic is listening. I can help you register." ' +
+          'Then ask ONLY for date of birth. Never say you are just a language model or cannot help. START NOW.'
+        )
+      : (
+          'Session ready for this form section. Continue registration — do NOT greet again. ' +
+          'Do NOT say "VM Clinic is listening" or "I can help you register". ' +
+          'Ask the first unanswered field for THIS section only. Never refuse. START NOW.'
+        )
 
     session.sendRealtimeInput({ text: openingText })
 
@@ -228,6 +271,11 @@ export class GeminiLiveSession {
               message.serverContent?.outputTranscription?.text ?? message.text ?? undefined
             if (outputText) {
               this.heardBotOutput = true
+              if (isModelRefusalText(outputText)) {
+                callbacks.onError(
+                  'MODEL_REFUSAL: Bot refused the registration task. Please tap Speak again.',
+                )
+              }
               callbacks.onBotText(outputText)
               callbacks.onStatus('speaking')
               void this.tryFinishOpening()
@@ -338,6 +386,51 @@ export class GeminiLiveSession {
                     continue
                   }
 
+                  if (call.name === 'navigate_form_page' && callbacks.onNavigatePage) {
+                    const args = (call.args ?? {}) as Record<string, unknown>
+                    let action = parseNavigateAction(args.action)
+                    let page = parsePageNumber(args.page ?? args.page_number ?? args.target_page)
+                    // action itself may be "4" or "goto_4"
+                    if (page == null) {
+                      const fromAction = parsePageNumber(args.action)
+                      if (fromAction != null) {
+                        page = fromAction
+                        action = 'goto'
+                      }
+                    }
+                    if (action === 'goto' && page == null) {
+                      responses.push({
+                        id: call.id,
+                        name: call.name,
+                        response: {
+                          ok: false,
+                          error:
+                            'goto requires page (1-based integer). Example: navigate_form_page(action=goto, page=4)',
+                        },
+                      })
+                      continue
+                    }
+                    const result = await callbacks.onNavigatePage(action, page)
+                    responses.push({
+                      id: call.id,
+                      name: call.name,
+                      response: {
+                        ok: result.ok,
+                        requested_page: page ?? null,
+                        page: result.page,
+                        total_pages: result.total_pages,
+                        reconnect: true,
+                        voice_instruction:
+                          `SECTION SWITCHED to page ${result.page} of ${result.total_pages}. ` +
+                          'A new short live session will start for THIS page only. ' +
+                          `Do NOT navigate to another page unless the patient asks. Stay on page ${result.page}.`,
+                        say_next:
+                          `Now on section ${result.page}. After reconnect, continue fields on page ${result.page} only — no greeting, no jumping to page 1.`,
+                      },
+                    })
+                    continue
+                  }
+
                   if (call.name === 'scan_document_fields' && callbacks.onBatchFieldUpdate) {
                     const args = (call.args ?? {}) as { fields_json?: string }
                     let fields: Record<string, unknown> = {}
@@ -384,7 +477,16 @@ export class GeminiLiveSession {
                   const savedCount = typeof last?.saved_count === 'number' ? last.saved_count : 0
                   if (formSelected && registrationContext) {
                     this.session.sendRealtimeInput({
-                      text: `FORM SELECTED. Stay in this same live call — do NOT wait for reconnect. Date of birth is ALREADY saved in field "birthday" — NEVER ask date of birth again. If Vietnamese: speak with Southern miền Nam accent (dạ, ạ, anh/chị). Apply registration rules now:\n\n${registrationContext}\n\nThen continue with the next question from say_next.`,
+                      text:
+                        'FORM SELECTED. Stay in this same live call.\n' +
+                        'CRITICAL: Do NOT greet again. Do NOT say "VM Clinic is listening" or ' +
+                        '"I can help you register" again — that greeting already happened.\n' +
+                        'Date of birth is ALREADY saved in field "birthday" — NEVER ask DOB again.\n' +
+                        'If Vietnamese: Southern miền Nam accent (dạ, ạ, anh/chị).\n' +
+                        'Speak ONLY the next field question from say_next (usually patient name). ' +
+                        'No welcome, no re-intro.\n\n' +
+                        `Registration rules for this section:\n\n${registrationContext}\n\n` +
+                        'NOW speak say_next only.',
                     })
                   }
                   const lookupMessage =
@@ -413,7 +515,8 @@ export class GeminiLiveSession {
                     call.name !== 'update_form_field' &&
                     call.name !== 'scan_document_fields' &&
                     call.name !== 'select_registration_form' &&
-                    call.name !== 'lookup_provider_facility'
+                    call.name !== 'lookup_provider_facility' &&
+                    call.name !== 'navigate_form_page'
                   ) {
                     return []
                   }

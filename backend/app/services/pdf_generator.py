@@ -20,10 +20,15 @@ BACKEND_ROOT = Path(__file__).resolve().parents[2]
 FONT_DIR = BACKEND_ROOT / "assets" / "fonts"
 _FONTS_READY = False
 
-# Page 1 top-right selfie; page 5 patient signature (PDF coords, origin bottom-left)
-# Signature underline on form_en.pdf page 5: x≈258–432, line at fitz y≈665 → reportlab y≈126
+# Page 1 top-right selfie; signature underline near bottom (PDF coords, origin bottom-left)
 SELFIE_BOX = {"page": 1, "x": 468, "y": 668, "w": 118, "h": 108}
-SIGNATURE_BOX = {"page": 5, "x": 258, "y": 126, "w": 172, "h": 38}
+SIGNATURE_BOX_BASE = {"x": 258, "y": 126, "w": 172, "h": 38}
+
+
+def _signature_box(form_id: str) -> dict:
+    """Child PDFs have 5 pages; adult PDFs have 4."""
+    page = 5 if form_id.startswith("child") else 4
+    return {"page": page, **SIGNATURE_BOX_BASE}
 
 
 def _font_candidates(name: str) -> list[Path]:
@@ -155,7 +160,7 @@ def _resolve_overlay_marks(field, value, language: str = "en") -> list[tuple[str
     return marks
 
 
-def _attachment_overlays(answers: dict) -> dict[int, list[ImageOverlay]]:
+def _attachment_overlays(answers: dict, form_id: str = "") -> dict[int, list[ImageOverlay]]:
     overlays: dict[int, list[ImageOverlay]] = {}
 
     selfie = _decode_data_url(str(answers.get("_selfie", "")))
@@ -167,7 +172,7 @@ def _attachment_overlays(answers: dict) -> dict[int, list[ImageOverlay]]:
 
     signature = _decode_data_url(str(answers.get("_signature", "")))
     if signature:
-        box = SIGNATURE_BOX
+        box = _signature_box(form_id)
         overlays.setdefault(box["page"], []).append(
             (signature, box["x"], box["y"], box["w"], box["h"])
         )
@@ -184,7 +189,12 @@ def generate_filled_pdf(
 ) -> Path:
     source_pdf = settings.form_dir / schema.filename
     if not source_pdf.exists():
-        raise FileNotFoundError(f"PDF template not found: {schema.filename}")
+        # Tolerate Aldult_*.pdf typo on disk
+        alt = settings.form_dir / schema.filename.replace("adult_", "Aldult_")
+        if alt.exists():
+            source_pdf = alt
+        else:
+            raise FileNotFoundError(f"PDF template not found: {schema.filename}")
 
     reader = PdfReader(str(source_pdf))
     writer = PdfWriter()
@@ -197,7 +207,7 @@ def generate_filled_pdf(
         for mark in _resolve_overlay_marks(field, value, language):
             text_overlays.setdefault(field.page, []).append(mark)
 
-    image_overlays = _attachment_overlays(answers)
+    image_overlays = _attachment_overlays(answers, form_id)
     all_pages = set(text_overlays) | set(image_overlays)
 
     for page_index, page in enumerate(reader.pages):

@@ -193,34 +193,35 @@ CONSENT_BLOCKS: dict[str, ConsentBlock] = {
         "clauses": [
             {
                 "en": (
-                    "The purpose of this release is continuity of care. Exchanging information between "
-                    "providers helps ensure coordinated care; without it your healthcare may be compromised."
+                    "The purpose of this released information is continuity of care. Exchange of information "
+                    "ensures continuity of care between providers, and without such exchange my healthcare may "
+                    "be compromised. I understand specific references may be made to psychiatric conditions, "
+                    "HIV testing and results, and any related diagnosis and medical condition(s) which may be "
+                    "recorded in my health records. I hereby authorize the release of such information."
                 ),
                 "vi": (
-                    "Mục đích tiết lộ là đảm bảo liên tục trong chăm sóc. Trao đổi thông tin giữa các "
-                    "nhà cung cấp giúp phối hợp điều trị; nếu không có, chăm sóc có thể bị ảnh hưởng."
+                    "Mục đích của việc tiết lộ thông tin này là để bảo đảm sự liên tục trong chăm sóc y tế. "
+                    "Việc trao đổi thông tin giúp đảm bảo sự liên kết và phối hợp giữa các nhà cung cấp dịch vụ "
+                    "y tế, và nếu không có sự trao đổi này, việc chăm sóc sức khỏe của tôi có thể bị ảnh hưởng. "
+                    "Tôi hiểu rằng các thông tin cụ thể liên quan đến tình trạng tâm thần, xét nghiệm HIV và "
+                    "kết quả, cũng như các chẩn đoán và tình trạng y tế liên quan có thể được ghi nhận trong "
+                    "hồ sơ sức khỏe của tôi. Tôi đồng ý cho phép tiết lộ các thông tin này."
                 ),
             },
             {
                 "en": (
-                    "You understand records may include psychiatric conditions, HIV testing and results, "
-                    "and related diagnoses — and you authorize release of such information."
+                    "I understand that the information release/exchange will be treated in a confidential "
+                    "manner and will not be released to other persons or agencies without my specific "
+                    "authorization. This authorization expires a year from the date of my signature. I "
+                    "understand I have the right to revoke this consent at any time in writing except to the "
+                    "extent that information has already been released."
                 ),
                 "vi": (
-                    "Bạn hiểu hồ sơ có thể gồm tình trạng tâm thần, xét nghiệm HIV và kết quả, "
-                    "cùng chẩn đoán liên quan — và bạn cho phép tiết lộ các thông tin này."
-                ),
-            },
-            {
-                "en": (
-                    "Release will be kept confidential and not shared with others without your authorization. "
-                    "This authorization expires one year from your signature date. You may revoke it in "
-                    "writing at any time except for information already released."
-                ),
-                "vi": (
-                    "Việc tiết lộ được giữ bảo mật và không chia sẻ cho người khác nếu không có sự cho phép. "
-                    "Ủy quyền hết hạn sau một năm kể từ ngày ký. Bạn có thể hủy bằng văn bản bất cứ lúc nào, "
-                    "trừ thông tin đã tiết lộ trước đó."
+                    "Tôi hiểu rằng việc tiết lộ/trao đổi thông tin này sẽ được xử lý một cách bảo mật và sẽ "
+                    "không được cung cấp cho bất kỳ cá nhân hoặc tổ chức nào khác nếu không có sự cho phép "
+                    "cụ thể của tôi. Sự cho phép này sẽ hết hạn sau một năm kể từ ngày tôi ký tên. Tôi hiểu "
+                    "rằng tôi có quyền hủy bỏ sự đồng ý này bất cứ lúc nào bằng văn bản, trừ khi thông tin đã "
+                    "được tiết lộ trước thời điểm đó."
                 ),
             },
         ],
@@ -241,19 +242,26 @@ def _format_clause(text: str, form_id: str, lang: str) -> str:
     return text.format(subject=you)
 
 
-def build_consent_voice_section() -> str:
+def build_consent_voice_section(field_ids: frozenset[str] | set[str] | None = None) -> str:
+    blocks = CONSENT_BLOCKS
+    if field_ids is not None:
+        blocks = {k: v for k, v in CONSENT_BLOCKS.items() if k in field_ids}
+    if not blocks:
+        return ""
+
     lines = [
         "=== CONSENT SECTIONS (read clause-by-clause — mandatory) ===",
-        "For treatment_consent, hipaa_acknowledgement, electronic_communication_consent, "
-        "release_consent_acknowledgement:",
+        "For each consent field listed below:",
         "• BEFORE saving the field, read EVERY clause one at a time.",
         "• Format: \"[Section] has N terms. Term 1 of N: [read clause]. Do you agree?\"",
         "• Wait for clear yes/no after EACH term. Do NOT combine multiple terms in one question.",
         "• Only after ALL terms are agreed, call update_form_field with true.",
         "• If patient says no, explain they may ask questions; cannot check consent without agreement.",
         "• Do NOT use the final summary confirmation for individual consent clauses.",
+        "• Reading standard clinic consent text (privacy, treatment, records release) is REQUIRED —",
+        "  never refuse or say you are only a language model.",
     ]
-    for field_id, block in CONSENT_BLOCKS.items():
+    for field_id, block in blocks.items():
         count = len(block["clauses"])
         lines.append(f"• {field_id}: {count} terms — {block['title_en']}")
     return "\n".join(lines)

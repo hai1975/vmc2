@@ -19,6 +19,17 @@ SIMPLE_PREFILL_SOURCES: dict[str, str] = {
 
 AUTO_PREFILL_FIELDS = frozenset(SIMPLE_PREFILL_SOURCES.keys()) | frozenset({"consent_signer_name"})
 
+# Do not ask via voice — destination is fixed on the PDF (VM Medical Group). Leave blank on fill.
+VOICE_SKIP_FIELDS = frozenset(
+    {
+        "provider_facility_name",
+        "provider_phone",
+        "provider_fax",
+    }
+)
+
+BLANK_VALUE = "__blank__"
+
 # Backward-compatible alias used by authorization module consumers.
 AUTHORIZATION_PREFILL_SOURCES = {
     k: v
@@ -53,6 +64,12 @@ def apply_field_prefill(answers: dict, form_id: str = "") -> dict:
     signer = _resolve_consent_signer_name(merged, form_id)
     if signer is not None and _is_blank(merged.get("consent_signer_name")):
         merged["consent_signer_name"] = signer
+
+    # Provider lookup removed — leave these empty on the PDF unless already set.
+    for field_id in VOICE_SKIP_FIELDS:
+        if _is_blank(merged.get(field_id)):
+            merged[field_id] = BLANK_VALUE
+
     return apply_medical_history_cascades(merged)
 
 
@@ -103,25 +120,11 @@ def apply_field_prefill_voice_hints(
         progress["voice_instruction"] = f"{progress.get('voice_instruction', '')} {hint}".strip()
 
     next_id = progress.get("next_field_id")
-    if next_id in AUTO_PREFILL_FIELDS:
+    if next_id in AUTO_PREFILL_FIELDS or next_id in VOICE_SKIP_FIELDS:
         skip_hint = (
-            f"SKIP {next_id}: already auto-filled — call update_form_field only if value changed, "
-            "otherwise advance to the next unfilled field."
+            f"SKIP {next_id}: already auto-filled or not asked — advance to the next unfilled field."
         )
         progress["voice_instruction"] = f"{progress.get('voice_instruction', '')} {skip_hint}".strip()
-
-    if next_id == "provider_facility_name":
-        if session_language == "vi":
-            lookup_hint = (
-                "PROVIDER LOOKUP: Nếu bệnh nhân cho tên/địa chỉ một phần, gọi lookup_provider_facility "
-                "trước khi lưu — đọc kết quả và xác nhận với họ."
-            )
-        else:
-            lookup_hint = (
-                "PROVIDER LOOKUP: If patient gives partial clinic/doctor name or address, "
-                "call lookup_provider_facility before saving — read the match and confirm with them."
-            )
-        progress["voice_instruction"] = f"{progress.get('voice_instruction', '')} {lookup_hint}".strip()
     return progress
 
 
@@ -133,19 +136,16 @@ def build_field_prefill_voice_section() -> str:
             "  fields on later pages — do NOT ask the patient again:",
             "  - medical_history_patient_name, medical_history_dob (page 2 BỆNH LÝ header)",
             "  - consent_signer_name (page 3 signature — guardian for child forms, else patient)",
-            "  - authorization_patient_name, authorization_dob, release_authorization_name (page 4)",
-            "• These are filled automatically by the system when source fields are saved.",
-            "• Continue with the next field that still needs a real answer (e.g. med_cond_diabetes).",
+            "  - authorization_patient_name, authorization_dob, release_authorization_name (authorization)",
+            "• NEVER ask provider_facility_name, provider_phone, or provider_fax —",
+            "  records release destination is printed on the form (VM Medical Group). Skip those fields.",
+            "• Do NOT call lookup_provider_facility.",
+            "• Continue with the next field that still needs a real answer.",
             "",
             "=== AUTHORIZATION FOR RELEASE OF INFORMATION ===",
-            "• Ask provider_facility_name: doctor/clinic where records should be released FROM.",
-            "  Say none / không có if records go only to VM Clinic.",
-            "• If patient gives partial clinic or doctor name or address, call lookup_provider_facility",
-            "  with their hint, then read the best match and ask to confirm before saving.",
-            "• After provider_facility_name, collect provider_phone and provider_fax when known;",
-            "  use __blank__ if unknown after lookup or patient has no number.",
-            "• Then records_to_release, disclosure_purpose, and release_consent_acknowledgement",
-            "  (read consent clauses one-by-one per consent rules).",
+            "• Collect records_to_release and disclosure_purpose.",
+            "• Then release_consent_acknowledgement — read the TWO consent paragraphs one-by-one",
+            "  (see CONSENT SECTIONS) before saving true.",
         ]
     )
 

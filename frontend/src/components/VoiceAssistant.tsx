@@ -15,8 +15,13 @@ interface VoiceAssistantProps {
   sessionId: string | null
   formId: string | null
   language: Language
+  currentPage?: number
   onAnswersUpdate: (answers: Record<string, unknown>) => void
   onFormSelected?: (result: SelectFormResult) => void | Promise<void>
+  onNavigatePage?: (
+    action: 'next' | 'back' | 'goto',
+    page?: number,
+  ) => { ok: boolean; page: number; total_pages: number }
   onStatusChange?: (status: GeminiLiveStatus) => void
 }
 
@@ -33,7 +38,19 @@ function statusLabel(status: GeminiLiveStatus, language: Language): string {
 }
 
 export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantProps>(
-  function VoiceAssistant({ sessionId, formId, language, onAnswersUpdate, onFormSelected, onStatusChange }, ref) {
+  function VoiceAssistant(
+    {
+      sessionId,
+      formId,
+      language,
+      currentPage = 1,
+      onAnswersUpdate,
+      onFormSelected,
+      onNavigatePage,
+      onStatusChange,
+    },
+    ref,
+  ) {
     const [status, setStatus] = useState<GeminiLiveStatus>('idle')
     const [transcript, setTranscript] = useState('')
     const [botMessage, setBotMessage] = useState('')
@@ -45,9 +62,19 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
     const ringRef = useRef<ConnectionRingtone | null>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
     const videoStreamerRef = useRef<VideoFrameStreamer | null>(null)
+    const refusalRetryRef = useRef(0)
+    const pageRef = useRef(currentPage)
+    const reconnectingRef = useRef(false)
+    const voiceActiveRef = useRef(false)
 
     const updateStatus = (next: GeminiLiveStatus) => {
       setStatus(next)
+      const active =
+        next === 'connecting' ||
+        next === 'connected' ||
+        next === 'listening' ||
+        next === 'speaking'
+      voiceActiveRef.current = active
       onStatusChange?.(next)
     }
 
@@ -100,6 +127,7 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
       liveRef.current = null
       setStatus('idle')
       onStatusChange?.('idle')
+      voiceActiveRef.current = false
       setTranscript('')
       setBotMessage('')
       setError('')
@@ -124,11 +152,17 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
       void ringRef.current?.stop()
     }
 
-    const startVoice = async () => {
+    const sectionPageForApi = () => {
+      if (!formId || formId === 'triage') return undefined
+      return pageRef.current
+    }
+
+    const startVoice = async (opts?: { quiet?: boolean }) => {
       if (!sessionId) return
       setError('')
       setBotMessage('')
       setCameraError('')
+      if (!opts?.quiet) refusalRetryRef.current = 0
 
       await liveRef.current?.disconnect()
       await stopCamera()
@@ -136,10 +170,11 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
 
       try {
         updateStatus('connecting')
-        void ringRef.current?.start()
+        if (!opts?.quiet) void ringRef.current?.start()
 
-        const liveToken = await api.createLiveToken(sessionId)
-        const voiceConfig = await api.getVoiceConfig(sessionId)
+        const page = sectionPageForApi()
+        const liveToken = await api.createLiveToken(sessionId, page)
+        const voiceConfig = await api.getVoiceConfig(sessionId, page)
         const session = new GeminiLiveSession()
         liveRef.current = session
 
@@ -147,53 +182,86 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
           liveToken.token,
           liveToken.model,
           {
-          onStatus: (next) => {
-            updateStatus(next)
-            if (next === 'connected') {
+            onStatus: (next) => {
+              updateStatus(next)
+              if (next === 'connected') {
+                stopRingtone()
+                if (cameraOn) void startCamera(session)
+              } else if (next === 'error' || next === 'idle') stopRingtone()
+            },
+            onBotText: (text) => setBotMessage((prev) => (prev ? `${prev}${text}` : text)),
+            onUserText: setTranscript,
+            onError: (message) => {
               stopRingtone()
-              if (cameraOn) void startCamera(session)
-            } else if (next === 'error' || next === 'idle') stopRingtone()
-          },
-          onBotText: (text) => setBotMessage((prev) => (prev ? `${prev}${text}` : text)),
-          onUserText: setTranscript,
-          onError: (message) => {
-            stopRingtone()
-            setError(message)
-          },
-          onFieldUpdate: async (fieldId, value) => {
-            const updated = await api.updateAnswers(sessionId, { [fieldId]: value })
-            startTransition(() => {
-              onAnswersUpdate(updated.answers)
-            })
-            const progress = await api.getFormProgress(sessionId, fieldId)
-            return { ...progress }
-          },
-          onBatchFieldUpdate: async (fields) => {
-            if (Object.keys(fields).length === 0) {
-              const progress = await api.getFormProgress(sessionId)
-              return { ...progress, saved_count: 0 }
-            }
-            const updated = await api.updateAnswers(sessionId, fields)
-            startTransition(() => {
-              onAnswersUpdate(updated.answers)
-            })
-            const progress = await api.getFormProgress(sessionId)
-            return { ...progress, saved_count: Object.keys(fields).length }
-          },
-          onProviderLookup: async (query) => api.lookupProvider(sessionId, query),
+              if (message.startsWith('MODEL_REFUSAL:') && refusalRetryRef.current < 1) {
+                refusalRetryRef.current += 1
+                setError(
+                  language === 'vi'
+                    ? 'Bot bị chặn tạm — đang kết nối lại...'
+                    : 'Bot was blocked — reconnecting...',
+                )
+                window.setTimeout(() => {
+                  void startVoice({ quiet: true })
+                }, 600)
+                return
+              }
+              setError(
+                message.startsWith('MODEL_REFUSAL:')
+                  ? language === 'vi'
+                    ? 'Bot từ chối phiên — bấm Nói lại giúp.'
+                    : 'Bot refused the session — tap Speak again.'
+                  : message,
+              )
+            },
+            onFieldUpdate: async (fieldId, value) => {
+              const updated = await api.updateAnswers(sessionId, { [fieldId]: value })
+              startTransition(() => {
+                onAnswersUpdate(updated.answers)
+              })
+              const progress = await api.getFormProgress(
+                sessionId,
+                fieldId,
+                sectionPageForApi(),
+              )
+              // Do NOT auto-jump pages here — that overrides patient requests (e.g. "go to page 4")
+              // and often sends them back to the first incomplete section (page 1).
+              // The bot must call navigate_form_page explicitly.
+              return { ...progress }
+            },
+            onBatchFieldUpdate: async (fields) => {
+              if (Object.keys(fields).length === 0) {
+                const progress = await api.getFormProgress(sessionId, undefined, sectionPageForApi())
+                return { ...progress, saved_count: 0 }
+              }
+              const updated = await api.updateAnswers(sessionId, fields)
+              startTransition(() => {
+                onAnswersUpdate(updated.answers)
+              })
+              const progress = await api.getFormProgress(sessionId, undefined, sectionPageForApi())
+              return { ...progress, saved_count: Object.keys(fields).length }
+            },
+            onProviderLookup: async (query) => api.lookupProvider(sessionId, query),
+            onNavigatePage: async (action, page) => {
+              if (!onNavigatePage) {
+                return { ok: false, page: pageRef.current, total_pages: 0 }
+              }
+              return onNavigatePage(action, page)
+            },
           onFormSelect: async (dob, voiceLanguage) => {
             const result = await api.selectForm(sessionId, dob, voiceLanguage)
             startTransition(() => {
               onAnswersUpdate(result.session.answers)
             })
+            setBotMessage('')
             await onFormSelected?.(result)
-            const [progress, voiceConfig] = await Promise.all([
-              api.getFormProgress(sessionId, 'birthday'),
-              api.getVoiceConfig(sessionId),
+            pageRef.current = 1
+            const [progress, nextVoiceConfig] = await Promise.all([
+              api.getFormProgress(sessionId, 'birthday', 1),
+              api.getVoiceConfig(sessionId, 1),
             ])
             return {
               ...progress,
-              registration_context: voiceConfig.system_instruction,
+              registration_context: nextVoiceConfig.system_instruction,
             }
           },
           },
@@ -207,6 +275,8 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
         updateStatus('error')
         const message = err instanceof Error ? err.message : 'Failed to start Gemini Live'
         setError(message)
+      } finally {
+        reconnectingRef.current = false
       }
     }
 
@@ -219,6 +289,18 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
       setError('')
     }
 
+    // Reconnect live session when user/bot switches section (avoids GoAway on long forms).
+    useEffect(() => {
+      if (pageRef.current === currentPage) return
+      pageRef.current = currentPage
+      if (!sessionId || !formId || formId === 'triage') return
+      if (!voiceActiveRef.current) return
+      if (reconnectingRef.current) return
+      reconnectingRef.current = true
+      void startVoice({ quiet: true })
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- reconnect only on page change
+    }, [currentPage])
+
     const isActive =
       status === 'connecting' ||
       status === 'connected' ||
@@ -226,7 +308,7 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
       status === 'speaking'
 
     useImperativeHandle(ref, () => ({
-      start: startVoice,
+      start: () => startVoice(),
       stop: stopVoice,
       isActive: () => isActive,
     }))
@@ -237,6 +319,13 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
       <div className="voice-panel">
         <div className="voice-strip">
           <span className={`status-pill status-${status}`}>{statusLabel(status, language)}</span>
+          {isActive && formId && formId !== 'triage' && (
+            <span className="voice-camera-badge">
+              {language === 'vi'
+                ? `Phần ${currentPage}`
+                : `Section ${currentPage}`}
+            </span>
+          )}
           {isActive && cameraLive && (
             <span className="voice-camera-badge">
               {language === 'vi' ? '📷 Bot đang xem webcam' : '📷 Bot viewing webcam'}

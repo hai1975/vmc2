@@ -1,10 +1,12 @@
 .app-shell {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
+  box-sizing: border-box;
 }
 
 .app-shell.loading {
@@ -528,6 +530,161 @@
   border: 1px solid #dbe5f0;
   border-radius: 12px;
   background: #f8fafc;
+}
+
+/* HTML form panel — real labels + web controls, PDF-like positions (no page image) */
+.form-panel-card {
+  gap: 0.75rem;
+}
+
+.form-panel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.form-panel-nav-btn {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.form-panel-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.form-panel-nav-btn:not(:disabled):hover {
+  border-color: #0f4c81;
+  color: #0f4c81;
+}
+
+.form-panel-nav-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 7rem;
+  text-align: center;
+}
+
+.form-panel-viewport {
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  max-height: min(78vh, 920px);
+  padding: 0.25rem 0 0.5rem;
+  background: #e8eef5;
+  border-radius: 12px;
+}
+
+.form-html-page {
+  position: relative;
+  flex-shrink: 0;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18);
+  border: 1px solid #dbe5f0;
+  overflow: hidden;
+}
+
+.form-html-title {
+  position: absolute;
+  margin: 0;
+  text-align: center;
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: 0.02em;
+}
+
+.form-html-label {
+  position: absolute;
+  z-index: 1;
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.form-html-label--group {
+  max-width: 120px;
+}
+
+.form-html-input,
+.form-html-textarea {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+  padding: 0 2px;
+  border: none;
+  border-bottom: 1px solid #333;
+  border-radius: 0;
+  background: transparent;
+  color: #111;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.form-html-textarea {
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  resize: none;
+  overflow: auto;
+  background: #fafafa;
+  padding: 2px 4px;
+}
+
+.form-html-input:focus,
+.form-html-textarea:focus,
+.form-html-input.is-active-field,
+.form-html-textarea.is-active-field {
+  outline: none;
+  border-bottom-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+}
+
+.form-html-check-row {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  max-width: 280px;
+  cursor: pointer;
+  font-family: 'Times New Roman', Times, serif;
+  color: #111;
+  line-height: 1.15;
+}
+
+.form-html-check-row.is-active-field {
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28);
+  background: rgba(239, 246, 255, 0.85);
+}
+
+.form-html-checkbox {
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: #0f4c81;
+  cursor: pointer;
+}
+
+.form-html-check-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pdf-canvas-view {

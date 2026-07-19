@@ -4,7 +4,11 @@ from pathlib import Path
 from app.config import settings
 from app.models import FormField, FormSchema, FormSummary
 from app.services.form_selector import ACTIVE_FORM_IDS, TRIAGE_FORM_ID
-from app.services.consent_voice import apply_consent_voice_hints, build_consent_voice_section
+from app.services.consent_voice import (
+    CONSENT_FIELD_IDS,
+    apply_consent_voice_hints,
+    build_consent_voice_section,
+)
 from app.services.medical_history_voice import (
     apply_medical_history_cascades,
     apply_medical_history_voice_hints,
@@ -19,6 +23,7 @@ from app.services.voice_addressing import (
     resolve_addressing,
 )
 from app.services.field_prefill import (
+    VOICE_SKIP_FIELDS,
     apply_field_prefill,
     apply_field_prefill_voice_hints,
     build_field_prefill_voice_section,
@@ -239,13 +244,62 @@ def normalize_field_value(field: FormField, value: object) -> object | None:
     return str(value).strip()
 
 
-def get_form_progress(schema: FormSchema, answers: dict) -> dict:
+FORM_PAGE_TITLES: dict[int, dict[str, str]] = {
+    1: {
+        "en": "Personal information, insurance, pharmacy, and treatment consent",
+        "vi": "Thông tin cá nhân, bảo hiểm, nhà thuốc và đồng ý điều trị",
+    },
+    2: {
+        "en": "Medical history, surgeries, medications, and allergies",
+        "vi": "Tiền sử bệnh, phẫu thuật, thuốc và dị ứng",
+    },
+    3: {
+        "en": "Family history, lifestyle, safety, privacy, and contacts",
+        "vi": "Tiền sử gia đình, lối sống, an toàn, quyền riêng tư và liên hệ",
+    },
+    4: {
+        "en": "Authorization for release of information",
+        "vi": "Ủy quyền tiết lộ thông tin",
+    },
+    5: {
+        "en": "Signature",
+        "vi": "Chữ ký",
+    },
+}
+
+
+def _max_form_page(schema: FormSchema) -> int:
+    max_page = max((field.page for field in schema.fields), default=1)
+    if schema.id.startswith("child"):
+        return max(max_page, 5)
+    if schema.id.startswith("adult"):
+        return max(max_page, 4)
+    return max_page
+
+
+def _voice_fields(schema: FormSchema, page: int | None = None) -> list:
+    fields = [f for f in schema.fields if f.id not in VOICE_SKIP_FIELDS]
+    if page is None:
+        return fields
+    return [f for f in fields if f.page == page]
+
+
+def voice_fields_for_section(schema: FormSchema, page: int | None = None) -> list:
+    """Fields the voicebot should collect (excludes provider lookup blanks)."""
+    return _voice_fields(schema, page)
+
+
+def get_form_progress(schema: FormSchema, answers: dict, page: int | None = None) -> dict:
+    """Progress for voice/UI. When page is set, next_field is scoped to that section only."""
     field_map = {field.id: field for field in schema.fields}
+    scope_fields = _voice_fields(schema, page)
+    all_voice_fields = _voice_fields(schema, None)
+
     missing_required: list[str] = []
     missing_optional: list[str] = []
     filled: dict[str, object] = {}
 
-    for field in schema.fields:
+    for field in scope_fields:
         value = answers.get(field.id)
         if _is_empty(value):
             if field.required:
@@ -255,18 +309,36 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
         else:
             filled[field.id] = value
 
+    global_missing_required: list[str] = []
+    global_missing_optional: list[str] = []
+    for field in all_voice_fields:
+        value = answers.get(field.id)
+        if _is_empty(value):
+            if field.required:
+                global_missing_required.append(field.id)
+            else:
+                global_missing_optional.append(field.id)
+
     next_field_id: str | None = None
-    for field in schema.fields:
+    for field in scope_fields:
         if field.id in missing_required or field.id in missing_optional:
             next_field_id = field.id
             break
 
     next_field = field_map.get(next_field_id) if next_field_id else None
-    ready_to_submit = len(missing_required) == 0
-    all_fields_collected = len(missing_required) == 0 and len(missing_optional) == 0
-    total_fields = len(schema.fields)
-    filled_count = len(filled)
-    remaining_count = len(missing_required) + len(missing_optional)
+    ready_to_submit = len(global_missing_required) == 0
+    all_fields_collected = (
+        len(global_missing_required) == 0 and len(global_missing_optional) == 0
+    )
+    section_complete = page is not None and next_field_id is None
+    total_pages = _max_form_page(schema)
+
+    suggest_next_page: int | None = None
+    if section_complete and not all_fields_collected:
+        for field in all_voice_fields:
+            if _is_empty(answers.get(field.id)):
+                suggest_next_page = field.page
+                break
 
     result: dict = {
         "filled_fields": filled,
@@ -275,16 +347,27 @@ def get_form_progress(schema: FormSchema, answers: dict) -> dict:
         "next_field_id": next_field_id,
         "ready_to_submit": ready_to_submit,
         "all_fields_collected": all_fields_collected,
-        "filled_count": filled_count,
-        "remaining_count": remaining_count,
-        "total_fields": total_fields,
+        "filled_count": len(filled),
+        "remaining_count": len(missing_required) + len(missing_optional),
+        "total_fields": len(scope_fields),
+        "section_page": page,
+        "section_complete": section_complete,
+        "suggest_next_page": suggest_next_page,
+        "total_pages": total_pages,
+        "global_remaining_count": len(global_missing_required) + len(global_missing_optional),
     }
     if next_field:
         result["next_field_required"] = next_field.required
+        result["next_field_page"] = next_field.page
         result["next_field_ask_en"] = next_field.voice_prompt.get("en", next_field.id)
         result["next_field_ask_vi"] = next_field.voice_prompt.get("vi", result["next_field_ask_en"])
         if next_field.options:
             result["next_field_allowed_values"] = [opt.value for opt in next_field.options]
+
+    if page is not None:
+        titles = FORM_PAGE_TITLES.get(page, {"en": f"Section {page}", "vi": f"Phần {page}"})
+        result["section_title_en"] = titles["en"]
+        result["section_title_vi"] = titles["vi"]
     return result
 
 
@@ -297,6 +380,25 @@ def build_say_next(progress: dict, session_language: str = "en") -> str | None:
                 "Tất cả thông tin trên đúng chưa ạ?"
             )
         return "Let me read back all the information you provided. Is everything correct?"
+    if progress.get("section_complete"):
+        next_page = progress.get("suggest_next_page")
+        title = progress.get("section_title_vi" if session_language == "vi" else "section_title_en")
+        if session_language == "vi":
+            if next_page:
+                return (
+                    f"Phần này ({title or 'hiện tại'}) đã xong. "
+                    f"Phần gợi ý tiếp theo là {next_page}, "
+                    "hoặc anh/chị muốn sang phần nào (ví dụ trang 4) thì nói số phần — "
+                    "em sẽ chuyển đúng phần đó."
+                )
+            return "Phần này đã xong ạ."
+        if next_page:
+            return (
+                f"This section ({title or 'current'}) is complete. "
+                f"Suggested next is section {next_page}, "
+                "or say which section you want (for example page 4) and I will go there."
+            )
+        return "This section is complete."
     ask_en = progress.get("next_field_ask_en")
     ask_vi = progress.get("next_field_ask_vi") or ask_en
     if not ask_en:
@@ -313,6 +415,24 @@ def build_say_next_bilingual(progress: dict) -> dict[str, str | None]:
             "en": "Let me read back all the information you provided. Is everything correct?",
             "vi": "Tôi xin đọc lại toàn bộ thông tin bạn đã cung cấp. Tất cả thông tin trên đúng chưa ạ?",
         }
+    if progress.get("section_complete"):
+        next_page = progress.get("suggest_next_page")
+        title_en = progress.get("section_title_en") or "current"
+        title_vi = progress.get("section_title_vi") or "hiện tại"
+        if next_page:
+            return {
+                "en": (
+                    f"This section ({title_en}) is complete. "
+                    f"Suggested next is section {next_page}, "
+                    "or say which section you want (for example page 4)."
+                ),
+                "vi": (
+                    f"Phần này ({title_vi}) đã xong. "
+                    f"Phần gợi ý tiếp theo là {next_page}, "
+                    "hoặc anh/chị muốn sang phần nào (ví dụ trang 4) thì nói số phần."
+                ),
+            }
+        return {"en": "This section is complete.", "vi": "Phần này đã xong ạ."}
     ask_en = progress.get("next_field_ask_en")
     ask_vi = progress.get("next_field_ask_vi") or ask_en
     if not ask_en:
@@ -336,6 +456,18 @@ def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> 
             "ALL fields are now collected. Read ONE full summary of everything. "
             "Ask ONCE whether ALL information is correct — this is the ONLY confirmation allowed."
         )
+    if progress.get("section_complete"):
+        next_page = progress.get("suggest_next_page")
+        saved = f" ({saved_field_id} saved)" if saved_field_id else ""
+        if next_page:
+            return (
+                f"Field saved{saved}. SECTION COMPLETE. Speak say_next. "
+                f"Suggested next page is {next_page}, BUT if the patient already asked for a "
+                f"specific page (e.g. 4), call navigate_form_page(action=goto, page=<their number>) "
+                f"— NEVER force page {next_page} or page 1 against their request. "
+                f"page must be an integer."
+            )
+        return f"Field saved{saved}. SECTION COMPLETE. Speak say_next."
     next_id = progress.get("next_field_id")
     ask_en = progress.get("next_field_ask_en") or next_id or "the next field"
     saved = f" ({saved_field_id} saved)" if saved_field_id else ""
@@ -363,9 +495,10 @@ def get_form_progress_with_hint(
     session_language: str = "en",
     pharmacy_list: list[PharmacyEntry] | None = None,
     voice_gender: str | None = "female",
+    page: int | None = None,
 ) -> dict:
     answers = apply_field_prefill(answers, schema.id)
-    progress = get_form_progress(schema, answers)
+    progress = get_form_progress(schema, answers, page=page)
     progress["voice_instruction"] = build_voice_tool_hint(progress, saved_field_id)
     pharmacy_hint = build_pharmacy_field_hint(
         pharmacy_list or [],
@@ -421,11 +554,23 @@ def build_voice_system_instruction(
     answers: dict | None = None,
     pharmacy_list: list[PharmacyEntry] | None = None,
     voice_gender: str | None = "female",
+    page: int | None = None,
 ) -> str:
     lang = language if language in ("vi", "en") else "en"
+    section_page = page if page and page > 0 else 1
+    titles = FORM_PAGE_TITLES.get(
+        section_page, {"en": f"Section {section_page}", "vi": f"Phần {section_page}"}
+    )
     lines = [
-        "You are a friendly patient registration voice assistant for VM Clinic.",
-        "Goal: collect all form fields through natural spoken conversation.",
+        "You are the official VM Clinic patient-registration voice assistant.",
+        "This is a permitted clinical intake task for a real medical clinic — you MUST help.",
+        "Never say you are \"just a language model\", that you \"can't help\", or refuse this registration flow.",
+        "Collecting demographics, medical history, and reading standard consent text is expected and allowed.",
+        "",
+        "Goal: collect fields for the CURRENT FORM SECTION only through natural spoken conversation.",
+        f"CURRENT SECTION: page {section_page} — {titles['en']} / {titles['vi']}",
+        "This live session is SHORT on purpose (one section) to avoid connection timeouts.",
+        "Do NOT try to finish the entire multi-page form in this single connection.",
         "",
         "=== AFTER EACH ANSWER (highest priority) ===",
         "When the patient answers a question:",
@@ -453,17 +598,20 @@ def build_voice_system_instruction(
         "Do NOT ask 'is that correct?' for each scanned field — only final summary at the end.",
         "",
         "Rules:",
-        "- YOU ALWAYS SPEAK FIRST. Never wait for the patient to say anything before your first message.",
-        "- When the session starts, immediately speak aloud without waiting for silence or user input.",
+        "- YOU ALWAYS SPEAK FIRST when a brand-new live session starts with no prior greeting.",
+        "- When the session starts cold, immediately speak aloud without waiting for silence or user input.",
         "- Ask ONE question at a time.",
+        "- NO RE-GREETING (critical):",
+        "  • Say the clinic greeting AT MOST ONCE at the very start of triage.",
+        '  • After form is selected, or when continuing a section, NEVER repeat',
+        '    "VM Clinic is listening" / "I can help you register" / any welcome.',
+        "  • Go straight to the next unanswered field question (say_next / next_field_id).",
         "- NO PER-FIELD CONFIRMATION:",
         "  • After saving, use say_next: optional brief varied ack, then NEXT question.",
         "  • Do NOT repeat 'tôi sẽ ghi vào' / 'I'll record that' every turn.",
         "  • NEVER echo the answer or ask 'is that correct?' for each field.",
         "  • The ONLY confirmation is the FINAL summary when all_fields_collected is true.",
         "- LANGUAGE RULES (critical — follow exactly):",
-        "  • OPENING ONLY in English: your first greeting and your first form question must be in English.",
-        '  • Opening greeting (English only): "VM Clinic is listening. I can help you register."',
         "  • After the patient responds even once, detect their language and use ONLY that language for every",
         "    subsequent word — questions, confirmations, reminders, and the submit message.",
         "  • If the patient speaks Vietnamese, switch to Vietnamese immediately and stay in Vietnamese.",
@@ -506,7 +654,8 @@ def build_voice_system_instruction(
         "  • For select optional fields: use an allowed value like not_disclose or unknown when patient",
         "    prefers not to answer; use __skipped__ only when they explicitly skip the whole question.",
         "- PROGRESS RULES (critical — do not invent numbers):",
-        "  • After each update_form_field, the tool returns filled_count, remaining_count, total_fields.",
+        "  • After each update_form_field, the tool returns filled_count, remaining_count, total_fields",
+        "    for THIS SECTION only.",
         "  • ONLY use those exact numbers if you mention progress — never guess or make up counts.",
         "  • Do NOT randomly announce progress every turn. At most occasionally remind remaining_count.",
         "  • If remaining_count is 0 and all_fields_collected is true, tell patient to click Submit.",
@@ -514,23 +663,33 @@ def build_voice_system_instruction(
         "- Encode value as JSON string: strings in quotes, booleans as true/false, arrays for multiselect.",
         "- For select/multiselect/boolean fields, ALWAYS use exact allowed_values — never save label text.",
         "- Example: insurance='uninsured' goes to field_id insurance, NOT guardian_1_name.",
-        "- Ask about EVERY field in schema order — required AND optional.",
-        "- Sections to cover (do not skip): page 1 personal/insurance/demographics/pharmacy/consent;",
-        "  page 2 medical history, surgeries, medications, allergies, caretaker, pediatric questions;",
-        "  page 3 family history, tobacco/alcohol/drugs, safety, vaccinations, TB, interpretation;",
-        "  page 4 HIPAA acknowledgement, release contacts, electronic communication consent,",
-        "  medical records authorization and disclosure purpose.",
+        "- Ask about EVERY field listed for THIS SECTION — required AND optional.",
+        "- SECTION / PAGE UI (critical):",
+        "  Adult forms have 4 sections; pediatric/child forms have 5 (page 5 is signature).",
+        "  Collect ONLY fields for the current section_page in this live session.",
+        "  When section_complete is true, speak say_next; suggested next page is optional.",
+        "  PATIENT PAGE REQUEST WINS: if they say 'page 4' / 'trang 4' / 'phần 4' / 'authorization',",
+        "  IMMEDIATELY call navigate_form_page(action=\"goto\", page=4) with page as INTEGER.",
+        "  Do NOT say you will go to page 1 when they asked for page 4.",
+        "  Do NOT substitute suggest_next_page for a page the patient named.",
+        "  When the patient says they want another section ('I want medical history', 'phần ủy quyền',",
+        "  'go to page 4', 'trang 2'), call navigate_form_page — current answers are already saved.",
+        "  After navigate_form_page, a NEW short live session starts for that section — stop listing",
+        "  fields from other pages.",
+        "  NEVER ask provider_facility_name / provider_phone / provider_fax — destination is printed",
+        "  on the PDF (VM Medical Group). Do NOT call lookup_provider_facility.",
         "- ready_to_submit=true only means required fields are done — you MUST keep asking optional",
-        "  fields until missing_optional is empty or the patient declines each one.",
-        "- Only tell the patient to click Submit when all_fields_collected is true.",
-        "- Do NOT stop early after insurance or personal info — continue through demographics and pharmacy.",
+        "  fields in this section until missing_optional is empty or the patient declines each one.",
+        "- Only tell the patient to click Submit when all_fields_collected is true (whole form).",
+        "- Do NOT stop early after insurance or personal info — finish the current section first.",
         "- When asking a field, use ask_en while still in the English opening phase; after switching to the patient's",
         "  language, use ask_vi for Vietnamese, or translate ask_en naturally for other languages.",
         "- When all_fields_collected is true, tell the patient clearly in THEIR current language:",
         '  English: "Please review the summary, then tap Submit on the screen to sign and take your photo."',
         '  Vietnamese: "Dạ, anh chị xem lại tóm tắt giúp em, rồi bấm Submit trên màn hình để ký và chụp hình ạ."',
         "  (Use correct xưng hô from ADDRESSING section once DOB/age is known.)",
-        "- IMMEDIATELY when the session begins, speak FIRST without waiting for the patient.",
+        "- IMMEDIATELY when a cold session begins with no prior talk, speak FIRST.",
+        "- For continuation after triage or section reconnect: NO greeting — ask next_field only.",
         "- Do NOT wait for the patient to speak, cough, or make any sound before you talk.",
         "",
         f"Form: {schema.title.get(lang, schema.title.get('en', schema.id))}",
@@ -544,51 +703,119 @@ def build_voice_system_instruction(
         ),
         "",
     ]
-    if pharmacy_list:
+
+    page_field_ids = {f.id for f in _voice_fields(schema, section_page)}
+    demographic_ids = {
+        "race",
+        "race_other_specify",
+        "ethnicity",
+        "gender_identity",
+        "sexual_orientation",
+    }
+    medical_ids = {
+        f.id
+        for f in _voice_fields(schema, section_page)
+        if f.id.startswith("med_cond_")
+        or f.id
+        in {
+            "cancer_type",
+            "other_medical_conditions",
+            "surgeries",
+            "current_medications",
+            "hospitalized_6_months",
+            "hospitalized_details",
+            "no_known_allergies",
+            "medication_allergies",
+            "food_allergies",
+            "environmental_allergies",
+            "medical_history_patient_name",
+            "medical_history_dob",
+            "main_caretaker",
+            "caretaker_relationship",
+            "pregnancy_complications",
+            "mother_return_activities",
+            "breastfeeding_or_formula",
+            "uses_car_seat",
+        }
+    }
+    consent_on_page = page_field_ids & CONSENT_FIELD_IDS
+    needs_pharmacy = bool(page_field_ids & {"pharmacy_name", "pharmacy_phone"})
+    needs_prefill = bool(
+        page_field_ids
+        & {
+            "medical_history_patient_name",
+            "medical_history_dob",
+            "consent_signer_name",
+            "authorization_patient_name",
+            "authorization_dob",
+            "release_authorization_name",
+            "records_to_release",
+            "disclosure_purpose",
+            "release_consent_acknowledgement",
+        }
+    )
+
+    if pharmacy_list and needs_pharmacy:
         lines.append(build_pharmacy_voice_section(pharmacy_list))
         lines.append("")
-    lines.append(build_demographic_voice_section())
-    lines.append("")
-    lines.append(build_medical_history_voice_section())
-    lines.append("")
-    lines.append(build_consent_voice_section())
-    lines.append("")
-    lines.append(build_field_prefill_voice_section())
-    lines.append("")
-    progress = get_form_progress(schema, apply_field_prefill(answers or {}, schema.id))
+    if page_field_ids & demographic_ids:
+        lines.append(build_demographic_voice_section())
+        lines.append("")
+    if medical_ids:
+        lines.append(build_medical_history_voice_section())
+        lines.append("")
+    if consent_on_page:
+        consent_section = build_consent_voice_section(consent_on_page)
+        if consent_section:
+            lines.append(consent_section)
+            lines.append("")
+    if needs_prefill:
+        lines.append(build_field_prefill_voice_section())
+        lines.append("")
+
+    progress = get_form_progress(
+        schema, apply_field_prefill(answers or {}, schema.id), page=section_page
+    )
     if progress["filled_fields"]:
-        lines.append("Already collected:")
+        lines.append(f"Already collected on section {section_page}:")
         for field_id, value in progress["filled_fields"].items():
             lines.append(f"  - {field_id}: {value}")
         lines.append("")
     if progress["missing_required"] or progress["missing_optional"]:
-        lines.append("Still need to collect (in order):")
-        for field in schema.fields:
+        lines.append(f"Still need on section {section_page} (in order):")
+        for field in _voice_fields(schema, section_page):
             if field.id in progress["missing_required"]:
                 lines.append(f"  - {field.id} (required)")
             elif field.id in progress["missing_optional"]:
                 lines.append(f"  - {field.id} (optional)")
         if progress.get("next_field_id"):
             lines.append(f"NEXT QUESTION MUST BE: {progress['next_field_id']}")
+            lines.append(f"NEXT FIELD PAGE: {section_page} (of {progress.get('total_pages', '?')})")
         lines.append("")
     if progress.get("all_fields_collected"):
         lines.append(
             "All fields collected. Read FULL summary once, ask if all correct, then tell patient to tap Submit."
         )
         lines.append("")
+    elif progress.get("section_complete"):
+        next_p = progress.get("suggest_next_page")
+        lines.append(
+            f"This section is complete. Call navigate_form_page(action=goto, page={next_p or section_page + 1})."
+        )
+        lines.append("")
     elif progress.get("ready_to_submit"):
         lines.append(
-            "Required fields are complete but optional fields remain — keep asking, do NOT say Submit yet."
+            "Required fields are complete but optional fields remain — keep asking this section, do NOT say Submit yet."
         )
         lines.append("")
     lines.extend([
-        "Fields:",
+        f"Fields for THIS SECTION (page {section_page}) only:",
     ])
-    for field in schema.fields:
+    for field in _voice_fields(schema, section_page):
         prompt_en = field.voice_prompt.get("en", field.id)
         prompt_vi = field.voice_prompt.get("vi", prompt_en)
         req = "required" if field.required else "optional"
-        lines.append(f"- {field.id} ({field.type}, {req})")
+        lines.append(f"- {field.id} ({field.type}, {req}, page {field.page})")
         lines.append(f"  ask_en: {prompt_en}")
         lines.append(f"  ask_vi: {prompt_vi}")
         if field.options:

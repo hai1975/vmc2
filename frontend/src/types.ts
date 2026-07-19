@@ -12,6 +12,14 @@ export interface FieldOption {
   label: Record<Language, string>
 }
 
+export interface FieldValidation {
+  x?: number
+  y?: number
+  maxLength?: number
+  render_as_check?: boolean
+  checkbox_positions?: Record<string, { x: number; y: number }>
+}
+
 export interface FormField {
   id: string
   type: string
@@ -21,6 +29,7 @@ export interface FormField {
   options?: FieldOption[]
   page: number
   section: string
+  validation?: FieldValidation | null
 }
 
 export interface FormSchema {
@@ -69,6 +78,7 @@ export interface VoiceConfig {
   system_instruction: string
   fields: FormField[]
   gemini_model: string
+  section_page?: number | null
 }
 
 export interface FormProgress {
@@ -76,11 +86,19 @@ export interface FormProgress {
   missing_required: string[]
   missing_optional: string[]
   next_field_id: string | null
+  next_field_page?: number | null
+  total_pages?: number
   ready_to_submit: boolean
   all_fields_collected?: boolean
   filled_count?: number
   remaining_count?: number
   total_fields?: number
+  section_page?: number | null
+  section_complete?: boolean
+  suggest_next_page?: number | null
+  section_title_en?: string | null
+  section_title_vi?: string | null
+  global_remaining_count?: number | null
   next_field_ask_en?: string
   next_field_ask_vi?: string
   voice_instruction?: string

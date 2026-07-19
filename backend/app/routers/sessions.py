@@ -33,6 +33,7 @@ from app.services.form_registry import (
     normalize_answers,
     preferred_voice_language,
     validate_answers,
+    voice_fields_for_section,
 )
 from app.services.form_selector import (
     TRIAGE_FORM_ID,
@@ -181,10 +182,25 @@ def scan_document(
 
 @router.post("/{session_id}/save", response_model=SessionResponse)
 def save_session(session_id: str, db: Session = Depends(get_db)):
+    """Save draft answers and write a filled PDF from the template (logo/banner intact)."""
     row = db.get(FormSession, session_id)
     if not row:
         raise HTTPException(status_code=404, detail="Session not found")
+    if row.form_id == TRIAGE_FORM_ID:
+        raise HTTPException(
+            status_code=400,
+            detail="Complete date-of-birth triage before saving a PDF",
+        )
 
+    schema = get_schema_or_raise(row.form_id)
+    answers = apply_field_prefill(loads_answers(row.answers_json), row.form_id)
+
+    try:
+        pdf_path = generate_filled_pdf(row.form_id, schema, answers, row.id, row.language)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    row.filled_pdf_path = str(pdf_path)
     row.status = SessionStatus.DRAFT.value
     row.updated_at = datetime.now(timezone.utc)
     db.commit()
@@ -343,6 +359,7 @@ def select_registration_form(
 def get_session_form_progress(
     session_id: str,
     saved_field: str | None = Query(default=None, alias="saved_field"),
+    page: int | None = Query(default=None, ge=1),
     db: Session = Depends(get_db),
 ):
     row = db.get(FormSession, session_id)
@@ -355,7 +372,7 @@ def get_session_form_progress(
     pharmacies = _pharmacy_list_from_settings(db)
     voice_gender = _voice_gender_from_settings(db)
     progress = get_form_progress_with_hint(
-        schema, answers, saved_field, voice_lang, pharmacies, voice_gender
+        schema, answers, saved_field, voice_lang, pharmacies, voice_gender, page=page
     )
     return FormProgressResponse(**progress)
 
@@ -391,7 +408,11 @@ def lookup_provider(
 
 
 @router.get("/{session_id}/voice-config", response_model=VoiceConfigResponse)
-def get_voice_config(session_id: str, db: Session = Depends(get_db)):
+def get_voice_config(
+    session_id: str,
+    page: int | None = Query(default=None, ge=1),
+    db: Session = Depends(get_db),
+):
     row = db.get(FormSession, session_id)
     if not row:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -400,6 +421,7 @@ def get_voice_config(session_id: str, db: Session = Depends(get_db)):
     answers = loads_answers(row.answers_json)
     voice_lang = preferred_voice_language(row.form_id, row.language)
     voice_gender = _voice_gender_from_settings(db)
+    section_page = page
 
     if row.form_id == TRIAGE_FORM_ID:
         cfg = get_all_settings(db)
@@ -408,22 +430,31 @@ def get_voice_config(session_id: str, db: Session = Depends(get_db)):
         except ValueError:
             threshold = 18
         system_instruction = build_triage_system_instruction(threshold, voice_gender)
+        fields = schema.fields
+        section_page = None
     else:
         pharmacies = _pharmacy_list_from_settings(db)
+        section_page = page or 1
         system_instruction = build_voice_system_instruction(
-            schema, voice_lang, answers, pharmacies, voice_gender
+            schema, voice_lang, answers, pharmacies, voice_gender, page=section_page
         )
+        fields = voice_fields_for_section(schema, section_page)
 
     return VoiceConfigResponse(
         form_id=row.form_id,
         system_instruction=system_instruction,
-        fields=schema.fields,
+        fields=fields,
         gemini_model=settings.gemini_live_model,
+        section_page=section_page,
     )
 
 
 @router.post("/{session_id}/live-token", response_model=LiveTokenResponse)
-def create_live_token(session_id: str, db: Session = Depends(get_db)):
+def create_live_token(
+    session_id: str,
+    page: int | None = Query(default=None, ge=1),
+    db: Session = Depends(get_db),
+):
     row = db.get(FormSession, session_id)
     if not row:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -442,8 +473,9 @@ def create_live_token(session_id: str, db: Session = Depends(get_db)):
         system_instruction = build_triage_system_instruction(threshold, voice_gender)
     else:
         pharmacies = _pharmacy_list_from_settings(db)
+        section_page = page or 1
         system_instruction = build_voice_system_instruction(
-            schema, voice_lang, answers, pharmacies, voice_gender
+            schema, voice_lang, answers, pharmacies, voice_gender, page=section_page
         )
 
     return create_live_ephemeral_token(

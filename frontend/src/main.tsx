@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { wakeApi } from './api/client'
 import './index.css'
+import './form-builder-theme.css'
 import App from './App.tsx'
 
 wakeApi()

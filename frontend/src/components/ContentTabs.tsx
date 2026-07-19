@@ -15,7 +15,7 @@ export function ContentTabs({ language, pdfPanel, answersPanel }: ContentTabsPro
   const tabs: { id: ContentTabId; label: string }[] = [
     {
       id: 'pdf',
-      label: language === 'vi' ? 'Xem PDF trực tiếp' : 'PDF Preview Live',
+      label: language === 'vi' ? 'Biểu mẫu đăng ký' : 'Registration Form',
     },
     {
       id: 'answers',
