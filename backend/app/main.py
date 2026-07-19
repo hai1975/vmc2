@@ -6,7 +6,8 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.config import settings
 from app.database import SessionLocal, init_db
-from app.routers import forms, mc, sessions
+from app.routers import forms, mc, mc_azure, sessions
+from app.routers.mc import MC_API_VERSION
 from app.routers import settings as settings_router
 from app.services.settings_store import seed_missing_settings
 
@@ -61,6 +62,7 @@ app.include_router(forms.router, prefix="/api")
 app.include_router(sessions.router, prefix="/api")
 app.include_router(mc.router, prefix="/api")
 app.include_router(settings_router.router, prefix="/api")
+app.include_router(mc_azure.router, prefix="/api")
 
 
 @app.get("/api/health")
@@ -68,5 +70,7 @@ def health():
     return {
         "status": "ok",
         "service": "vm-clinic-api",
+        "mc_api_version": MC_API_VERSION,
         "gemini_configured": bool(settings.gemini_api_key),
+        "azure_configured": bool(settings.azure_speech_key.strip() and settings.azure_speech_region.strip()),
     }
