@@ -66,6 +66,29 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
     const pageRef = useRef(currentPage)
     const reconnectingRef = useRef(false)
     const voiceActiveRef = useRef(false)
+    const onNavigatePageRef = useRef(onNavigatePage)
+    onNavigatePageRef.current = onNavigatePage
+
+    /** Keep on-screen form on the same section the voicebot is collecting. */
+    const syncFormToProgressPage = (progress: {
+      global_next_field_page?: number | null
+      suggest_next_page?: number | null
+      next_field_page?: number | null
+      section_complete?: boolean
+      all_fields_collected?: boolean
+    }) => {
+      if (progress.all_fields_collected) return
+      const target =
+        (typeof progress.global_next_field_page === 'number' && progress.global_next_field_page) ||
+        (progress.section_complete &&
+          typeof progress.suggest_next_page === 'number' &&
+          progress.suggest_next_page) ||
+        (typeof progress.next_field_page === 'number' && progress.next_field_page) ||
+        null
+      if (target == null || target < 1) return
+      if (target === pageRef.current) return
+      onNavigatePageRef.current?.('goto', target)
+    }
 
     const updateStatus = (next: GeminiLiveStatus) => {
       setStatus(next)
@@ -223,22 +246,13 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
                 fieldId,
                 sectionPageForApi(),
               )
-              // When this section is done, move UI to the next incomplete section (forward only).
-              // Patient-requested jumps still go through navigate_form_page.
-              if (
-                progress.section_complete &&
-                progress.suggest_next_page &&
-                onNavigatePage &&
-                !progress.all_fields_collected &&
-                progress.suggest_next_page > pageRef.current
-              ) {
-                onNavigatePage('goto', progress.suggest_next_page)
-              }
+              syncFormToProgressPage(progress)
               return { ...progress }
             },
             onBatchFieldUpdate: async (fields) => {
               if (Object.keys(fields).length === 0) {
                 const progress = await api.getFormProgress(sessionId, undefined, sectionPageForApi())
+                syncFormToProgressPage(progress)
                 return { ...progress, saved_count: 0 }
               }
               const updated = await api.updateAnswers(sessionId, fields)
@@ -246,21 +260,16 @@ export const VoiceAssistant = forwardRef<VoiceAssistantHandle, VoiceAssistantPro
                 onAnswersUpdate(updated.answers)
               })
               const progress = await api.getFormProgress(sessionId, undefined, sectionPageForApi())
+              syncFormToProgressPage(progress)
               return { ...progress, saved_count: Object.keys(fields).length }
             },
             onProviderLookup: async (query) => api.lookupProvider(sessionId, query),
             onNavigatePage: async (action, page) => {
-              if (!onNavigatePage) {
+              const nav = onNavigatePageRef.current
+              if (!nav) {
                 return { ok: false, page: pageRef.current, total_pages: 0 }
               }
-              const result = onNavigatePage(action, page)
-              // Keep pageRef in sync so reconnect effect sees the new section.
-              // Do NOT set pageRef before App state updates in a way that skips reconnect:
-              // only bump when React currentPage will change — effect compares after render.
-              if (result.ok && result.page !== pageRef.current) {
-                // Leave pageRef as-is until useEffect([currentPage]) runs reconnect.
-              }
-              return result
+              return nav(action, page)
             },
           onFormSelect: async (dob, voiceLanguage) => {
             const result = await api.selectForm(sessionId, dob, voiceLanguage)

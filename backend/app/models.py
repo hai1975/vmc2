@@ -88,6 +88,8 @@ class FormProgressResponse(BaseModel):
     section_title_en: str | None = None
     section_title_vi: str | None = None
     global_remaining_count: int | None = None
+    global_next_field_id: str | None = None
+    global_next_field_page: int | None = None
     voice_instruction: str | None = None
     say_next: str | None = None
     say_next_en: str | None = None

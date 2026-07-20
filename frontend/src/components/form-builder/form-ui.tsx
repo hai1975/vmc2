@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
+import { CLINIC_WORDMARK_URL } from '../../lib/brand'
 import {
   displayBoundText,
   fromDateInputValue,
@@ -12,9 +13,12 @@ export function FormPage({ title, subtitle, children }: { title: string; subtitl
     <div className="w-full bg-muted/30 py-6 px-3 sm:px-4">
       <div className="w-full bg-card text-card-foreground shadow-md rounded-md p-6 sm:p-8 border border-border">
         <header className="text-center mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">VM CLINIC</h1>
-          <p className="text-sm text-muted-foreground italic">Pediatric & Adult Medicine</p>
-          <h2 className="mt-3 text-lg font-semibold underline">{title}</h2>
+          <img
+            src={CLINIC_WORDMARK_URL}
+            alt="VM Clinic — Pediatric & Adult Medicine"
+            className="mx-auto h-14 sm:h-16 w-auto max-w-full object-contain"
+          />
+          <h2 className="mt-4 text-lg font-semibold underline">{title}</h2>
           {subtitle ? <p className="text-xs text-muted-foreground mt-1">{subtitle}</p> : null}
         </header>
         <form className="space-y-4 text-sm" onSubmit={(e) => e.preventDefault()}>
@@ -37,7 +41,8 @@ export function Section({ title, children }: { title: string; children: ReactNod
 /** Show children only when FormBind currentPage matches (or when no page filter). */
 export function PageGate({ page, children }: { page: number; children: ReactNode }) {
   const bind = useFormBind()
-  if (bind?.currentPage != null && bind.currentPage !== page) return null
+  const current = bind?.currentPage
+  if (current != null && Number(current) !== Number(page)) return null
   return <>{children}</>
 }
 

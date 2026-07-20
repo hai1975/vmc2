@@ -333,6 +333,14 @@ def get_form_progress(schema: FormSchema, answers: dict, page: int | None = None
     section_complete = page is not None and next_field_id is None
     total_pages = _max_form_page(schema)
 
+    # First unanswered field across the whole form (drives UI page sync even if bot skips navigate).
+    global_next_field_id: str | None = None
+    for field in all_voice_fields:
+        if _is_empty(answers.get(field.id)):
+            global_next_field_id = field.id
+            break
+    global_next_field = field_map.get(global_next_field_id) if global_next_field_id else None
+
     suggest_next_page: int | None = None
     if section_complete and not all_fields_collected:
         for field in all_voice_fields:
@@ -355,6 +363,8 @@ def get_form_progress(schema: FormSchema, answers: dict, page: int | None = None
         "suggest_next_page": suggest_next_page,
         "total_pages": total_pages,
         "global_remaining_count": len(global_missing_required) + len(global_missing_optional),
+        "global_next_field_id": global_next_field_id,
+        "global_next_field_page": global_next_field.page if global_next_field else None,
     }
     if next_field:
         result["next_field_required"] = next_field.required

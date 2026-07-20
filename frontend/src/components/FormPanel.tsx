@@ -122,7 +122,9 @@ export function FormPanel({
             {formLanguage === 'vi' ? 'Phần sau →' : 'Next →'}
           </button>
         </div>
-        <div className="w-full">{form}</div>
+        <div className="w-full" key={`${formId}-page-${currentPage}`}>
+          {form}
+        </div>
       </div>
     </FormBindProvider>
   )

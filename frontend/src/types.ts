@@ -99,6 +99,8 @@ export interface FormProgress {
   section_title_en?: string | null
   section_title_vi?: string | null
   global_remaining_count?: number | null
+  global_next_field_id?: string | null
+  global_next_field_page?: number | null
   next_field_ask_en?: string
   next_field_ask_vi?: string
   voice_instruction?: string
