@@ -20,15 +20,30 @@ SIMPLE_PREFILL_SOURCES: dict[str, str] = {
 AUTO_PREFILL_FIELDS = frozenset(SIMPLE_PREFILL_SOURCES.keys()) | frozenset({"consent_signer_name"})
 
 # Do not ask via voice — destination is fixed on the PDF (VM Medical Group). Leave blank on fill.
+# Authorization header fields are auto-copied; records/purpose defaulted — voice only reads 2 consents.
 VOICE_SKIP_FIELDS = frozenset(
     {
         "provider_facility_name",
         "provider_phone",
         "provider_fax",
+        "medical_history_patient_name",
+        "medical_history_dob",
+        "authorization_patient_name",
+        "authorization_dob",
+        "release_authorization_name",
+        "records_to_release",
+        "disclosure_purpose",
     }
 )
 
 BLANK_VALUE = "__blank__"
+SKIPPED_VALUE = "__skipped__"
+
+# Defaults for authorization checkboxes (not asked by voice).
+AUTHORIZATION_DEFAULTS: dict[str, object] = {
+    "records_to_release": ["complete_record"],
+    "disclosure_purpose": ["continuation_of_care"],
+}
 
 # Backward-compatible alias used by authorization module consumers.
 AUTHORIZATION_PREFILL_SOURCES = {
@@ -66,9 +81,14 @@ def apply_field_prefill(answers: dict, form_id: str = "") -> dict:
         merged["consent_signer_name"] = signer
 
     # Provider lookup removed — leave these empty on the PDF unless already set.
-    for field_id in VOICE_SKIP_FIELDS:
+    for field_id in ("provider_facility_name", "provider_phone", "provider_fax"):
         if _is_blank(merged.get(field_id)):
             merged[field_id] = BLANK_VALUE
+
+    # Authorization page: auto name/DOB already copied; default release checkboxes.
+    for field_id, default in AUTHORIZATION_DEFAULTS.items():
+        if _is_blank(merged.get(field_id)):
+            merged[field_id] = default
 
     return apply_medical_history_cascades(merged)
 
@@ -139,13 +159,19 @@ def build_field_prefill_voice_section() -> str:
             "  - authorization_patient_name, authorization_dob, release_authorization_name (authorization)",
             "• NEVER ask provider_facility_name, provider_phone, or provider_fax —",
             "  records release destination is printed on the form (VM Medical Group). Skip those fields.",
+            "• NEVER ask records_to_release or disclosure_purpose — they default automatically.",
             "• Do NOT call lookup_provider_facility.",
             "• Continue with the next field that still needs a real answer.",
             "",
             "=== AUTHORIZATION FOR RELEASE OF INFORMATION ===",
-            "• Collect records_to_release and disclosure_purpose.",
-            "• Then release_consent_acknowledgement — read the TWO consent paragraphs one-by-one",
-            "  (see CONSENT SECTIONS) before saving true.",
+            "• On this section, ONLY collect release_consent_acknowledgement.",
+            "• Read the TWO consent paragraphs one-by-one (see CONSENT SECTIONS), then save true.",
+            "• Do NOT ask patient name, DOB, provider, records types, or disclosure purpose on this page.",
+            "",
+            "=== TOBACCO / ALCOHOL / DRUGS ===",
+            "• If tobacco_use=no, do NOT ask tobacco_frequency (auto-skipped).",
+            "• If alcohol_use=no, do NOT ask alcohol_frequency (auto-skipped).",
+            "• If recreational_drugs=no, do NOT ask recreational_drugs_list (auto-skipped).",
         ]
     )
 

@@ -10,9 +10,11 @@ from app.services.consent_voice import (
     build_consent_voice_section,
 )
 from app.services.medical_history_voice import (
+    MEDICAL_CONDITION_FIELDS,
     apply_medical_history_cascades,
     apply_medical_history_voice_hints,
     build_medical_history_voice_section,
+    med_cond_field_id,
     migrate_legacy_medical_conditions,
 )
 from app.services.form_variant import build_form_variant_voice_section
@@ -369,8 +371,23 @@ def get_form_progress(schema: FormSchema, answers: dict, page: int | None = None
     if next_field:
         result["next_field_required"] = next_field.required
         result["next_field_page"] = next_field.page
-        result["next_field_ask_en"] = next_field.voice_prompt.get("en", next_field.id)
-        result["next_field_ask_vi"] = next_field.voice_prompt.get("vi", result["next_field_ask_en"])
+        # Prefer short medical-condition asks over long schema voice_prompt text.
+        med_override = next(
+            (
+                item
+                for item in MEDICAL_CONDITION_FIELDS
+                if med_cond_field_id(item["value"]) == next_field.id
+            ),
+            None,
+        )
+        if med_override:
+            result["next_field_ask_en"] = med_override["ask_en"]
+            result["next_field_ask_vi"] = med_override["ask_vi"]
+        else:
+            result["next_field_ask_en"] = next_field.voice_prompt.get("en", next_field.id)
+            result["next_field_ask_vi"] = next_field.voice_prompt.get(
+                "vi", result["next_field_ask_en"]
+            )
         if next_field.options:
             result["next_field_allowed_values"] = [opt.value for opt in next_field.options]
 
@@ -397,16 +414,13 @@ def build_say_next(progress: dict, session_language: str = "en") -> str | None:
             if next_page:
                 return (
                     f"Phần này ({title or 'hiện tại'}) đã xong. "
-                    f"Phần gợi ý tiếp theo là {next_page}, "
-                    "hoặc anh/chị muốn sang phần nào (ví dụ trang 4) thì nói số phần — "
-                    "em sẽ chuyển đúng phần đó."
+                    f"Em chuyển sang phần {next_page} ngay — chưa Submit đâu ạ."
                 )
             return "Phần này đã xong ạ."
         if next_page:
             return (
                 f"This section ({title or 'current'}) is complete. "
-                f"Suggested next is section {next_page}, "
-                "or say which section you want (for example page 4) and I will go there."
+                f"Moving to section {next_page} now — do not tap Submit yet."
             )
         return "This section is complete."
     ask_en = progress.get("next_field_ask_en")
@@ -433,13 +447,11 @@ def build_say_next_bilingual(progress: dict) -> dict[str, str | None]:
             return {
                 "en": (
                     f"This section ({title_en}) is complete. "
-                    f"Suggested next is section {next_page}, "
-                    "or say which section you want (for example page 4)."
+                    f"Moving to section {next_page} now — do not tap Submit yet."
                 ),
                 "vi": (
                     f"Phần này ({title_vi}) đã xong. "
-                    f"Phần gợi ý tiếp theo là {next_page}, "
-                    "hoặc anh/chị muốn sang phần nào (ví dụ trang 4) thì nói số phần."
+                    f"Em chuyển sang phần {next_page} ngay — chưa Submit đâu ạ."
                 ),
             }
         return {"en": "This section is complete.", "vi": "Phần này đã xong ạ."}
@@ -464,20 +476,20 @@ def build_voice_tool_hint(progress: dict, saved_field_id: str | None = None) -> 
         return (
             f"{forbidden} "
             "ALL fields are now collected. Read ONE full summary of everything. "
-            "Ask ONCE whether ALL information is correct — this is the ONLY confirmation allowed."
+            "Ask ONCE whether ALL information is correct — this is the ONLY confirmation allowed. "
+            "After they confirm, tell them ONCE to tap Submit — then STOP repeating Submit."
         )
     if progress.get("section_complete"):
         next_page = progress.get("suggest_next_page")
         saved = f" ({saved_field_id} saved)" if saved_field_id else ""
         if next_page:
             return (
-                f"Field saved{saved}. SECTION COMPLETE. Speak say_next. "
-                f"Suggested next page is {next_page}, BUT if the patient already asked for a "
-                f"specific page (e.g. 4), call navigate_form_page(action=goto, page=<their number>) "
-                f"— NEVER force page {next_page} or page 1 against their request. "
-                f"page must be an integer."
+                f"Field saved{saved}. SECTION COMPLETE — NOT ready to Submit. "
+                f"Speak say_next, then IMMEDIATELY call navigate_form_page(action=goto, page={next_page}). "
+                f"FORBIDDEN: saying Submit / bấm Submit / form is done. More sections remain. "
+                f"If patient asked for another page number, goto that page instead of {next_page}."
             )
-        return f"Field saved{saved}. SECTION COMPLETE. Speak say_next."
+        return f"Field saved{saved}. SECTION COMPLETE. Speak say_next. Do NOT say Submit."
     next_id = progress.get("next_field_id")
     ask_en = progress.get("next_field_ask_en") or next_id or "the next field"
     saved = f" ({saved_field_id} saved)" if saved_field_id else ""
@@ -665,10 +677,18 @@ def build_voice_system_instruction(
         "    prefers not to answer; use __skipped__ only when they explicitly skip the whole question.",
         "- PROGRESS RULES (critical — do not invent numbers):",
         "  • After each update_form_field, the tool returns filled_count, remaining_count, total_fields",
-        "    for THIS SECTION only.",
+        "    for THIS SECTION only — remaining_count=0 does NOT mean Submit.",
+        "  • ONLY say Submit when all_fields_collected is true (whole form).",
+        "  • When section_complete is true and suggest_next_page is set: navigate there — NEVER Submit.",
         "  • ONLY use those exact numbers if you mention progress — never guess or make up counts.",
         "  • Do NOT randomly announce progress every turn. At most occasionally remind remaining_count.",
-        "  • If remaining_count is 0 and all_fields_collected is true, tell patient to click Submit.",
+        "  • If remaining_count is 0 and all_fields_collected is true, tell patient to click Submit once.",
+        "- SIDE TALK / OTHER PEOPLE:",
+        "  • If the patient talks to someone else (not answering you), stay quiet briefly or say",
+        "    you are still waiting for their answer to the current question — do NOT restart the",
+        "    whole question loop. Listen for a clear answer to the current field only.",
+        "  • Do not re-ask the same question over and over while they chat with others.",
+        "  • When they return, continue from the SAME unanswered field — never re-ask completed fields.",
         "- If the patient declines an optional field, save __skipped__ and move to next_field_id.",
         "- Encode value as JSON string: strings in quotes, booleans as true/false, arrays for multiselect.",
         "- For select/multiselect/boolean fields, ALWAYS use exact allowed_values — never save label text.",
@@ -677,7 +697,8 @@ def build_voice_system_instruction(
         "- SECTION / PAGE UI (critical):",
         "  Adult forms have 4 sections; pediatric/child forms have 5 (page 5 is signature).",
         "  Collect ONLY fields for the current section_page in this live session.",
-        "  When section_complete is true, speak say_next; suggested next page is optional.",
+        "  When section_complete is true, speak say_next then call navigate_form_page(goto, next page).",
+        "  FORBIDDEN after page 1 (or any mid-form section): telling the patient to Submit.",
         "  PATIENT PAGE REQUEST WINS: if they say 'page 4' / 'trang 4' / 'phần 4' / 'authorization',",
         "  IMMEDIATELY call navigate_form_page(action=\"goto\", page=4) with page as INTEGER.",
         "  Do NOT say you will go to page 1 when they asked for page 4.",
@@ -688,9 +709,11 @@ def build_voice_system_instruction(
         "  fields from other pages.",
         "  NEVER ask provider_facility_name / provider_phone / provider_fax — destination is printed",
         "  on the PDF (VM Medical Group). Do NOT call lookup_provider_facility.",
+        "  On AUTHORIZATION page: ONLY release_consent_acknowledgement (2 consent paragraphs).",
         "- ready_to_submit=true only means required fields are done — you MUST keep asking optional",
         "  fields in this section until missing_optional is empty or the patient declines each one.",
         "- Only tell the patient to click Submit when all_fields_collected is true (whole form).",
+        "- After telling them to Submit once, do NOT keep asking them to Submit again.",
         "- Do NOT stop early after insurance or personal info within the CURRENT section —",
         "  finish this section's fields, OR jump if the patient asks for another page.",
         "- NEVER refuse a page jump. If patient says trang/page/phần 2/3/4, call navigate_form_page NOW.",
@@ -825,9 +848,16 @@ def build_voice_system_instruction(
     lines.extend([
         f"Fields for THIS SECTION (page {section_page}) only:",
     ])
+    med_ask = {
+        med_cond_field_id(item["value"]): (item["ask_en"], item["ask_vi"])
+        for item in MEDICAL_CONDITION_FIELDS
+    }
     for field in _voice_fields(schema, section_page):
-        prompt_en = field.voice_prompt.get("en", field.id)
-        prompt_vi = field.voice_prompt.get("vi", prompt_en)
+        if field.id in med_ask:
+            prompt_en, prompt_vi = med_ask[field.id]
+        else:
+            prompt_en = field.voice_prompt.get("en", field.id)
+            prompt_vi = field.voice_prompt.get("vi", prompt_en)
         req = "required" if field.required else "optional"
         lines.append(f"- {field.id} ({field.type}, {req}, page {field.page})")
         lines.append(f"  ask_en: {prompt_en}")

@@ -16,6 +16,13 @@ const VOICE_SKIP_FIELDS = new Set([
   'provider_facility_name',
   'provider_phone',
   'provider_fax',
+  'medical_history_patient_name',
+  'medical_history_dob',
+  'authorization_patient_name',
+  'authorization_dob',
+  'release_authorization_name',
+  'records_to_release',
+  'disclosure_purpose',
 ])
 
 function isFieldOpen(value: unknown): boolean {
@@ -193,6 +200,14 @@ function App() {
 
   const handleSubmitClick = () => {
     if (!session) return
+    if (session.status === 'submitted') {
+      setMessage(
+        language === 'vi'
+          ? 'Form đã được nộp trước đó.'
+          : 'This form was already submitted.',
+      )
+      return
+    }
     setSubmitOpen(true)
   }
 
@@ -209,8 +224,11 @@ function App() {
       const submitted = await api.submitSession(session.id)
       setSession(submitted)
       setSubmitOpen(false)
+      await voiceRef.current?.stop()
       let msg =
-        language === 'vi' ? 'Đã submit form thành công!' : 'Form submitted successfully!'
+        language === 'vi'
+          ? 'Đã nộp form thành công! Cảm ơn bạn.'
+          : 'Form submitted successfully! Thank you.'
       if (submitted.email_sent) {
         msg += language === 'vi' ? ' PDF đã gửi email.' : ' PDF emailed.'
       } else if (submitted.email_error) {
@@ -220,6 +238,7 @@ function App() {
             : ` (Email failed: ${submitted.email_error})`
       }
       setMessage(msg)
+      setError('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submit failed')
     } finally {
@@ -343,7 +362,7 @@ function App() {
           <button
             type="button"
             className={`icon-btn speak-btn ${voiceActive ? 'active' : ''}`}
-            disabled={!session || booting}
+            disabled={!session || booting || session.status === 'submitted'}
             onClick={() => void toggleVoice()}
             title={language === 'vi' ? 'Bắt đầu nói' : 'Start Speak'}
             aria-label={language === 'vi' ? 'Bắt đầu nói' : 'Start Speak'}
@@ -413,7 +432,7 @@ function App() {
           <button
             type="button"
             className="icon-btn primary"
-            disabled={!session || booting || !formReady}
+            disabled={!session || booting || !formReady || session.status === 'submitted'}
             onClick={() => handleSubmitClick()}
             title="Submit"
             aria-label="Submit"

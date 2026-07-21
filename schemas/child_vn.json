@@ -820,8 +820,8 @@
         "vi": "Tiểu đường"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with diabetes? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán tiểu đường không? Có hay không?"
+        "en": "Diabetes?",
+        "vi": "Tiểu đường?"
       },
       "required": false,
       "page": 2,
@@ -840,8 +840,8 @@
         "vi": "Cao huyết áp"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with high blood pressure? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán cao huyết áp không? Có hay không?"
+        "en": "High blood pressure?",
+        "vi": "Cao huyết áp?"
       },
       "required": false,
       "page": 2,
@@ -860,8 +860,8 @@
         "vi": "Cao mỡ máu"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with high cholesterol? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán cao mỡ máu không? Có hay không?"
+        "en": "High cholesterol?",
+        "vi": "Cao mỡ máu?"
       },
       "required": false,
       "page": 2,
@@ -880,8 +880,8 @@
         "vi": "Bệnh tim"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with heart disease? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán bệnh tim không? Có hay không?"
+        "en": "Heart disease?",
+        "vi": "Bệnh tim?"
       },
       "required": false,
       "page": 2,
@@ -900,8 +900,8 @@
         "vi": "Hen suyễn"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with asthma? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán hen suyễn không? Có hay không?"
+        "en": "Asthma?",
+        "vi": "Hen suyễn?"
       },
       "required": false,
       "page": 2,
@@ -920,8 +920,8 @@
         "vi": "Đột quỵ"
       },
       "voice_prompt": {
-        "en": "Have you ever had a stroke? Yes or no.",
-        "vi": "Bạn có từng bị đột quỵ không? Có hay không?"
+        "en": "Stroke?",
+        "vi": "Đột quỵ?"
       },
       "required": false,
       "page": 2,
@@ -940,8 +940,8 @@
         "vi": "Bệnh thận"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with kidney disease? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán bệnh thận không? Có hay không?"
+        "en": "Kidney disease?",
+        "vi": "Bệnh thận?"
       },
       "required": false,
       "page": 2,
@@ -960,8 +960,8 @@
         "vi": "Bệnh gan"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with liver disease? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán bệnh gan không? Có hay không?"
+        "en": "Liver disease?",
+        "vi": "Bệnh gan?"
       },
       "required": false,
       "page": 2,
@@ -980,8 +980,8 @@
         "vi": "Động kinh"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with seizures or epilepsy? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán động kinh không? Có hay không?"
+        "en": "Seizures or epilepsy?",
+        "vi": "Động kinh?"
       },
       "required": false,
       "page": 2,
@@ -1000,8 +1000,8 @@
         "vi": "Ung thư"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with cancer? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán ung thư không? Có hay không?"
+        "en": "Cancer?",
+        "vi": "Ung thư?"
       },
       "required": false,
       "page": 2,
@@ -1020,8 +1020,8 @@
         "vi": "Bệnh lý tâm thần"
       },
       "voice_prompt": {
-        "en": "Have you ever been diagnosed with a mental health condition such as depression or anxiety? Yes or no.",
-        "vi": "Bạn có từng được chẩn đoán bệnh lý tâm thần (ví dụ trầm cảm, lo âu) không? Có hay không?"
+        "en": "Mental health conditions (depression, anxiety)?",
+        "vi": "Bệnh lý tâm thần (trầm cảm, lo âu)?"
       },
       "required": false,
       "page": 2,
@@ -1553,7 +1553,7 @@
         "vi": "Hút thuốc"
       },
       "voice_prompt": {
-        "en": "Do you smoke or use tobacco? Yes or no.",
+        "en": "Do you smoke or use tobacco?",
         "vi": "Bạn có hút thuốc hoặc dùng thuốc lá không?"
       },
       "required": false,
@@ -1615,7 +1615,7 @@
         "vi": "Uống rượu"
       },
       "voice_prompt": {
-        "en": "Do you consume alcohol? Yes or no.",
+        "en": "Do you drink alcohol?",
         "vi": "Bạn có uống rượu không?"
       },
       "required": false,
@@ -2666,8 +2666,8 @@
         "vi": "Đồng ý tiết lộ hồ sơ"
       },
       "voice_prompt": {
-        "en": "Release authorization consent — read all 3 terms one by one before saving.",
-        "vi": "Đồng ý tiết lộ hồ sơ — đọc từng điều khoản trong 3 điều khoản trước khi lưu."
+        "en": "Authorization consent — read the 2 consent paragraphs one by one, then save true if the patient agrees.",
+        "vi": "Đồng ý ủy quyền — đọc 2 đoạn điều kiện lần lượt, rồi lưu true nếu bệnh nhân đồng ý."
       },
       "required": true,
       "page": 4,
